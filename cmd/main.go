@@ -41,6 +41,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
+
+	pdoknlv1alpha1 "git.dev.cloud.kadaster.nl/pdok/ogcapi-operator/api/v1alpha1"
+	"git.dev.cloud.kadaster.nl/pdok/ogcapi-operator/internal/controller"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -52,6 +55,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
+	utilruntime.Must(pdoknlv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -126,6 +130,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err = (&controller.OGCAPIReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "OGCAPI")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

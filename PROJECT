@@ -7,4 +7,13 @@ layout:
 - go.kubebuilder.io/v4
 projectName: ogcapi-operator
 repo: git.dev.cloud.kadaster.nl/pdok/ogcapi-operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: pdok.nl
+  kind: OGCAPI
+  path: git.dev.cloud.kadaster.nl/pdok/ogcapi-operator/api/v1alpha1
+  version: v1alpha1
 version: "3"
