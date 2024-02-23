@@ -1,0 +1,27 @@
+# permissions for end users to view ogcapis.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: ogcapi-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: ogcapi-operator
+    app.kubernetes.io/part-of: ogcapi-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: ogcapi-viewer-role
+rules:
+- apiGroups:
+  - pdok.nl
+  resources:
+  - ogcapis
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - pdok.nl
+  resources:
+  - ogcapis/status
+  verbs:
+  - get
