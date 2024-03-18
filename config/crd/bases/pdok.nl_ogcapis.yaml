@@ -39,10 +39,1826 @@ spec:
           spec:
             description: OGCAPISpec defines the desired state of OGCAPI
             properties:
-              foo:
-                description: Foo is an example field of OGCAPI. Edit ogcapi_types.go
-                  to remove/update
+              podImage:
+                description: Image name explicitly provided. So it can be managed
+                  with e.g. Kustomize. TODO maybe a default?
                 type: string
+              podSpecPatch:
+                description: Optional strategic merge patch for the pod in the deployment.
+                  E.g. to patch the resources or add extra env vars.
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              service:
+                properties:
+                  abstract:
+                    type: string
+                  availableLanguages:
+                    items:
+                      type: string
+                    type: array
+                  baseUrl:
+                    format: uri
+                    pattern: ^https?://.+
+                    type: string
+                  datasetCatalogUrl:
+                    format: uri
+                    pattern: ^https?://.+
+                    type: string
+                  datasetDetails:
+                    items:
+                      properties:
+                        name:
+                          type: string
+                        value:
+                          type: string
+                      required:
+                      - name
+                      - value
+                      type: object
+                    type: array
+                  datasetMetadata:
+                    properties:
+                      api:
+                        type: string
+                      dataset:
+                        type: string
+                      source:
+                        type: string
+                    required:
+                    - source
+                    type: object
+                  keywords:
+                    items:
+                      type: string
+                    type: array
+                  lastUpdated:
+                    format: date-time
+                    type: string
+                  lastUpdatedBy:
+                    type: string
+                  license:
+                    properties:
+                      name:
+                        type: string
+                      url:
+                        format: uri
+                        pattern: ^https?://.+
+                        type: string
+                    required:
+                    - name
+                    - url
+                    type: object
+                  ogcApi:
+                    properties:
+                      3dgeovolumes:
+                        properties:
+                          collections:
+                            items:
+                              properties:
+                                3dViewerUrl:
+                                  description: Optional URL to 3D viewer to visualize
+                                    the given collection of 3D Tiles.
+                                  format: uri
+                                  pattern: ^https?://.+
+                                  type: string
+                                datasources:
+                                  description: Optional collection specific datasources.
+                                    Mutually exclusive with top-level defined datasources.
+                                  properties:
+                                    additional:
+                                      items:
+                                        properties:
+                                          geopackage:
+                                            properties:
+                                              cloud:
+                                                description: Settings to read a GeoPackage
+                                                  as a Cloud-Backed SQLite database
+                                                properties:
+                                                  auth:
+                                                    description: |-
+                                                      some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                                      'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite
+                                                    type: string
+                                                  cache:
+                                                    description: local cache of fetched
+                                                      blocks from cloud storage
+                                                    properties:
+                                                      maxSize:
+                                                        default: 1Gb
+                                                        description: max size of the
+                                                          local cache. Accepts human-readable
+                                                          size such as 100Mb, 4Gb,
+                                                          1Tb, etc. When omitted 1Gb
+                                                          is used.
+                                                        type: string
+                                                      path:
+                                                        description: optional path
+                                                          to directory for caching
+                                                          cloud-backed GeoPackage
+                                                          blocks, when omitted a temp
+                                                          dir will be used.
+                                                        type: string
+                                                      warmUp:
+                                                        default: false
+                                                        description: when true a warm-up
+                                                          query is executed on startup
+                                                          which aims to fill the local
+                                                          cache. Does increase startup
+                                                          time.
+                                                        type: boolean
+                                                    required:
+                                                    - maxSize
+                                                    - warmUp
+                                                    type: object
+                                                  connection:
+                                                    description: |-
+                                                      reference to the cloud storage (either azure or google at the moment), e.g:
+                                                      - azure?emulator=127.0.0.1:10000&sas=0
+                                                      - google
+                                                    type: string
+                                                  container:
+                                                    description: container/bucket
+                                                      on the storage account
+                                                    type: string
+                                                  fid:
+                                                    default: fid
+                                                    description: feature id column
+                                                      name
+                                                    type: string
+                                                  file:
+                                                    description: filename of the GeoPackage
+                                                    type: string
+                                                  logHttpRequests:
+                                                    default: false
+                                                    description: only for debug purposes!
+                                                      When true all HTTP requests
+                                                      executed by sqlite to cloud
+                                                      object storage are logged to
+                                                      stdout
+                                                    type: boolean
+                                                  maxBBoxSizeToUseWithRTree:
+                                                    default: 30000
+                                                    description: when the number of
+                                                      features in a bbox stay within
+                                                      the given value use an RTree
+                                                      index, otherwise use a BTree
+                                                      index
+                                                    type: integer
+                                                  queryTimeout:
+                                                    default: 15s
+                                                    description: optional timeout
+                                                      after which queries are canceled
+                                                    format: duration
+                                                    type: string
+                                                  user:
+                                                    description: 'username of the
+                                                      storage account, e.g: devstoreaccount1
+                                                      when using Azurite'
+                                                    type: string
+                                                required:
+                                                - auth
+                                                - cache
+                                                - connection
+                                                - container
+                                                - fid
+                                                - file
+                                                - logHttpRequests
+                                                - maxBBoxSizeToUseWithRTree
+                                                - queryTimeout
+                                                - user
+                                                type: object
+                                              local:
+                                                description: Settings to read a GeoPackage
+                                                  from local disk
+                                                properties:
+                                                  fid:
+                                                    default: fid
+                                                    description: feature id column
+                                                      name
+                                                    type: string
+                                                  file:
+                                                    description: location of GeoPackage
+                                                      on disk
+                                                    type: string
+                                                  maxBBoxSizeToUseWithRTree:
+                                                    default: 30000
+                                                    description: when the number of
+                                                      features in a bbox stay within
+                                                      the given value use an RTree
+                                                      index, otherwise use a BTree
+                                                      index
+                                                    type: integer
+                                                  queryTimeout:
+                                                    default: 15s
+                                                    description: optional timeout
+                                                      after which queries are canceled
+                                                    format: duration
+                                                    type: string
+                                                required:
+                                                - fid
+                                                - file
+                                                - maxBBoxSizeToUseWithRTree
+                                                - queryTimeout
+                                                type: object
+                                            type: object
+                                          postgis:
+                                            type: object
+                                          srs:
+                                            pattern: ^EPSG:\d+$
+                                            type: string
+                                        required:
+                                        - srs
+                                        type: object
+                                      type: array
+                                    defaultWGS84:
+                                      properties:
+                                        geopackage:
+                                          properties:
+                                            cloud:
+                                              description: Settings to read a GeoPackage
+                                                as a Cloud-Backed SQLite database
+                                              properties:
+                                                auth:
+                                                  description: |-
+                                                    some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                                    'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite
+                                                  type: string
+                                                cache:
+                                                  description: local cache of fetched
+                                                    blocks from cloud storage
+                                                  properties:
+                                                    maxSize:
+                                                      default: 1Gb
+                                                      description: max size of the
+                                                        local cache. Accepts human-readable
+                                                        size such as 100Mb, 4Gb, 1Tb,
+                                                        etc. When omitted 1Gb is used.
+                                                      type: string
+                                                    path:
+                                                      description: optional path to
+                                                        directory for caching cloud-backed
+                                                        GeoPackage blocks, when omitted
+                                                        a temp dir will be used.
+                                                      type: string
+                                                    warmUp:
+                                                      default: false
+                                                      description: when true a warm-up
+                                                        query is executed on startup
+                                                        which aims to fill the local
+                                                        cache. Does increase startup
+                                                        time.
+                                                      type: boolean
+                                                  required:
+                                                  - maxSize
+                                                  - warmUp
+                                                  type: object
+                                                connection:
+                                                  description: |-
+                                                    reference to the cloud storage (either azure or google at the moment), e.g:
+                                                    - azure?emulator=127.0.0.1:10000&sas=0
+                                                    - google
+                                                  type: string
+                                                container:
+                                                  description: container/bucket on
+                                                    the storage account
+                                                  type: string
+                                                fid:
+                                                  default: fid
+                                                  description: feature id column name
+                                                  type: string
+                                                file:
+                                                  description: filename of the GeoPackage
+                                                  type: string
+                                                logHttpRequests:
+                                                  default: false
+                                                  description: only for debug purposes!
+                                                    When true all HTTP requests executed
+                                                    by sqlite to cloud object storage
+                                                    are logged to stdout
+                                                  type: boolean
+                                                maxBBoxSizeToUseWithRTree:
+                                                  default: 30000
+                                                  description: when the number of
+                                                    features in a bbox stay within
+                                                    the given value use an RTree index,
+                                                    otherwise use a BTree index
+                                                  type: integer
+                                                queryTimeout:
+                                                  default: 15s
+                                                  description: optional timeout after
+                                                    which queries are canceled
+                                                  format: duration
+                                                  type: string
+                                                user:
+                                                  description: 'username of the storage
+                                                    account, e.g: devstoreaccount1
+                                                    when using Azurite'
+                                                  type: string
+                                              required:
+                                              - auth
+                                              - cache
+                                              - connection
+                                              - container
+                                              - fid
+                                              - file
+                                              - logHttpRequests
+                                              - maxBBoxSizeToUseWithRTree
+                                              - queryTimeout
+                                              - user
+                                              type: object
+                                            local:
+                                              description: Settings to read a GeoPackage
+                                                from local disk
+                                              properties:
+                                                fid:
+                                                  default: fid
+                                                  description: feature id column name
+                                                  type: string
+                                                file:
+                                                  description: location of GeoPackage
+                                                    on disk
+                                                  type: string
+                                                maxBBoxSizeToUseWithRTree:
+                                                  default: 30000
+                                                  description: when the number of
+                                                    features in a bbox stay within
+                                                    the given value use an RTree index,
+                                                    otherwise use a BTree index
+                                                  type: integer
+                                                queryTimeout:
+                                                  default: 15s
+                                                  description: optional timeout after
+                                                    which queries are canceled
+                                                  format: duration
+                                                  type: string
+                                              required:
+                                              - fid
+                                              - file
+                                              - maxBBoxSizeToUseWithRTree
+                                              - queryTimeout
+                                              type: object
+                                          type: object
+                                        postgis:
+                                          type: object
+                                      type: object
+                                  required:
+                                  - additional
+                                  - defaultWGS84
+                                  type: object
+                                filters:
+                                  properties:
+                                    properties:
+                                      description: |-
+                                        OAF Part 1: filter on feature properties
+                                        https://docs.ogc.org/is/17-069r4/17-069r4.html#_parameters_for_filtering_on_feature_properties
+                                      items:
+                                        properties:
+                                          description:
+                                            default: Filter features by this property
+                                            type: string
+                                          name:
+                                            description: needs to match with a column
+                                              name in the feature table (in the configured
+                                              datasource)
+                                            type: string
+                                        required:
+                                        - description
+                                        - name
+                                        type: object
+                                      type: array
+                                  type: object
+                                id:
+                                  type: string
+                                metadata:
+                                  properties:
+                                    description:
+                                      type: string
+                                    extent:
+                                      properties:
+                                        bbox:
+                                          items:
+                                            type: string
+                                          type: array
+                                        interval:
+                                          items:
+                                            type: string
+                                          maxItems: 2
+                                          minItems: 2
+                                          type: array
+                                        srs:
+                                          pattern: ^EPSG:\d+$
+                                          type: string
+                                      required:
+                                      - bbox
+                                      - interval
+                                      - srs
+                                      type: object
+                                    keywords:
+                                      items:
+                                        type: string
+                                      type: array
+                                    lastUpdated:
+                                      format: date-time
+                                      type: string
+                                    lastUpdatedBy:
+                                      type: string
+                                    temporalProperties:
+                                      properties:
+                                        endDate:
+                                          type: string
+                                        startDate:
+                                          type: string
+                                      required:
+                                      - endDate
+                                      - startDate
+                                      type: object
+                                    thumbnail:
+                                      type: string
+                                    title:
+                                      type: string
+                                  required:
+                                  - description
+                                  type: object
+                                tableName:
+                                  description: Optional way to explicitly map a collection
+                                    ID to the underlying table in the datasource.
+                                  type: string
+                                tileServerPath:
+                                  description: Optional basepath to 3D tiles on the
+                                    tileserver. Defaults to the collection ID.
+                                  type: string
+                                uriTemplate3dTiles:
+                                  description: URI template for individual 3D tiles.
+                                  type: string
+                                uriTemplateDTM:
+                                  description: URI template for digital terrain model
+                                    (DTM) in Quantized Mesh format, REQUIRED when
+                                    you want to serve a DTM.
+                                  type: string
+                                uriTemplateImplicitTilingSubtree:
+                                  description: Optional URI template for subtrees,
+                                    only required when "implicit tiling" extension
+                                    is used.
+                                  type: string
+                              required:
+                              - id
+                              type: object
+                            type: array
+                          tileServer:
+                            format: uri
+                            pattern: ^https?://.+
+                            type: string
+                        required:
+                        - collections
+                        - tileServer
+                        type: object
+                      features:
+                        properties:
+                          basemap:
+                            default: OSM
+                            enum:
+                            - OSM
+                            - BRT
+                            type: string
+                          collections:
+                            items:
+                              properties:
+                                3dViewerUrl:
+                                  description: Optional URL to 3D viewer to visualize
+                                    the given collection of 3D Tiles.
+                                  format: uri
+                                  pattern: ^https?://.+
+                                  type: string
+                                datasources:
+                                  description: Optional collection specific datasources.
+                                    Mutually exclusive with top-level defined datasources.
+                                  properties:
+                                    additional:
+                                      items:
+                                        properties:
+                                          geopackage:
+                                            properties:
+                                              cloud:
+                                                description: Settings to read a GeoPackage
+                                                  as a Cloud-Backed SQLite database
+                                                properties:
+                                                  auth:
+                                                    description: |-
+                                                      some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                                      'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite
+                                                    type: string
+                                                  cache:
+                                                    description: local cache of fetched
+                                                      blocks from cloud storage
+                                                    properties:
+                                                      maxSize:
+                                                        default: 1Gb
+                                                        description: max size of the
+                                                          local cache. Accepts human-readable
+                                                          size such as 100Mb, 4Gb,
+                                                          1Tb, etc. When omitted 1Gb
+                                                          is used.
+                                                        type: string
+                                                      path:
+                                                        description: optional path
+                                                          to directory for caching
+                                                          cloud-backed GeoPackage
+                                                          blocks, when omitted a temp
+                                                          dir will be used.
+                                                        type: string
+                                                      warmUp:
+                                                        default: false
+                                                        description: when true a warm-up
+                                                          query is executed on startup
+                                                          which aims to fill the local
+                                                          cache. Does increase startup
+                                                          time.
+                                                        type: boolean
+                                                    required:
+                                                    - maxSize
+                                                    - warmUp
+                                                    type: object
+                                                  connection:
+                                                    description: |-
+                                                      reference to the cloud storage (either azure or google at the moment), e.g:
+                                                      - azure?emulator=127.0.0.1:10000&sas=0
+                                                      - google
+                                                    type: string
+                                                  container:
+                                                    description: container/bucket
+                                                      on the storage account
+                                                    type: string
+                                                  fid:
+                                                    default: fid
+                                                    description: feature id column
+                                                      name
+                                                    type: string
+                                                  file:
+                                                    description: filename of the GeoPackage
+                                                    type: string
+                                                  logHttpRequests:
+                                                    default: false
+                                                    description: only for debug purposes!
+                                                      When true all HTTP requests
+                                                      executed by sqlite to cloud
+                                                      object storage are logged to
+                                                      stdout
+                                                    type: boolean
+                                                  maxBBoxSizeToUseWithRTree:
+                                                    default: 30000
+                                                    description: when the number of
+                                                      features in a bbox stay within
+                                                      the given value use an RTree
+                                                      index, otherwise use a BTree
+                                                      index
+                                                    type: integer
+                                                  queryTimeout:
+                                                    default: 15s
+                                                    description: optional timeout
+                                                      after which queries are canceled
+                                                    format: duration
+                                                    type: string
+                                                  user:
+                                                    description: 'username of the
+                                                      storage account, e.g: devstoreaccount1
+                                                      when using Azurite'
+                                                    type: string
+                                                required:
+                                                - auth
+                                                - cache
+                                                - connection
+                                                - container
+                                                - fid
+                                                - file
+                                                - logHttpRequests
+                                                - maxBBoxSizeToUseWithRTree
+                                                - queryTimeout
+                                                - user
+                                                type: object
+                                              local:
+                                                description: Settings to read a GeoPackage
+                                                  from local disk
+                                                properties:
+                                                  fid:
+                                                    default: fid
+                                                    description: feature id column
+                                                      name
+                                                    type: string
+                                                  file:
+                                                    description: location of GeoPackage
+                                                      on disk
+                                                    type: string
+                                                  maxBBoxSizeToUseWithRTree:
+                                                    default: 30000
+                                                    description: when the number of
+                                                      features in a bbox stay within
+                                                      the given value use an RTree
+                                                      index, otherwise use a BTree
+                                                      index
+                                                    type: integer
+                                                  queryTimeout:
+                                                    default: 15s
+                                                    description: optional timeout
+                                                      after which queries are canceled
+                                                    format: duration
+                                                    type: string
+                                                required:
+                                                - fid
+                                                - file
+                                                - maxBBoxSizeToUseWithRTree
+                                                - queryTimeout
+                                                type: object
+                                            type: object
+                                          postgis:
+                                            type: object
+                                          srs:
+                                            pattern: ^EPSG:\d+$
+                                            type: string
+                                        required:
+                                        - srs
+                                        type: object
+                                      type: array
+                                    defaultWGS84:
+                                      properties:
+                                        geopackage:
+                                          properties:
+                                            cloud:
+                                              description: Settings to read a GeoPackage
+                                                as a Cloud-Backed SQLite database
+                                              properties:
+                                                auth:
+                                                  description: |-
+                                                    some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                                    'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite
+                                                  type: string
+                                                cache:
+                                                  description: local cache of fetched
+                                                    blocks from cloud storage
+                                                  properties:
+                                                    maxSize:
+                                                      default: 1Gb
+                                                      description: max size of the
+                                                        local cache. Accepts human-readable
+                                                        size such as 100Mb, 4Gb, 1Tb,
+                                                        etc. When omitted 1Gb is used.
+                                                      type: string
+                                                    path:
+                                                      description: optional path to
+                                                        directory for caching cloud-backed
+                                                        GeoPackage blocks, when omitted
+                                                        a temp dir will be used.
+                                                      type: string
+                                                    warmUp:
+                                                      default: false
+                                                      description: when true a warm-up
+                                                        query is executed on startup
+                                                        which aims to fill the local
+                                                        cache. Does increase startup
+                                                        time.
+                                                      type: boolean
+                                                  required:
+                                                  - maxSize
+                                                  - warmUp
+                                                  type: object
+                                                connection:
+                                                  description: |-
+                                                    reference to the cloud storage (either azure or google at the moment), e.g:
+                                                    - azure?emulator=127.0.0.1:10000&sas=0
+                                                    - google
+                                                  type: string
+                                                container:
+                                                  description: container/bucket on
+                                                    the storage account
+                                                  type: string
+                                                fid:
+                                                  default: fid
+                                                  description: feature id column name
+                                                  type: string
+                                                file:
+                                                  description: filename of the GeoPackage
+                                                  type: string
+                                                logHttpRequests:
+                                                  default: false
+                                                  description: only for debug purposes!
+                                                    When true all HTTP requests executed
+                                                    by sqlite to cloud object storage
+                                                    are logged to stdout
+                                                  type: boolean
+                                                maxBBoxSizeToUseWithRTree:
+                                                  default: 30000
+                                                  description: when the number of
+                                                    features in a bbox stay within
+                                                    the given value use an RTree index,
+                                                    otherwise use a BTree index
+                                                  type: integer
+                                                queryTimeout:
+                                                  default: 15s
+                                                  description: optional timeout after
+                                                    which queries are canceled
+                                                  format: duration
+                                                  type: string
+                                                user:
+                                                  description: 'username of the storage
+                                                    account, e.g: devstoreaccount1
+                                                    when using Azurite'
+                                                  type: string
+                                              required:
+                                              - auth
+                                              - cache
+                                              - connection
+                                              - container
+                                              - fid
+                                              - file
+                                              - logHttpRequests
+                                              - maxBBoxSizeToUseWithRTree
+                                              - queryTimeout
+                                              - user
+                                              type: object
+                                            local:
+                                              description: Settings to read a GeoPackage
+                                                from local disk
+                                              properties:
+                                                fid:
+                                                  default: fid
+                                                  description: feature id column name
+                                                  type: string
+                                                file:
+                                                  description: location of GeoPackage
+                                                    on disk
+                                                  type: string
+                                                maxBBoxSizeToUseWithRTree:
+                                                  default: 30000
+                                                  description: when the number of
+                                                    features in a bbox stay within
+                                                    the given value use an RTree index,
+                                                    otherwise use a BTree index
+                                                  type: integer
+                                                queryTimeout:
+                                                  default: 15s
+                                                  description: optional timeout after
+                                                    which queries are canceled
+                                                  format: duration
+                                                  type: string
+                                              required:
+                                              - fid
+                                              - file
+                                              - maxBBoxSizeToUseWithRTree
+                                              - queryTimeout
+                                              type: object
+                                          type: object
+                                        postgis:
+                                          type: object
+                                      type: object
+                                  required:
+                                  - additional
+                                  - defaultWGS84
+                                  type: object
+                                filters:
+                                  properties:
+                                    properties:
+                                      description: |-
+                                        OAF Part 1: filter on feature properties
+                                        https://docs.ogc.org/is/17-069r4/17-069r4.html#_parameters_for_filtering_on_feature_properties
+                                      items:
+                                        properties:
+                                          description:
+                                            default: Filter features by this property
+                                            type: string
+                                          name:
+                                            description: needs to match with a column
+                                              name in the feature table (in the configured
+                                              datasource)
+                                            type: string
+                                        required:
+                                        - description
+                                        - name
+                                        type: object
+                                      type: array
+                                  type: object
+                                id:
+                                  type: string
+                                metadata:
+                                  properties:
+                                    description:
+                                      type: string
+                                    extent:
+                                      properties:
+                                        bbox:
+                                          items:
+                                            type: string
+                                          type: array
+                                        interval:
+                                          items:
+                                            type: string
+                                          maxItems: 2
+                                          minItems: 2
+                                          type: array
+                                        srs:
+                                          pattern: ^EPSG:\d+$
+                                          type: string
+                                      required:
+                                      - bbox
+                                      - interval
+                                      - srs
+                                      type: object
+                                    keywords:
+                                      items:
+                                        type: string
+                                      type: array
+                                    lastUpdated:
+                                      format: date-time
+                                      type: string
+                                    lastUpdatedBy:
+                                      type: string
+                                    temporalProperties:
+                                      properties:
+                                        endDate:
+                                          type: string
+                                        startDate:
+                                          type: string
+                                      required:
+                                      - endDate
+                                      - startDate
+                                      type: object
+                                    thumbnail:
+                                      type: string
+                                    title:
+                                      type: string
+                                  required:
+                                  - description
+                                  type: object
+                                tableName:
+                                  description: Optional way to explicitly map a collection
+                                    ID to the underlying table in the datasource.
+                                  type: string
+                                tileServerPath:
+                                  description: Optional basepath to 3D tiles on the
+                                    tileserver. Defaults to the collection ID.
+                                  type: string
+                                uriTemplate3dTiles:
+                                  description: URI template for individual 3D tiles.
+                                  type: string
+                                uriTemplateDTM:
+                                  description: URI template for digital terrain model
+                                    (DTM) in Quantized Mesh format, REQUIRED when
+                                    you want to serve a DTM.
+                                  type: string
+                                uriTemplateImplicitTilingSubtree:
+                                  description: Optional URI template for subtrees,
+                                    only required when "implicit tiling" extension
+                                    is used.
+                                  type: string
+                              required:
+                              - id
+                              type: object
+                            type: array
+                          datasources:
+                            properties:
+                              additional:
+                                items:
+                                  properties:
+                                    geopackage:
+                                      properties:
+                                        cloud:
+                                          description: Settings to read a GeoPackage
+                                            as a Cloud-Backed SQLite database
+                                          properties:
+                                            auth:
+                                              description: |-
+                                                some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                                'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite
+                                              type: string
+                                            cache:
+                                              description: local cache of fetched
+                                                blocks from cloud storage
+                                              properties:
+                                                maxSize:
+                                                  default: 1Gb
+                                                  description: max size of the local
+                                                    cache. Accepts human-readable
+                                                    size such as 100Mb, 4Gb, 1Tb,
+                                                    etc. When omitted 1Gb is used.
+                                                  type: string
+                                                path:
+                                                  description: optional path to directory
+                                                    for caching cloud-backed GeoPackage
+                                                    blocks, when omitted a temp dir
+                                                    will be used.
+                                                  type: string
+                                                warmUp:
+                                                  default: false
+                                                  description: when true a warm-up
+                                                    query is executed on startup which
+                                                    aims to fill the local cache.
+                                                    Does increase startup time.
+                                                  type: boolean
+                                              required:
+                                              - maxSize
+                                              - warmUp
+                                              type: object
+                                            connection:
+                                              description: |-
+                                                reference to the cloud storage (either azure or google at the moment), e.g:
+                                                - azure?emulator=127.0.0.1:10000&sas=0
+                                                - google
+                                              type: string
+                                            container:
+                                              description: container/bucket on the
+                                                storage account
+                                              type: string
+                                            fid:
+                                              default: fid
+                                              description: feature id column name
+                                              type: string
+                                            file:
+                                              description: filename of the GeoPackage
+                                              type: string
+                                            logHttpRequests:
+                                              default: false
+                                              description: only for debug purposes!
+                                                When true all HTTP requests executed
+                                                by sqlite to cloud object storage
+                                                are logged to stdout
+                                              type: boolean
+                                            maxBBoxSizeToUseWithRTree:
+                                              default: 30000
+                                              description: when the number of features
+                                                in a bbox stay within the given value
+                                                use an RTree index, otherwise use
+                                                a BTree index
+                                              type: integer
+                                            queryTimeout:
+                                              default: 15s
+                                              description: optional timeout after
+                                                which queries are canceled
+                                              format: duration
+                                              type: string
+                                            user:
+                                              description: 'username of the storage
+                                                account, e.g: devstoreaccount1 when
+                                                using Azurite'
+                                              type: string
+                                          required:
+                                          - auth
+                                          - cache
+                                          - connection
+                                          - container
+                                          - fid
+                                          - file
+                                          - logHttpRequests
+                                          - maxBBoxSizeToUseWithRTree
+                                          - queryTimeout
+                                          - user
+                                          type: object
+                                        local:
+                                          description: Settings to read a GeoPackage
+                                            from local disk
+                                          properties:
+                                            fid:
+                                              default: fid
+                                              description: feature id column name
+                                              type: string
+                                            file:
+                                              description: location of GeoPackage
+                                                on disk
+                                              type: string
+                                            maxBBoxSizeToUseWithRTree:
+                                              default: 30000
+                                              description: when the number of features
+                                                in a bbox stay within the given value
+                                                use an RTree index, otherwise use
+                                                a BTree index
+                                              type: integer
+                                            queryTimeout:
+                                              default: 15s
+                                              description: optional timeout after
+                                                which queries are canceled
+                                              format: duration
+                                              type: string
+                                          required:
+                                          - fid
+                                          - file
+                                          - maxBBoxSizeToUseWithRTree
+                                          - queryTimeout
+                                          type: object
+                                      type: object
+                                    postgis:
+                                      type: object
+                                    srs:
+                                      pattern: ^EPSG:\d+$
+                                      type: string
+                                  required:
+                                  - srs
+                                  type: object
+                                type: array
+                              defaultWGS84:
+                                properties:
+                                  geopackage:
+                                    properties:
+                                      cloud:
+                                        description: Settings to read a GeoPackage
+                                          as a Cloud-Backed SQLite database
+                                        properties:
+                                          auth:
+                                            description: |-
+                                              some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                              'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite
+                                            type: string
+                                          cache:
+                                            description: local cache of fetched blocks
+                                              from cloud storage
+                                            properties:
+                                              maxSize:
+                                                default: 1Gb
+                                                description: max size of the local
+                                                  cache. Accepts human-readable size
+                                                  such as 100Mb, 4Gb, 1Tb, etc. When
+                                                  omitted 1Gb is used.
+                                                type: string
+                                              path:
+                                                description: optional path to directory
+                                                  for caching cloud-backed GeoPackage
+                                                  blocks, when omitted a temp dir
+                                                  will be used.
+                                                type: string
+                                              warmUp:
+                                                default: false
+                                                description: when true a warm-up query
+                                                  is executed on startup which aims
+                                                  to fill the local cache. Does increase
+                                                  startup time.
+                                                type: boolean
+                                            required:
+                                            - maxSize
+                                            - warmUp
+                                            type: object
+                                          connection:
+                                            description: |-
+                                              reference to the cloud storage (either azure or google at the moment), e.g:
+                                              - azure?emulator=127.0.0.1:10000&sas=0
+                                              - google
+                                            type: string
+                                          container:
+                                            description: container/bucket on the storage
+                                              account
+                                            type: string
+                                          fid:
+                                            default: fid
+                                            description: feature id column name
+                                            type: string
+                                          file:
+                                            description: filename of the GeoPackage
+                                            type: string
+                                          logHttpRequests:
+                                            default: false
+                                            description: only for debug purposes!
+                                              When true all HTTP requests executed
+                                              by sqlite to cloud object storage are
+                                              logged to stdout
+                                            type: boolean
+                                          maxBBoxSizeToUseWithRTree:
+                                            default: 30000
+                                            description: when the number of features
+                                              in a bbox stay within the given value
+                                              use an RTree index, otherwise use a
+                                              BTree index
+                                            type: integer
+                                          queryTimeout:
+                                            default: 15s
+                                            description: optional timeout after which
+                                              queries are canceled
+                                            format: duration
+                                            type: string
+                                          user:
+                                            description: 'username of the storage
+                                              account, e.g: devstoreaccount1 when
+                                              using Azurite'
+                                            type: string
+                                        required:
+                                        - auth
+                                        - cache
+                                        - connection
+                                        - container
+                                        - fid
+                                        - file
+                                        - logHttpRequests
+                                        - maxBBoxSizeToUseWithRTree
+                                        - queryTimeout
+                                        - user
+                                        type: object
+                                      local:
+                                        description: Settings to read a GeoPackage
+                                          from local disk
+                                        properties:
+                                          fid:
+                                            default: fid
+                                            description: feature id column name
+                                            type: string
+                                          file:
+                                            description: location of GeoPackage on
+                                              disk
+                                            type: string
+                                          maxBBoxSizeToUseWithRTree:
+                                            default: 30000
+                                            description: when the number of features
+                                              in a bbox stay within the given value
+                                              use an RTree index, otherwise use a
+                                              BTree index
+                                            type: integer
+                                          queryTimeout:
+                                            default: 15s
+                                            description: optional timeout after which
+                                              queries are canceled
+                                            format: duration
+                                            type: string
+                                        required:
+                                        - fid
+                                        - file
+                                        - maxBBoxSizeToUseWithRTree
+                                        - queryTimeout
+                                        type: object
+                                    type: object
+                                  postgis:
+                                    type: object
+                                type: object
+                            required:
+                            - additional
+                            - defaultWGS84
+                            type: object
+                          limit:
+                            properties:
+                              default:
+                                default: 10
+                                minimum: 2
+                                type: integer
+                              max:
+                                default: 1000
+                                minimum: 100
+                                type: integer
+                            required:
+                            - default
+                            - max
+                            type: object
+                          validateResponses:
+                            default: true
+                            description: |-
+                              Whether GeoJSON/JSON-FG responses will be validated against the OpenAPI spec
+                              since it has significant performance impact when dealing with large JSON payloads.
+                            type: boolean
+                        required:
+                        - basemap
+                        - collections
+                        - validateResponses
+                        type: object
+                      processes:
+                        properties:
+                          processesServer:
+                            format: uri
+                            pattern: ^https?://.+
+                            type: string
+                          supportsCallback:
+                            type: boolean
+                          supportsDismiss:
+                            type: boolean
+                        required:
+                        - processesServer
+                        - supportsCallback
+                        - supportsDismiss
+                        type: object
+                      styles:
+                        properties:
+                          default:
+                            type: string
+                          mapboxStylesPath:
+                            type: string
+                          supportedStyles:
+                            description: based on OGC API Styles Requirement 7B
+                            items:
+                              properties:
+                                created:
+                                  format: date-time
+                                  type: string
+                                description:
+                                  type: string
+                                id:
+                                  type: string
+                                keywords:
+                                  items:
+                                    type: string
+                                  type: array
+                                layers:
+                                  items:
+                                    properties:
+                                      id:
+                                        type: string
+                                      propertiesSchema:
+                                        type: object
+                                      sampleData:
+                                        properties:
+                                          assetFilename:
+                                            type: string
+                                          format:
+                                            type: string
+                                          href:
+                                            type: string
+                                          hreflang:
+                                            type: string
+                                          length:
+                                            type: integer
+                                          rel:
+                                            type: string
+                                          title:
+                                            type: string
+                                          type:
+                                            type: string
+                                        required:
+                                        - assetFilename
+                                        - rel
+                                        type: object
+                                      type:
+                                        type: string
+                                    required:
+                                    - id
+                                    - sampleData
+                                    type: object
+                                  type: array
+                                license:
+                                  type: string
+                                links:
+                                  description: Based on OGC API Features - http://schemas.opengis.net/ogcapi/features/part1/1.0/openapi/schemas/link.yaml
+                                    - as referenced by OGC API Styles Requirements
+                                    3B and 7B
+                                  items:
+                                    properties:
+                                      assetFilename:
+                                        type: string
+                                      format:
+                                        type: string
+                                      href:
+                                        type: string
+                                      hreflang:
+                                        type: string
+                                      length:
+                                        type: integer
+                                      rel:
+                                        type: string
+                                      title:
+                                        type: string
+                                      type:
+                                        type: string
+                                    required:
+                                    - assetFilename
+                                    - rel
+                                    type: object
+                                  type: array
+                                pointOfContact:
+                                  type: string
+                                scope:
+                                  type: string
+                                stylesheets:
+                                  description: Based on OGC API Styles Requirement
+                                    7B
+                                  items:
+                                    properties:
+                                      link:
+                                        description: Based on OGC API Features - http://schemas.opengis.net/ogcapi/features/part1/1.0/openapi/schemas/link.yaml
+                                          - as referenced by OGC API Styles Requirements
+                                          3B and 7B
+                                        properties:
+                                          assetFilename:
+                                            type: string
+                                          format:
+                                            type: string
+                                          href:
+                                            type: string
+                                          hreflang:
+                                            type: string
+                                          length:
+                                            type: integer
+                                          rel:
+                                            type: string
+                                          title:
+                                            type: string
+                                          type:
+                                            type: string
+                                        required:
+                                        - assetFilename
+                                        - rel
+                                        type: object
+                                      native:
+                                        type: boolean
+                                      specification:
+                                        type: string
+                                      title:
+                                        type: string
+                                      version:
+                                        type: string
+                                    required:
+                                    - link
+                                    type: object
+                                  type: array
+                                title:
+                                  type: string
+                                updated:
+                                  format: date-time
+                                  type: string
+                                version:
+                                  type: string
+                              required:
+                              - id
+                              - layers
+                              - links
+                              - stylesheets
+                              - title
+                              type: object
+                            type: array
+                        required:
+                        - default
+                        - mapboxStylesPath
+                        - supportedStyles
+                        type: object
+                      tiles:
+                        properties:
+                          collections:
+                            items:
+                              properties:
+                                3dViewerUrl:
+                                  description: Optional URL to 3D viewer to visualize
+                                    the given collection of 3D Tiles.
+                                  format: uri
+                                  pattern: ^https?://.+
+                                  type: string
+                                datasources:
+                                  description: Optional collection specific datasources.
+                                    Mutually exclusive with top-level defined datasources.
+                                  properties:
+                                    additional:
+                                      items:
+                                        properties:
+                                          geopackage:
+                                            properties:
+                                              cloud:
+                                                description: Settings to read a GeoPackage
+                                                  as a Cloud-Backed SQLite database
+                                                properties:
+                                                  auth:
+                                                    description: |-
+                                                      some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                                      'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite
+                                                    type: string
+                                                  cache:
+                                                    description: local cache of fetched
+                                                      blocks from cloud storage
+                                                    properties:
+                                                      maxSize:
+                                                        default: 1Gb
+                                                        description: max size of the
+                                                          local cache. Accepts human-readable
+                                                          size such as 100Mb, 4Gb,
+                                                          1Tb, etc. When omitted 1Gb
+                                                          is used.
+                                                        type: string
+                                                      path:
+                                                        description: optional path
+                                                          to directory for caching
+                                                          cloud-backed GeoPackage
+                                                          blocks, when omitted a temp
+                                                          dir will be used.
+                                                        type: string
+                                                      warmUp:
+                                                        default: false
+                                                        description: when true a warm-up
+                                                          query is executed on startup
+                                                          which aims to fill the local
+                                                          cache. Does increase startup
+                                                          time.
+                                                        type: boolean
+                                                    required:
+                                                    - maxSize
+                                                    - warmUp
+                                                    type: object
+                                                  connection:
+                                                    description: |-
+                                                      reference to the cloud storage (either azure or google at the moment), e.g:
+                                                      - azure?emulator=127.0.0.1:10000&sas=0
+                                                      - google
+                                                    type: string
+                                                  container:
+                                                    description: container/bucket
+                                                      on the storage account
+                                                    type: string
+                                                  fid:
+                                                    default: fid
+                                                    description: feature id column
+                                                      name
+                                                    type: string
+                                                  file:
+                                                    description: filename of the GeoPackage
+                                                    type: string
+                                                  logHttpRequests:
+                                                    default: false
+                                                    description: only for debug purposes!
+                                                      When true all HTTP requests
+                                                      executed by sqlite to cloud
+                                                      object storage are logged to
+                                                      stdout
+                                                    type: boolean
+                                                  maxBBoxSizeToUseWithRTree:
+                                                    default: 30000
+                                                    description: when the number of
+                                                      features in a bbox stay within
+                                                      the given value use an RTree
+                                                      index, otherwise use a BTree
+                                                      index
+                                                    type: integer
+                                                  queryTimeout:
+                                                    default: 15s
+                                                    description: optional timeout
+                                                      after which queries are canceled
+                                                    format: duration
+                                                    type: string
+                                                  user:
+                                                    description: 'username of the
+                                                      storage account, e.g: devstoreaccount1
+                                                      when using Azurite'
+                                                    type: string
+                                                required:
+                                                - auth
+                                                - cache
+                                                - connection
+                                                - container
+                                                - fid
+                                                - file
+                                                - logHttpRequests
+                                                - maxBBoxSizeToUseWithRTree
+                                                - queryTimeout
+                                                - user
+                                                type: object
+                                              local:
+                                                description: Settings to read a GeoPackage
+                                                  from local disk
+                                                properties:
+                                                  fid:
+                                                    default: fid
+                                                    description: feature id column
+                                                      name
+                                                    type: string
+                                                  file:
+                                                    description: location of GeoPackage
+                                                      on disk
+                                                    type: string
+                                                  maxBBoxSizeToUseWithRTree:
+                                                    default: 30000
+                                                    description: when the number of
+                                                      features in a bbox stay within
+                                                      the given value use an RTree
+                                                      index, otherwise use a BTree
+                                                      index
+                                                    type: integer
+                                                  queryTimeout:
+                                                    default: 15s
+                                                    description: optional timeout
+                                                      after which queries are canceled
+                                                    format: duration
+                                                    type: string
+                                                required:
+                                                - fid
+                                                - file
+                                                - maxBBoxSizeToUseWithRTree
+                                                - queryTimeout
+                                                type: object
+                                            type: object
+                                          postgis:
+                                            type: object
+                                          srs:
+                                            pattern: ^EPSG:\d+$
+                                            type: string
+                                        required:
+                                        - srs
+                                        type: object
+                                      type: array
+                                    defaultWGS84:
+                                      properties:
+                                        geopackage:
+                                          properties:
+                                            cloud:
+                                              description: Settings to read a GeoPackage
+                                                as a Cloud-Backed SQLite database
+                                              properties:
+                                                auth:
+                                                  description: |-
+                                                    some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                                    'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite
+                                                  type: string
+                                                cache:
+                                                  description: local cache of fetched
+                                                    blocks from cloud storage
+                                                  properties:
+                                                    maxSize:
+                                                      default: 1Gb
+                                                      description: max size of the
+                                                        local cache. Accepts human-readable
+                                                        size such as 100Mb, 4Gb, 1Tb,
+                                                        etc. When omitted 1Gb is used.
+                                                      type: string
+                                                    path:
+                                                      description: optional path to
+                                                        directory for caching cloud-backed
+                                                        GeoPackage blocks, when omitted
+                                                        a temp dir will be used.
+                                                      type: string
+                                                    warmUp:
+                                                      default: false
+                                                      description: when true a warm-up
+                                                        query is executed on startup
+                                                        which aims to fill the local
+                                                        cache. Does increase startup
+                                                        time.
+                                                      type: boolean
+                                                  required:
+                                                  - maxSize
+                                                  - warmUp
+                                                  type: object
+                                                connection:
+                                                  description: |-
+                                                    reference to the cloud storage (either azure or google at the moment), e.g:
+                                                    - azure?emulator=127.0.0.1:10000&sas=0
+                                                    - google
+                                                  type: string
+                                                container:
+                                                  description: container/bucket on
+                                                    the storage account
+                                                  type: string
+                                                fid:
+                                                  default: fid
+                                                  description: feature id column name
+                                                  type: string
+                                                file:
+                                                  description: filename of the GeoPackage
+                                                  type: string
+                                                logHttpRequests:
+                                                  default: false
+                                                  description: only for debug purposes!
+                                                    When true all HTTP requests executed
+                                                    by sqlite to cloud object storage
+                                                    are logged to stdout
+                                                  type: boolean
+                                                maxBBoxSizeToUseWithRTree:
+                                                  default: 30000
+                                                  description: when the number of
+                                                    features in a bbox stay within
+                                                    the given value use an RTree index,
+                                                    otherwise use a BTree index
+                                                  type: integer
+                                                queryTimeout:
+                                                  default: 15s
+                                                  description: optional timeout after
+                                                    which queries are canceled
+                                                  format: duration
+                                                  type: string
+                                                user:
+                                                  description: 'username of the storage
+                                                    account, e.g: devstoreaccount1
+                                                    when using Azurite'
+                                                  type: string
+                                              required:
+                                              - auth
+                                              - cache
+                                              - connection
+                                              - container
+                                              - fid
+                                              - file
+                                              - logHttpRequests
+                                              - maxBBoxSizeToUseWithRTree
+                                              - queryTimeout
+                                              - user
+                                              type: object
+                                            local:
+                                              description: Settings to read a GeoPackage
+                                                from local disk
+                                              properties:
+                                                fid:
+                                                  default: fid
+                                                  description: feature id column name
+                                                  type: string
+                                                file:
+                                                  description: location of GeoPackage
+                                                    on disk
+                                                  type: string
+                                                maxBBoxSizeToUseWithRTree:
+                                                  default: 30000
+                                                  description: when the number of
+                                                    features in a bbox stay within
+                                                    the given value use an RTree index,
+                                                    otherwise use a BTree index
+                                                  type: integer
+                                                queryTimeout:
+                                                  default: 15s
+                                                  description: optional timeout after
+                                                    which queries are canceled
+                                                  format: duration
+                                                  type: string
+                                              required:
+                                              - fid
+                                              - file
+                                              - maxBBoxSizeToUseWithRTree
+                                              - queryTimeout
+                                              type: object
+                                          type: object
+                                        postgis:
+                                          type: object
+                                      type: object
+                                  required:
+                                  - additional
+                                  - defaultWGS84
+                                  type: object
+                                filters:
+                                  properties:
+                                    properties:
+                                      description: |-
+                                        OAF Part 1: filter on feature properties
+                                        https://docs.ogc.org/is/17-069r4/17-069r4.html#_parameters_for_filtering_on_feature_properties
+                                      items:
+                                        properties:
+                                          description:
+                                            default: Filter features by this property
+                                            type: string
+                                          name:
+                                            description: needs to match with a column
+                                              name in the feature table (in the configured
+                                              datasource)
+                                            type: string
+                                        required:
+                                        - description
+                                        - name
+                                        type: object
+                                      type: array
+                                  type: object
+                                id:
+                                  type: string
+                                metadata:
+                                  properties:
+                                    description:
+                                      type: string
+                                    extent:
+                                      properties:
+                                        bbox:
+                                          items:
+                                            type: string
+                                          type: array
+                                        interval:
+                                          items:
+                                            type: string
+                                          maxItems: 2
+                                          minItems: 2
+                                          type: array
+                                        srs:
+                                          pattern: ^EPSG:\d+$
+                                          type: string
+                                      required:
+                                      - bbox
+                                      - interval
+                                      - srs
+                                      type: object
+                                    keywords:
+                                      items:
+                                        type: string
+                                      type: array
+                                    lastUpdated:
+                                      format: date-time
+                                      type: string
+                                    lastUpdatedBy:
+                                      type: string
+                                    temporalProperties:
+                                      properties:
+                                        endDate:
+                                          type: string
+                                        startDate:
+                                          type: string
+                                      required:
+                                      - endDate
+                                      - startDate
+                                      type: object
+                                    thumbnail:
+                                      type: string
+                                    title:
+                                      type: string
+                                  required:
+                                  - description
+                                  type: object
+                                tableName:
+                                  description: Optional way to explicitly map a collection
+                                    ID to the underlying table in the datasource.
+                                  type: string
+                                tileServerPath:
+                                  description: Optional basepath to 3D tiles on the
+                                    tileserver. Defaults to the collection ID.
+                                  type: string
+                                uriTemplate3dTiles:
+                                  description: URI template for individual 3D tiles.
+                                  type: string
+                                uriTemplateDTM:
+                                  description: URI template for digital terrain model
+                                    (DTM) in Quantized Mesh format, REQUIRED when
+                                    you want to serve a DTM.
+                                  type: string
+                                uriTemplateImplicitTilingSubtree:
+                                  description: Optional URI template for subtrees,
+                                    only required when "implicit tiling" extension
+                                    is used.
+                                  type: string
+                              required:
+                              - id
+                              type: object
+                            type: array
+                          supportedSrs:
+                            items:
+                              properties:
+                                srs:
+                                  pattern: ^EPSG:\d+$
+                                  type: string
+                                zoomLevelRange:
+                                  properties:
+                                    end:
+                                      type: integer
+                                    start:
+                                      minimum: 0
+                                      type: integer
+                                  required:
+                                  - end
+                                  - start
+                                  type: object
+                              required:
+                              - srs
+                              - zoomLevelRange
+                              type: object
+                            type: array
+                          tileServer:
+                            format: uri
+                            pattern: ^https?://.+
+                            type: string
+                          types:
+                            items:
+                              type: string
+                            type: array
+                          uriTemplateTiles:
+                            description: Optional template to the vector tiles on
+                              the tileserver. Defaults to {tms}/{z}/{x}/{y}.pbf.
+                            type: string
+                        required:
+                        - supportedSrs
+                        - tileServer
+                        - types
+                        type: object
+                    type: object
+                  resources:
+                    properties:
+                      directory:
+                        type: string
+                      url:
+                        format: uri
+                        pattern: ^https?://.+
+                        type: string
+                    required:
+                    - directory
+                    - url
+                    type: object
+                  serviceIdentifier:
+                    type: string
+                  support:
+                    properties:
+                      email:
+                        type: string
+                      name:
+                        type: string
+                      url:
+                        format: uri
+                        pattern: ^https?://.+
+                        type: string
+                    required:
+                    - name
+                    - url
+                    type: object
+                  thumbnail:
+                    type: string
+                  title:
+                    type: string
+                  version:
+                    type: string
+                required:
+                - abstract
+                - availableLanguages
+                - baseUrl
+                - datasetCatalogUrl
+                - license
+                - ogcApi
+                - serviceIdentifier
+                - title
+                - version
+                type: object
+            required:
+            - podImage
+            - service
             type: object
           status:
             description: OGCAPIStatus defines the observed state of OGCAPI

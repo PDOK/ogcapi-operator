@@ -9,4 +9,37 @@ metadata:
     app.kubernetes.io/created-by: ogcapi-operator
   name: ogcapi-sample
 spec:
-  # TODO(user): Add fields here
+  podImage: docker.io/pdok/gokoala:0.39.13
+  podSpecPatch:
+    volumes:
+      name: images
+      configMap:
+        name: some-suffixed-configmap-name-12345678
+    containers:
+      - name: gokoala
+        envFrom:
+          - configMapRef:
+              name: other-suffixed-configmap-name-abcdef01
+        volumeMounts:
+          - name: images
+            mountPath: /srv/resources
+        resources:
+          limits:
+            ephemeral-storage: 1Pi
+  service:
+    version: 1.0.0
+    title: My thing
+    serviceIdentifier: MT
+    abstract: >-
+      This is an example
+    keywords:
+      - keyword1
+      - keyword2
+    baseUrl: https://my.host.org/ogc
+    availableLanguages: [nl]
+    datasetCatalogUrl: https://my.host.org/ogc
+    license:
+      name: MIT
+      url: https://www.tldrlegal.com/license/mit-license
+    ogcApi: {}
+    # etc: etc... full gokoala config

@@ -5,6 +5,40 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscaler
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
   - pdok.nl
   resources:
   - ogcapis
@@ -30,3 +64,15 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - traefikio
+  resources:
+  - ingressroute
+  - middleware
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch

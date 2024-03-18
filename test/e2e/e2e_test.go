@@ -29,8 +29,8 @@ import (
 	"os/exec"
 	"time"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo/v2" //nolint:revive // ginkgo bdd
+	. "github.com/onsi/gomega"    //nolint:revive // ginkgo bdd
 
 	"github.com/PDOK/ogcapi-operator/test/utils"
 )
@@ -71,7 +71,7 @@ var _ = Describe("controller", Ordered, func() {
 			var projectimage = "example.com/ogcapi-operator:v0.0.1"
 
 			By("building the manager(Operator) image")
-			cmd := exec.Command("make", "docker-build", fmt.Sprintf("IMG=%s", projectimage))
+			cmd := exec.Command("make", "docker-build", "IMG="+projectimage)
 			_, err = utils.Run(cmd)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
@@ -82,9 +82,10 @@ var _ = Describe("controller", Ordered, func() {
 			By("installing CRDs")
 			cmd = exec.Command("make", "install")
 			_, err = utils.Run(cmd)
+			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
 			By("deploying the controller-manager")
-			cmd = exec.Command("make", "deploy", fmt.Sprintf("IMG=%s", projectimage))
+			cmd = exec.Command("make", "deploy", "IMG=%s"+projectimage)
 			_, err = utils.Run(cmd)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 

@@ -25,19 +25,21 @@ SOFTWARE.
 package v1alpha1
 
 import (
+	gokoalaconfig "github.com/PDOK/gokoala/config"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // OGCAPISpec defines the desired state of OGCAPI
 type OGCAPISpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of OGCAPI. Edit ogcapi_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Service gokoalaconfig.Config `json:"service"`
+	//+kubebuilder:validation:Type=object
+	//+kubebuilder:validation:Schemaless
+	//+kubebuilder:pruning:PreserveUnknownFields
+	// Optional strategic merge patch for the pod in the deployment. E.g. to patch the resources or add extra env vars.
+	PodSpecPatch *corev1.PodSpec `json:"podSpecPatch,omitempty"`
+	// Image name explicitly provided. So it can be managed with e.g. Kustomize. TODO maybe a default?
+	PodImage string `json:"podImage"`
 }
 
 // OGCAPIStatus defines the observed state of OGCAPI
