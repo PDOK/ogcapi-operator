@@ -25,13 +25,20 @@ SOFTWARE.
 package controller
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"testing"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	"golang.org/x/tools/go/packages"
+
+	pdoknlv1alpha1 "git.dev.cloud.kadaster.nl/pdok/ogcapi-operator/api/v1alpha1"
+	. "github.com/onsi/ginkgo/v2" //nolint:revive // ginkgo bdd
+	. "github.com/onsi/gomega"    //nolint:revive // ginkgo bdd
+	traefikiov1alpha1 "github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -39,8 +46,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	pdoknlv1alpha1 "git.dev.cloud.kadaster.nl/pdok/ogcapi-operator/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -61,10 +66,17 @@ var _ = BeforeSuite(func() {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
 	By("bootstrapping test environment")
+	traefikCRDPath := must(getTraefikCRDPath())
 	testEnv = &envtest.Environment{
-		CRDDirectoryPaths:     []string{filepath.Join("..", "..", "config", "crd", "bases")},
 		ErrorIfCRDPathMissing: true,
-
+		CRDInstallOptions: envtest.CRDInstallOptions{
+			Scheme: nil,
+			Paths: []string{
+				filepath.Join("..", "..", "config", "crd", "bases"),
+				traefikCRDPath,
+			},
+			ErrorIfPathMissing: true,
+		},
 		// The BinaryAssetsDirectory is only required if you want to run the tests directly
 		// without call the makefile target test. If not informed it will look for the
 		// default path defined in controller-runtime which is /usr/local/kubebuilder/.
@@ -79,6 +91,9 @@ var _ = BeforeSuite(func() {
 	cfg, err = testEnv.Start()
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
+
+	err = traefikiov1alpha1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
 
 	err = pdoknlv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
@@ -96,3 +111,24 @@ var _ = AfterSuite(func() {
 	err := testEnv.Stop()
 	Expect(err).NotTo(HaveOccurred())
 })
+
+func getTraefikCRDPath() (string, error) {
+	traefikModule, err := getModule("github.com/traefik/traefik/v2")
+	if err != nil {
+		return "", err
+	}
+	if traefikModule.Dir == "" {
+		return "", errors.New("cannot find path for traefik module")
+	}
+	return filepath.Join(traefikModule.Dir, "integration", "fixtures", "k8s", "01-traefik-crd.yml"), nil
+}
+
+func getModule(name string) (module *packages.Module, err error) {
+	out, err := exec.Command("go", "list", "-json", "-m", name).Output()
+	if err != nil {
+		return
+	}
+	module = &packages.Module{}
+	err = json.Unmarshal(out, module)
+	return
+}
