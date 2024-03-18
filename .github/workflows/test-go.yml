@@ -1,0 +1,39 @@
+---
+name: test (go)
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+permissions:
+  contents: write
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+
+      - name: Make test
+        run: |
+          make test
+          # remove generate code from coverage results
+          mv cover.out cover.out.tmp && grep -v "zz_generated" cover.out.tmp > cover.out
+          diffs="$(git status -s)"
+          [[ -n "$diffs" ]] && echo "there are diffs after make test: $diffs" && exit 1
+
+      - name: Update coverage report
+        uses: ncruces/go-coverage-report@v0
+        with:
+          coverage-file: cover.out
+          report: true
+          chart: false
+          amend: false
+          reuse-go: true
+        if: |
+          github.event_name == 'push'
+        continue-on-error: false

@@ -37,6 +37,9 @@ linters-settings:
     skip-tests: true
   funlen:
     lines: 100
+  gomoddirectives:
+    replace-allow-list:
+      - github.com/abbot/go-http-auth  # https://github.com/traefik/traefik/issues/6873#issuecomment-637654361
   nestif:
     min-complexity: 6
 
