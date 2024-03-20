@@ -87,8 +87,8 @@ type OGCAPIReconciler struct {
 //+kubebuilder:rbac:groups=pdok.nl,resources=ogcapis/finalizers,verbs=update
 //+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;delete
 //+kubebuilder:rbac:groups=core,resources=configmaps;services,verbs=get;list;watch;create;update;delete
-//+kubebuilder:rbac:groups=traefikio,resources=ingressroute;middleware,verbs=get;list;watch;create;update;delete
-//+kubebuilder:rbac:groups=autoscaling,resources=horizontalpodautoscaler,verbs=get;list;watch;create;update;delete
+//+kubebuilder:rbac:groups=traefik.io,resources=ingressroutes;middlewares,verbs=get;list;watch;create;update;delete
+//+kubebuilder:rbac:groups=autoscaling,resources=horizontalpodautoscalers,verbs=get;list;watch;create;update;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
