@@ -26,9 +26,10 @@ package controller
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
+
+	yaml "sigs.k8s.io/yaml/goyaml.v3"
 
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -339,7 +340,7 @@ func (r *OGCAPIReconciler) mutateConfigMap(ogcAPI *pdoknlv1alpha1.OGCAPI, config
 		return err
 	}
 
-	configYaml, err := json.Marshal(ogcAPI.Spec.Service)
+	configYaml, err := yaml.Marshal(ogcAPI.Spec.Service)
 	if err != nil {
 		return err
 	}
