@@ -367,6 +367,8 @@ func getBareService(ogcAPI metav1.Object) *corev1.Service {
 
 func (r *OGCAPIReconciler) mutateService(ogcAPI *pdoknlv1alpha1.OGCAPI, service *corev1.Service) error {
 	labels := cloneOrEmptyMap(ogcAPI.GetLabels())
+	selector := cloneOrEmptyMap(ogcAPI.GetLabels())
+	selector[appLabelKey] = gokoalaName
 	if err := setImmutableLabels(r.Client, service, labels); err != nil {
 		return err
 	}
@@ -378,7 +380,7 @@ func (r *OGCAPIReconciler) mutateService(ogcAPI *pdoknlv1alpha1.OGCAPI, service 
 				Port:     mainPortNr,
 			},
 		},
-		Selector: labels,
+		Selector: selector,
 	}
 	if err := ensureSetGVK(r.Client, service, service); err != nil {
 		return err
