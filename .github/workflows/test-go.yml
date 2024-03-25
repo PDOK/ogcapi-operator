@@ -22,7 +22,6 @@ jobs:
         run: |
           make test
           echo "removing generated code from coverage results"
-          set -x
           mv cover.out cover.out.tmp && grep -vP "ogcapi-operator/(api/v1alpha1|cmd|test/utils)/" cover.out.tmp > cover.out
           diffs="$(git status -s)"
           if [[ -n "$diffs" ]]; then echo "there are diffs after make test: $diffs"; exit 250; fi

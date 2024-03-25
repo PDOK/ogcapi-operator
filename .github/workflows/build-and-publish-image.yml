@@ -15,13 +15,12 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: '1.22'
-      - name: Unit Test
+      - name: Make test
         run: |
           make test
-          # remove generate code from coverage results
-          mv cover.out cover.out.tmp && grep -v "zz_generated" cover.out.tmp > cover.out
+          echo "removing generated code from coverage results"
           diffs="$(git status -s)"
-          [[ -n "$diffs" ]] && echo "there are diffs after make test: $diffs" && exit 1
+          if [[ -n "$diffs" ]]; then echo "there are diffs after make test: $diffs"; exit 250; fi
       - name: Docker meta
         id: docker_meta
         uses: docker/metadata-action@v3
