@@ -26,9 +26,10 @@ package controller
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strconv"
+
+	yaml "sigs.k8s.io/yaml/goyaml.v3"
 
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -87,8 +88,8 @@ type OGCAPIReconciler struct {
 //+kubebuilder:rbac:groups=pdok.nl,resources=ogcapis/finalizers,verbs=update
 //+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;delete
 //+kubebuilder:rbac:groups=core,resources=configmaps;services,verbs=get;list;watch;create;update;delete
-//+kubebuilder:rbac:groups=traefikio,resources=ingressroute;middleware,verbs=get;list;watch;create;update;delete
-//+kubebuilder:rbac:groups=autoscaling,resources=horizontalpodautoscaler,verbs=get;list;watch;create;update;delete
+//+kubebuilder:rbac:groups=traefik.io,resources=ingressroutes;middlewares,verbs=get;list;watch;create;update;delete
+//+kubebuilder:rbac:groups=autoscaling,resources=horizontalpodautoscalers,verbs=get;list;watch;create;update;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -339,7 +340,7 @@ func (r *OGCAPIReconciler) mutateConfigMap(ogcAPI *pdoknlv1alpha1.OGCAPI, config
 		return err
 	}
 
-	configYaml, err := json.Marshal(ogcAPI.Spec.Service)
+	configYaml, err := yaml.Marshal(ogcAPI.Spec.Service)
 	if err != nil {
 		return err
 	}
@@ -366,6 +367,8 @@ func getBareService(ogcAPI metav1.Object) *corev1.Service {
 
 func (r *OGCAPIReconciler) mutateService(ogcAPI *pdoknlv1alpha1.OGCAPI, service *corev1.Service) error {
 	labels := cloneOrEmptyMap(ogcAPI.GetLabels())
+	selector := cloneOrEmptyMap(ogcAPI.GetLabels())
+	selector[appLabelKey] = gokoalaName
 	if err := setImmutableLabels(r.Client, service, labels); err != nil {
 		return err
 	}
@@ -377,7 +380,7 @@ func (r *OGCAPIReconciler) mutateService(ogcAPI *pdoknlv1alpha1.OGCAPI, service 
 				Port:     mainPortNr,
 			},
 		},
-		Selector: labels,
+		Selector: selector,
 	}
 	if err := ensureSetGVK(r.Client, service, service); err != nil {
 		return err

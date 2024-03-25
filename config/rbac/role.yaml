@@ -18,7 +18,7 @@ rules:
 - apiGroups:
   - autoscaling
   resources:
-  - horizontalpodautoscaler
+  - horizontalpodautoscalers
   verbs:
   - create
   - delete
@@ -65,10 +65,10 @@ rules:
   - patch
   - update
 - apiGroups:
-  - traefikio
+  - traefik.io
   resources:
-  - ingressroute
-  - middleware
+  - ingressroutes
+  - middlewares
   verbs:
   - create
   - delete

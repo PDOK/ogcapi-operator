@@ -29,7 +29,6 @@ import (
 	"net/url"
 
 	"github.com/pkg/errors"
-
 	"golang.org/x/text/language"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -66,15 +65,20 @@ var minimalOGCAPI = pdoknlv1alpha1.OGCAPI{
 	},
 	Spec: pdoknlv1alpha1.OGCAPISpec{
 		Service: gokoalaconfig.Config{
-			BaseURL: gokoalaconfig.URL{URL: must(url.Parse(testServiceURL))},
+			Version:           "0.0.0",
+			Title:             "test title",
+			ServiceIdentifier: "test service identifier",
+			Abstract:          "test abstract",
 			License: gokoalaconfig.License{
-				Name: "my license",
+				Name: "test license",
 				URL:  gokoalaconfig.URL{URL: must(url.Parse(mitLicenseURL))},
 			},
+			BaseURL:           gokoalaconfig.URL{URL: must(url.Parse(testServiceURL))},
 			DatasetCatalogURL: gokoalaconfig.URL{URL: must(url.Parse(testServiceURL))},
 			AvailableLanguages: []gokoalaconfig.Language{
 				{Tag: language.Make("nl")},
 			},
+			OgcAPI: gokoalaconfig.OgcAPI{},
 		},
 		PodImage: testImageName,
 	},
@@ -83,7 +87,7 @@ var minimalOGCAPI = pdoknlv1alpha1.OGCAPI{
 var fullOGCAPI = pdoknlv1alpha1.OGCAPI{
 	ObjectMeta: *minimalOGCAPI.ObjectMeta.DeepCopy(),
 	Spec: pdoknlv1alpha1.OGCAPISpec{
-		Service: *minimalOGCAPI.Spec.Service.DeepCopy(), // TODO fill in everything
+		Service: *minimalOGCAPI.Spec.Service.DeepCopy(),
 		PodSpecPatch: &corev1.PodSpec{
 			Volumes: []corev1.Volume{
 				{
@@ -128,6 +132,7 @@ var _ = Describe("OGCAPI Controller", func() {
 			if err != nil && k8serrors.IsNotFound(err) {
 				resource := fullOGCAPI.DeepCopy()
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
+				Expect(k8sClient.Get(ctx, typeNamespacedName, ogcAPI)).To(Succeed())
 			}
 		})
 
