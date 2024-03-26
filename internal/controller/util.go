@@ -32,6 +32,8 @@ import (
 	"net/url"
 	"regexp"
 
+	"k8s.io/apimachinery/pkg/util/intstr"
+
 	"k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
@@ -190,6 +192,11 @@ func boolPtr(b bool) *bool {
 
 func int32Ptr(i int32) *int32 {
 	return &i
+}
+
+func intOrStrStrPtr(s string) *intstr.IntOrString {
+	v := intstr.FromString(s)
+	return &v
 }
 
 func cloneOrEmptyMap[K comparable, V any](m map[K]V) map[K]V {

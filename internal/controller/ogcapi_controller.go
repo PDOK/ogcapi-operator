@@ -225,6 +225,7 @@ func getBareDeployment(ogcAPI metav1.Object) *appsv1.Deployment {
 	}
 }
 
+//nolint:funlen
 func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deployment *appsv1.Deployment, configMapName string) error {
 	labels := cloneOrEmptyMap(ogcAPI.GetLabels())
 	labels[appLabelKey] = gokoalaName
@@ -233,73 +234,86 @@ func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deplo
 	}
 
 	matchLabels := cloneOrEmptyMap(labels)
-	deployment.Spec = appsv1.DeploymentSpec{
-		Selector: &metav1.LabelSelector{
-			MatchLabels: matchLabels,
+	deployment.Spec.Selector = &metav1.LabelSelector{
+		MatchLabels: matchLabels,
+	}
+
+	deployment.Spec.MinReadySeconds = 0
+	deployment.Spec.ProgressDeadlineSeconds = int32Ptr(600)
+	deployment.Spec.Strategy = appsv1.DeploymentStrategy{
+		Type: appsv1.RollingUpdateDeploymentStrategyType,
+		RollingUpdate: &appsv1.RollingUpdateDeployment{
+			MaxUnavailable: intOrStrStrPtr("25%"),
+			MaxSurge:       intOrStrStrPtr("25%"),
 		},
-		Template: corev1.PodTemplateSpec{
-			ObjectMeta: metav1.ObjectMeta{
-				Labels: matchLabels,
+	}
+	deployment.Spec.RevisionHistoryLimit = int32Ptr(3)
+
+	// deployment.Spec.Replicas is controlled by the HPA
+	// deployment.Spec.Paused is ignored to allow a manual intervention i.c.e.
+
+	podTemplateSpec := corev1.PodTemplateSpec{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels: matchLabels,
+		},
+		Spec: corev1.PodSpec{
+			Volumes: []corev1.Volume{
+				{Name: gokoalaName + "-" + configName, VolumeSource: corev1.VolumeSource{ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: configMapName,
+					},
+				}}},
+				{Name: gokoalaName + "-" + gpkgCacheName, VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
 			},
-			Spec: corev1.PodSpec{
-				Volumes: []corev1.Volume{
-					{Name: gokoalaName + "-" + configName, VolumeSource: corev1.VolumeSource{ConfigMap: &corev1.ConfigMapVolumeSource{
-						LocalObjectReference: corev1.LocalObjectReference{
-							Name: configMapName,
+			Containers: []corev1.Container{
+				{
+					Name:            gokoalaName,
+					ImagePullPolicy: corev1.PullIfNotPresent,
+					Ports: []corev1.ContainerPort{
+						{Name: mainPortName, ContainerPort: mainPortNr},
+						{Name: debugPortName, ContainerPort: debugPortNr},
+					},
+					Env: []corev1.EnvVar{
+						{Name: configFileEnvVar, Value: srvDir + "/" + configName + "/" + configFileName},
+						{Name: debugPortEnvVar, Value: strconv.Itoa(debugPortNr)},
+						{Name: shutdownDelayEnvVar, Value: strconv.Itoa(15)},
+					},
+					Resources: corev1.ResourceRequirements{
+						Limits: corev1.ResourceList{
+							corev1.ResourceMemory:           resource.MustParse("1Gi"),
+							corev1.ResourceEphemeralStorage: resource.MustParse("50Mi"), // TODO other sane default in case of OGC API Features
 						},
-					}}},
-					{Name: gokoalaName + "-" + gpkgCacheName, VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
-				},
-				Containers: []corev1.Container{
-					{
-						Name:            gokoalaName,
-						ImagePullPolicy: corev1.PullIfNotPresent,
-						Ports: []corev1.ContainerPort{
-							{Name: mainPortName, ContainerPort: mainPortNr},
-							{Name: debugPortName, ContainerPort: debugPortNr},
+						Requests: corev1.ResourceList{
+							corev1.ResourceCPU: resource.MustParse("500m"),
 						},
-						Env: []corev1.EnvVar{
-							{Name: configFileEnvVar, Value: srvDir + "/" + configName + "/" + configFileName},
-							{Name: debugPortEnvVar, Value: strconv.Itoa(debugPortNr)},
-							{Name: shutdownDelayEnvVar, Value: strconv.Itoa(15)},
-						},
-						Resources: corev1.ResourceRequirements{
-							Limits: corev1.ResourceList{
-								corev1.ResourceMemory:           resource.MustParse("1Gi"),
-								corev1.ResourceEphemeralStorage: resource.MustParse("50Mi"), // TODO other sane default in case of OGC API Features
+					},
+					VolumeMounts: []corev1.VolumeMount{
+						{Name: gokoalaName + "-" + configName, MountPath: srvDir + "/" + configName},
+						{Name: gokoalaName + "-" + gpkgCacheName, MountPath: srvDir + "/" + gpkgCacheName},
+					},
+					LivenessProbe: &corev1.Probe{
+						ProbeHandler: corev1.ProbeHandler{
+							HTTPGet: &corev1.HTTPGetAction{
+								Path:   "/health",
+								Port:   intstr.FromInt32(mainPortNr),
+								Scheme: corev1.URISchemeHTTP,
 							},
-							Requests: corev1.ResourceList{
-								corev1.ResourceCPU: resource.MustParse("500m"),
+						},
+						InitialDelaySeconds: 60,
+						TimeoutSeconds:      5,
+						PeriodSeconds:       10,
+					},
+					ReadinessProbe: &corev1.Probe{
+						ProbeHandler: corev1.ProbeHandler{
+							HTTPGet: &corev1.HTTPGetAction{
+								Path:   "/health",
+								Port:   intstr.FromInt32(mainPortNr),
+								Scheme: corev1.URISchemeHTTP,
 							},
 						},
-						VolumeMounts: []corev1.VolumeMount{
-							{Name: gokoalaName + "-" + configName, MountPath: srvDir + "/" + configName},
-							{Name: gokoalaName + "-" + gpkgCacheName, MountPath: srvDir + "/" + gpkgCacheName},
-						},
-						LivenessProbe: &corev1.Probe{
-							ProbeHandler: corev1.ProbeHandler{
-								HTTPGet: &corev1.HTTPGetAction{
-									Path:   "/health",
-									Port:   intstr.FromInt32(mainPortNr),
-									Scheme: corev1.URISchemeHTTP,
-								},
-							},
-							InitialDelaySeconds: 60,
-							TimeoutSeconds:      5,
-							PeriodSeconds:       10,
-						},
-						ReadinessProbe: &corev1.Probe{
-							ProbeHandler: corev1.ProbeHandler{
-								HTTPGet: &corev1.HTTPGetAction{
-									Path:   "/health",
-									Port:   intstr.FromInt32(mainPortNr),
-									Scheme: corev1.URISchemeHTTP,
-								},
-							},
-							InitialDelaySeconds: 60,
-							TimeoutSeconds:      5,
-							PeriodSeconds:       10,
-						},
+						InitialDelaySeconds: 60,
+						TimeoutSeconds:      5,
+						PeriodSeconds:       10,
 					},
 				},
 			},
@@ -307,14 +321,14 @@ func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deplo
 	}
 
 	if ogcAPI.Spec.PodSpecPatch != nil {
-		patchedPod, err := strategicMergePatch(&deployment.Spec.Template.Spec, &ogcAPI.Spec.PodSpecPatch)
+		patchedPod, err := strategicMergePatch(&podTemplateSpec.Spec, &ogcAPI.Spec.PodSpecPatch)
 		if err != nil {
 			return err
 		}
-		deployment.Spec.Template.Spec = *patchedPod
+		podTemplateSpec.Spec = *patchedPod
 	}
-
-	deployment.Spec.Template.Spec.Containers[0].Image = ogcAPI.Spec.PodImage
+	podTemplateSpec.Spec.Containers[0].Image = ogcAPI.Spec.PodImage
+	deployment.Spec.Template = podTemplateSpec
 
 	if err := ensureSetGVK(r.Client, deployment, deployment); err != nil {
 		return err
@@ -372,12 +386,22 @@ func (r *OGCAPIReconciler) mutateService(ogcAPI *pdoknlv1alpha1.OGCAPI, service 
 	if err := setImmutableLabels(r.Client, service, labels); err != nil {
 		return err
 	}
+
+	internalTrafficPolicy := corev1.ServiceInternalTrafficPolicyCluster
 	service.Spec = corev1.ServiceSpec{
+		Type:                  corev1.ServiceTypeClusterIP,
+		ClusterIP:             service.Spec.ClusterIP,
+		ClusterIPs:            service.Spec.ClusterIPs,
+		IPFamilyPolicy:        service.Spec.IPFamilyPolicy,
+		IPFamilies:            service.Spec.IPFamilies,
+		SessionAffinity:       corev1.ServiceAffinityNone,
+		InternalTrafficPolicy: &internalTrafficPolicy,
 		Ports: []corev1.ServicePort{
 			{
-				Name:     mainPortName,
-				Protocol: corev1.ProtocolTCP,
-				Port:     mainPortNr,
+				Name:       mainPortName,
+				Protocol:   corev1.ProtocolTCP,
+				Port:       mainPortNr,
+				TargetPort: intstr.FromInt32(mainPortNr),
 			},
 		},
 		Selector: selector,
@@ -560,11 +584,11 @@ func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI metav1.Object, h
 func (r *OGCAPIReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&pdoknlv1alpha1.OGCAPI{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
-		Owns(&corev1.ConfigMap{}).
-		Owns(&appsv1.Deployment{}).
-		Owns(&corev1.Service{}).
-		Owns(&traefikiov1alpha1.Middleware{}).
-		Owns(&traefikiov1alpha1.IngressRoute{}).
-		Owns(&autoscalingv2.HorizontalPodAutoscaler{}).
+		Owns(&corev1.ConfigMap{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
+		Owns(&appsv1.Deployment{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
+		Owns(&corev1.Service{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
+		Owns(&traefikiov1alpha1.Middleware{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
+		Owns(&traefikiov1alpha1.IngressRoute{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
+		Owns(&autoscalingv2.HorizontalPodAutoscaler{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
 		Complete(r)
 }
