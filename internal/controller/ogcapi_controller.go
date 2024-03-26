@@ -508,7 +508,7 @@ func (r *OGCAPIReconciler) mutateCorsHeadersMiddleware(obj metav1.Object, middle
 func getBareHorizontalPodAutoscaler(ogcAPI metav1.Object) *autoscalingv2.HorizontalPodAutoscaler {
 	return &autoscalingv2.HorizontalPodAutoscaler{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      ogcAPI.GetName(),
+			Name:      getBareDeployment(ogcAPI).GetName(),
 			Namespace: ogcAPI.GetNamespace(),
 		},
 	}
@@ -521,9 +521,9 @@ func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI metav1.Object, h
 	}
 	hpa.Spec = autoscalingv2.HorizontalPodAutoscalerSpec{
 		ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
-			APIVersion: "app/v1",
+			APIVersion: "apps/v1",
 			Kind:       "Deployment",
-			Name:       gokoalaName,
+			Name:       getBareDeployment(ogcAPI).GetName(),
 		},
 		MinReplicas: int32Ptr(2),
 		MaxReplicas: 4,
