@@ -230,29 +230,29 @@ var _ = Describe("OGCAPI Controller", func() {
 				err = k8sClient.Get(ctx, client.ObjectKeyFromObject(deployment), deployment)
 				return Expect(err).NotTo(HaveOccurred())
 			}, "10s", "1s").Should(BeTrue())
-			originalReplicas := deployment.Spec.Replicas
+			originalMinReadySeconds := deployment.Spec.MinReadySeconds
 
 			By("Altering the Deployment")
 			err = k8sClient.Patch(ctx, deployment, client.RawPatch(types.MergePatchType, []byte(
-				`{"spec": {"replicas": 666}}`)))
+				`{"spec": {"minReadySeconds": 99}}`)))
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Verifying that the Deployment was altered")
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, client.ObjectKeyFromObject(deployment), deployment)
 				return Expect(err).NotTo(HaveOccurred()) &&
-					Expect(deployment.Spec.Replicas).To(BeEquivalentTo(int32Ptr(666)))
+					Expect(deployment.Spec.MinReadySeconds).To(BeEquivalentTo(99))
 			}, "10s", "1s").Should(BeTrue())
 
 			By("Reconciling the OGCAPI again")
 			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
 			Expect(err).NotTo(HaveOccurred())
 
-			By("Verifying that the ConfigMap data was restored")
+			By("Verifying that the Deployment was restored")
 			Eventually(func() bool {
 				err = k8sClient.Get(ctx, client.ObjectKeyFromObject(deployment), deployment)
 				return Expect(err).NotTo(HaveOccurred()) &&
-					Expect(deployment.Spec.Replicas).To(BeEquivalentTo(originalReplicas))
+					Expect(deployment.Spec.MinReadySeconds).To(BeEquivalentTo(originalMinReadySeconds))
 			}, "10s", "1s").Should(BeTrue())
 		})
 	})
