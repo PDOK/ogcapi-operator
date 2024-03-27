@@ -162,7 +162,7 @@ spec:
                                       items:
                                         properties:
                                           geopackage:
-                                            description: GeoPakcage to get the features
+                                            description: GeoPackage to get the features
                                               from.
                                             properties:
                                               cloud:
@@ -252,7 +252,6 @@ spec:
                                                 - connection
                                                 - container
                                                 - file
-                                                - logHttpRequests
                                                 - user
                                                 type: object
                                               local:
@@ -305,7 +304,7 @@ spec:
                                         This specifies the datasource to be used for features in the WGS84 projection
                                       properties:
                                         geopackage:
-                                          description: GeoPakcage to get the features
+                                          description: GeoPackage to get the features
                                             from.
                                           properties:
                                             cloud:
@@ -390,7 +389,6 @@ spec:
                                               - connection
                                               - container
                                               - file
-                                              - logHttpRequests
                                               - user
                                               type: object
                                             local:
@@ -608,7 +606,7 @@ spec:
                                       items:
                                         properties:
                                           geopackage:
-                                            description: GeoPakcage to get the features
+                                            description: GeoPackage to get the features
                                               from.
                                             properties:
                                               cloud:
@@ -698,7 +696,6 @@ spec:
                                                 - connection
                                                 - container
                                                 - file
-                                                - logHttpRequests
                                                 - user
                                                 type: object
                                               local:
@@ -751,7 +748,7 @@ spec:
                                         This specifies the datasource to be used for features in the WGS84 projection
                                       properties:
                                         geopackage:
-                                          description: GeoPakcage to get the features
+                                          description: GeoPackage to get the features
                                             from.
                                           properties:
                                             cloud:
@@ -836,7 +833,6 @@ spec:
                                               - connection
                                               - container
                                               - file
-                                              - logHttpRequests
                                               - user
                                               type: object
                                             local:
@@ -1023,7 +1019,7 @@ spec:
                                 items:
                                   properties:
                                     geopackage:
-                                      description: GeoPakcage to get the features
+                                      description: GeoPackage to get the features
                                         from.
                                       properties:
                                         cloud:
@@ -1107,7 +1103,6 @@ spec:
                                           - connection
                                           - container
                                           - file
-                                          - logHttpRequests
                                           - user
                                           type: object
                                         local:
@@ -1158,7 +1153,7 @@ spec:
                                   This specifies the datasource to be used for features in the WGS84 projection
                                 properties:
                                   geopackage:
-                                    description: GeoPakcage to get the features from.
+                                    description: GeoPackage to get the features from.
                                     properties:
                                       cloud:
                                         description: Settings to read a GeoPackage
@@ -1241,7 +1236,6 @@ spec:
                                         - connection
                                         - container
                                         - file
-                                        - logHttpRequests
                                         - user
                                         type: object
                                       local:
@@ -1369,8 +1363,8 @@ spec:
                                     type: string
                                   type: array
                                 lastUpdated:
-                                  description: Moment in time when the dataset was
-                                    last updated
+                                  description: Moment in time when the style was last
+                                    updated
                                   format: date-time
                                   type: string
                                 thumbnail:
@@ -1422,7 +1416,7 @@ spec:
                                       items:
                                         properties:
                                           geopackage:
-                                            description: GeoPakcage to get the features
+                                            description: GeoPackage to get the features
                                               from.
                                             properties:
                                               cloud:
@@ -1512,7 +1506,6 @@ spec:
                                                 - connection
                                                 - container
                                                 - file
-                                                - logHttpRequests
                                                 - user
                                                 type: object
                                               local:
@@ -1565,7 +1558,7 @@ spec:
                                         This specifies the datasource to be used for features in the WGS84 projection
                                       properties:
                                         geopackage:
-                                          description: GeoPakcage to get the features
+                                          description: GeoPackage to get the features
                                             from.
                                           properties:
                                             cloud:
@@ -1650,7 +1643,6 @@ spec:
                                               - connection
                                               - container
                                               - file
-                                              - logHttpRequests
                                               - user
                                               type: object
                                             local:
