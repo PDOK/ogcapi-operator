@@ -62,14 +62,12 @@ spec:
                   baseUrl:
                     description: The base URL - that's the part until the OGC API
                       landing page - under which this API is served
-                    format: uri
-                    pattern: ^https?://.+
+                    pattern: ^(https?://.+)|(\$\{.+\})
                     type: string
                   datasetCatalogUrl:
                     description: Optional reference to a catalog/portal/registry that
                       lists all datasets, not just this one
-                    format: uri
-                    pattern: ^https?://.+
+                    pattern: ^(https?://.+)|(\$\{.+\})
                     type: string
                   datasetDetails:
                     description: Key/value pairs to add extra information to the landing
@@ -127,8 +125,7 @@ spec:
                         type: string
                       url:
                         description: URL to license text on the web
-                        format: uri
-                        pattern: ^https?://.+
+                        pattern: ^(https?://.+)|(\$\{.+\})
                         type: string
                     required:
                     - name
@@ -148,8 +145,7 @@ spec:
                                 3dViewerUrl:
                                   description: Optional URL to 3D viewer to visualize
                                     the given collection of 3D Tiles.
-                                  format: uri
-                                  pattern: ^https?://.+
+                                  pattern: ^(https?://.+)|(\$\{.+\})
                                   type: string
                                 datasources:
                                   description: Optional collection specific datasources.
@@ -566,8 +562,7 @@ spec:
                           tileServer:
                             description: Reference to the server (or object storage)
                               hosting the 3D Tiles
-                            format: uri
-                            pattern: ^https?://.+
+                            pattern: ^(https?://.+)|(\$\{.+\})
                             type: string
                         required:
                         - collections
@@ -592,8 +587,7 @@ spec:
                                 3dViewerUrl:
                                   description: Optional URL to 3D viewer to visualize
                                     the given collection of 3D Tiles.
-                                  format: uri
-                                  pattern: ^https?://.+
+                                  pattern: ^(https?://.+)|(\$\{.+\})
                                   type: string
                                 datasources:
                                   description: Optional collection specific datasources.
@@ -1309,8 +1303,7 @@ spec:
                             description: Reference to an external service implementing
                               the process API. GoKoala acts only as a proxy for OGC
                               API Processes.
-                            format: uri
-                            pattern: ^https?://.+
+                            pattern: ^(https?://.+)|(\$\{.+\})
                             type: string
                           supportsCallback:
                             description: Enable to advertise callback operations on
@@ -1402,8 +1395,7 @@ spec:
                                 3dViewerUrl:
                                   description: Optional URL to 3D viewer to visualize
                                     the given collection of 3D Tiles.
-                                  format: uri
-                                  pattern: ^https?://.+
+                                  pattern: ^(https?://.+)|(\$\{.+\})
                                   type: string
                                 datasources:
                                   description: Optional collection specific datasources.
@@ -1848,12 +1840,14 @@ spec:
                           tileServer:
                             description: Reference to the server (or object storage)
                               hosting the tiles
-                            format: uri
-                            pattern: ^https?://.+
+                            pattern: ^(https?://.+)|(\$\{.+\})
                             type: string
                           types:
                             description: Could be 'vector' and/or 'raster' to indicate
                               the types of tiles offered
+                            enum:
+                            - raster
+                            - vector
                             items:
                               type: string
                             type: array
@@ -1880,8 +1874,7 @@ spec:
                         description: Location where resources (e.g. thumbnails) specific
                           to the given dataset are hosted. This is optional if Directory
                           is set
-                        format: uri
-                        pattern: ^https?://.+
+                        pattern: ^(https?://.+)|(\$\{.+\})
                         type: string
                     type: object
                   serviceIdentifier:
@@ -1898,8 +1891,7 @@ spec:
                         type: string
                       url:
                         description: URL to external support webpage
-                        format: uri
-                        pattern: ^https?://.+
+                        pattern: ^(https?://.+)|(\$\{.+\})
                         type: string
                     required:
                     - name
