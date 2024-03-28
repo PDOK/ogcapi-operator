@@ -1845,10 +1845,10 @@ spec:
                           types:
                             description: Could be 'vector' and/or 'raster' to indicate
                               the types of tiles offered
-                            enum:
-                            - raster
-                            - vector
                             items:
+                              enum:
+                              - raster
+                              - vector
                               type: string
                             type: array
                           uriTemplateTiles:
