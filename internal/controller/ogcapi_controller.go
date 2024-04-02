@@ -99,7 +99,6 @@ type OGCAPIReconciler struct {
 func (r *OGCAPIReconciler) Reconcile(ctx context.Context, req ctrl.Request) (result ctrl.Result, err error) {
 	lgr := log.FromContext(ctx)
 
-	lgr.Info("fetching OGCAPI resource")
 	ogcAPI := &pdoknlv1alpha1.OGCAPI{}
 	err = r.Client.Get(ctx, req.NamespacedName, ogcAPI)
 	if err != nil {
@@ -120,7 +119,6 @@ func (r *OGCAPIReconciler) Reconcile(ctx context.Context, req ctrl.Request) (res
 		return result, err
 	}
 
-	lgr.Info("ensuring resources", "name", fullName)
 	operationResults, err := r.createOrUpdateAllForOGCAPI(ctx, ogcAPI)
 	if err != nil {
 		return result, err
