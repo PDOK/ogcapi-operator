@@ -564,6 +564,12 @@ spec:
                               hosting the 3D Tiles
                             pattern: ^(https?://.+)|(\$\{.+\})
                             type: string
+                          validateResponses:
+                            default: true
+                            description: |-
+                              Whether JSON responses will be validated against the OpenAPI spec
+                              since it has significant performance impact when dealing with large JSON payloads.
+                            type: boolean
                         required:
                         - collections
                         - tileServer
