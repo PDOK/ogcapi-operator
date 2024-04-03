@@ -38,8 +38,6 @@ type OGCAPISpec struct {
 	//+kubebuilder:pruning:PreserveUnknownFields
 	// Optional strategic merge patch for the pod in the deployment. E.g. to patch the resources or add extra env vars.
 	PodSpecPatch *corev1.PodSpec `json:"podSpecPatch,omitempty"`
-	// Image name explicitly provided. So it can be managed with e.g. Kustomize. TODO maybe a default?
-	PodImage string `json:"podImage"`
 }
 
 // OGCAPIStatus defines the observed state of OGCAPI

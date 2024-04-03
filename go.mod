@@ -8,6 +8,7 @@ require (
 	github.com/PDOK/gokoala v0.44.0
 	github.com/onsi/ginkgo/v2 v2.17.1
 	github.com/onsi/gomega v1.32.0
+	github.com/peterbourgon/ff v1.7.1
 	github.com/pkg/errors v0.9.1
 	github.com/traefik/traefik/v2 v2.11.0
 	golang.org/x/text v0.14.0

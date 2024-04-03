@@ -39,10 +39,6 @@ spec:
           spec:
             description: OGCAPISpec defines the desired state of OGCAPI
             properties:
-              podImage:
-                description: Image name explicitly provided. So it can be managed
-                  with e.g. Kustomize. TODO maybe a default?
-                type: string
               podSpecPatch:
                 description: Optional strategic merge patch for the pod in the deployment.
                   E.g. to patch the resources or add extra env vars.
@@ -1929,7 +1925,6 @@ spec:
                 - version
                 type: object
             required:
-            - podImage
             - service
             type: object
           status:

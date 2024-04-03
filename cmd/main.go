@@ -29,6 +29,8 @@ import (
 	"flag"
 	"os"
 
+	"github.com/peterbourgon/ff"
+
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
@@ -48,6 +50,11 @@ import (
 	//+kubebuilder:scaffold:imports
 )
 
+const (
+	programName         = "ogcapi-controller-manager"
+	defaultGokoalaImage = "docker.io/pdok/gokoala:0.44.0"
+)
+
 var (
 	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
@@ -61,21 +68,30 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 }
 
+//nolint:funlen
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string
 	var secureMetrics bool
 	var enableHTTP2 bool
-	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
-	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
-	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
+	var gokoalaImage string
+	flagSet := flag.NewFlagSet(programName, flag.ExitOnError)
+	flagSet.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
+	flagSet.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+	flagSet.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
-	flag.BoolVar(&secureMetrics, "metrics-secure", false,
+	flagSet.BoolVar(&secureMetrics, "metrics-secure", false,
 		"If set the metrics endpoint is served securely")
-	flag.BoolVar(&enableHTTP2, "enable-http2", false,
+	flagSet.BoolVar(&enableHTTP2, "enable-http2", false,
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
+	flagSet.StringVar(&gokoalaImage, "gokoala-image", defaultGokoalaImage, "The image to use in the gokoala pod")
+	if err := ff.Parse(flagSet, os.Args[1:], ff.WithEnvVarNoPrefix()); err != nil {
+		setupLog.Error(err, "unable to parse flags")
+		os.Exit(1)
+	}
+
 	opts := zap.Options{
 		Development: true,
 	}
@@ -133,8 +149,9 @@ func main() {
 	}
 
 	if err = (&controller.OGCAPIReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:       mgr.GetClient(),
+		Scheme:       mgr.GetScheme(),
+		GokoalaImage: gokoalaImage,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "OGCAPI")
 		os.Exit(1)
