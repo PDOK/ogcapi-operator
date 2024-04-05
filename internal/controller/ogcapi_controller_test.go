@@ -186,6 +186,12 @@ var _ = Describe("OGCAPI Controller", func() {
 			configMapName, err := getGokoalaConfigMapNameFromClient(ctx, ogcAPI)
 			Expect(err).NotTo(HaveOccurred())
 
+			By("Checking the status of the OGCAPI")
+			err = k8sClient.Get(ctx, typeNamespacedName, ogcAPI)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(len(ogcAPI.Status.Conditions)).To(BeEquivalentTo(1))
+			Expect(ogcAPI.Status.Conditions[0].Status).To(BeEquivalentTo(metav1.ConditionTrue))
+
 			By("Deleting the OGCAPI")
 			Expect(k8sClient.Delete(ctx, ogcAPI)).To(Succeed())
 

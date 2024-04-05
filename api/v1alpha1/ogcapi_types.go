@@ -28,6 +28,7 @@ import (
 	gokoalaconfig "github.com/PDOK/gokoala/config"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 // OGCAPISpec defines the desired state of OGCAPI
@@ -42,14 +43,16 @@ type OGCAPISpec struct {
 
 // OGCAPIStatus defines the observed state of OGCAPI
 type OGCAPIStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Each condition contains details for one aspect of the current state of this OGCAPI.
+	// Known .status.conditions.type are: "Reconciled"
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
+	// The result of creating or updating of each derived resource for this OGCAPI.
+	OperationResults map[string]controllerutil.OperationResult `json:"operationResults,omitempty"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
-
 // OGCAPI is the Schema for the ogcapis API
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 type OGCAPI struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -58,9 +61,8 @@ type OGCAPI struct {
 	Status OGCAPIStatus `json:"status,omitempty"`
 }
 
-//+kubebuilder:object:root=true
-
 // OGCAPIList contains a list of OGCAPI
+// +kubebuilder:object:root=true
 type OGCAPIList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`

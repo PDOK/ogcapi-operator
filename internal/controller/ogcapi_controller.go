@@ -28,6 +28,10 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
+
+	"k8s.io/apimachinery/pkg/api/equality"
+	"k8s.io/apimachinery/pkg/api/meta"
 
 	yaml "sigs.k8s.io/yaml/goyaml.v3"
 
@@ -52,6 +56,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	pdoknlv1alpha1 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
+)
+
+const (
+	reconciledConditionType         = "Reconciled"
+	reconciledConditionReasonSucces = "Succes"
+	reconciledConditionReasonError  = "Error"
 )
 
 const (
@@ -122,12 +132,23 @@ func (r *OGCAPIReconciler) Reconcile(ctx context.Context, req ctrl.Request) (res
 
 	operationResults, err := r.createOrUpdateAllForOGCAPI(ctx, ogcAPI)
 	if err != nil {
+		r.logAndUpdateStatusError(ctx, ogcAPI, err)
 		return result, err
 	}
-	lgr.Info("operation results", "results", operationResults)
-	// TODO update status
+	r.logAndUpdateStatusFinished(ctx, ogcAPI, operationResults)
 
 	return result, err
+}
+
+func (r *OGCAPIReconciler) logAndUpdateStatusError(ctx context.Context, ogcAPI *pdoknlv1alpha1.OGCAPI, err error) {
+	r.updateStatus(ctx, ogcAPI, []metav1.Condition{{
+		Type:               reconciledConditionType,
+		Status:             metav1.ConditionFalse,
+		Reason:             reconciledConditionReasonError,
+		Message:            err.Error(),
+		ObservedGeneration: ogcAPI.Generation,
+		LastTransitionTime: metav1.NewTime(time.Now()),
+	}}, nil)
 }
 
 func (r *OGCAPIReconciler) createOrUpdateAllForOGCAPI(ctx context.Context, ogcAPI *pdoknlv1alpha1.OGCAPI) (operationResults map[string]controllerutil.OperationResult, err error) {
@@ -577,6 +598,42 @@ func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI metav1.Object, h
 		return err
 	}
 	return ctrl.SetControllerReference(ogcAPI, hpa, r.Scheme)
+}
+
+func (r *OGCAPIReconciler) logAndUpdateStatusFinished(ctx context.Context, ogcAPI *pdoknlv1alpha1.OGCAPI, operationResults map[string]controllerutil.OperationResult) {
+	lgr := log.FromContext(ctx)
+	lgr.Info("operation results", "results", operationResults)
+	r.updateStatus(ctx, ogcAPI, []metav1.Condition{{
+		Type:               reconciledConditionType,
+		Status:             metav1.ConditionTrue,
+		Reason:             reconciledConditionReasonSucces,
+		ObservedGeneration: ogcAPI.Generation,
+		LastTransitionTime: metav1.NewTime(time.Now()),
+	}}, operationResults)
+}
+
+func (r *OGCAPIReconciler) updateStatus(ctx context.Context, ogcAPI *pdoknlv1alpha1.OGCAPI, conditions []metav1.Condition, operationResults map[string]controllerutil.OperationResult) {
+	if err := r.Client.Get(ctx, client.ObjectKeyFromObject(ogcAPI), ogcAPI); err != nil {
+		log.FromContext(ctx).Error(err, "unable to update status")
+		return
+	}
+
+	changed := false
+	for _, condition := range conditions {
+		if meta.SetStatusCondition(&ogcAPI.Status.Conditions, condition) {
+			changed = true
+		}
+	}
+	if !equality.Semantic.DeepEqual(ogcAPI.Status.OperationResults, operationResults) {
+		ogcAPI.Status.OperationResults = operationResults
+		changed = true
+	}
+	if !changed {
+		return
+	}
+	if err := r.Status().Update(ctx, ogcAPI); err != nil {
+		log.FromContext(ctx).Error(err, "unable to update status")
+	}
 }
 
 // SetupWithManager sets up the controller with the Manager.
