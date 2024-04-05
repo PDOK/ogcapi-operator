@@ -51,7 +51,6 @@ import (
 )
 
 const (
-	programName         = "ogcapi-controller-manager"
 	defaultGokoalaImage = "docker.io/pdok/gokoala:0.44.0"
 )
 
@@ -76,27 +75,26 @@ func main() {
 	var secureMetrics bool
 	var enableHTTP2 bool
 	var gokoalaImage string
-	flagSet := flag.NewFlagSet(programName, flag.ExitOnError)
-	flagSet.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
-	flagSet.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
-	flagSet.BoolVar(&enableLeaderElection, "leader-elect", false,
+	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
+	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
-	flagSet.BoolVar(&secureMetrics, "metrics-secure", false,
+	flag.BoolVar(&secureMetrics, "metrics-secure", false,
 		"If set the metrics endpoint is served securely")
-	flagSet.BoolVar(&enableHTTP2, "enable-http2", false,
+	flag.BoolVar(&enableHTTP2, "enable-http2", false,
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
-	flagSet.StringVar(&gokoalaImage, "gokoala-image", defaultGokoalaImage, "The image to use in the gokoala pod")
-	if err := ff.Parse(flagSet, os.Args[1:], ff.WithEnvVarNoPrefix()); err != nil {
-		setupLog.Error(err, "unable to parse flags")
-		os.Exit(1)
-	}
+	flag.StringVar(&gokoalaImage, "gokoala-image", defaultGokoalaImage, "The image to use in the gokoala pod")
 
 	opts := zap.Options{
 		Development: true,
 	}
 	opts.BindFlags(flag.CommandLine)
-	flag.Parse()
+
+	if err := ff.Parse(flag.CommandLine, os.Args[1:], ff.WithEnvVarNoPrefix()); err != nil {
+		setupLog.Error(err, "unable to parse flags")
+		os.Exit(1)
+	}
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
