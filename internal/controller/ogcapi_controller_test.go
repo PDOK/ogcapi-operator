@@ -80,7 +80,6 @@ var minimalOGCAPI = pdoknlv1alpha1.OGCAPI{
 			},
 			OgcAPI: gokoalaconfig.OgcAPI{},
 		},
-		PodImage: testImageName,
 	},
 }
 
@@ -109,10 +108,10 @@ var fullOGCAPI = pdoknlv1alpha1.OGCAPI{
 							MountPath: srvDir + "/resources",
 						},
 					},
+					Image: testImageName + "-patch1",
 				},
 			},
 		},
-		PodImage: minimalOGCAPI.Spec.PodImage,
 	},
 }
 
@@ -149,8 +148,9 @@ var _ = Describe("OGCAPI Controller", func() {
 
 		It("Should successfully create and delete its owned resources", func() {
 			controllerReconciler := &OGCAPIReconciler{
-				Client: k8sClient,
-				Scheme: k8sClient.Scheme(),
+				Client:       k8sClient,
+				Scheme:       k8sClient.Scheme(),
+				GokoalaImage: testImageName,
 			}
 
 			By("Reconciling the OGCAPI")
@@ -211,8 +211,9 @@ var _ = Describe("OGCAPI Controller", func() {
 
 		It("Should successfully reconcile after a change in an owned resource", func() {
 			controllerReconciler := &OGCAPIReconciler{
-				Client: k8sClient,
-				Scheme: k8sClient.Scheme(),
+				Client:       k8sClient,
+				Scheme:       k8sClient.Scheme(),
+				GokoalaImage: testImageName,
 			}
 
 			By("Reconciling the OGCAPI, checking the finalizer, and reconciling again")

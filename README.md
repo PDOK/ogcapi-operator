@@ -45,13 +45,15 @@ docker build -t pdok/ogcapi-operator .
 
 ```text
 USAGE:
-   <manager> [OPTIONS]
+   <ogcapi-controller-manager> [OPTIONS]
 
 OPTIONS:
-  --help
+  -h, --help
         Display these options.
   --enable-http2
         If set, HTTP/2 will be enabled for the metrics and webhook servers
+  --gokoala-image string
+        The image to use in the gokoala pod (defaults to the latest compatible image)
   --health-probe-bind-address string
         The address the probe endpoint binds to. (default ":8081")
   --kubeconfig string
@@ -73,6 +75,8 @@ OPTIONS:
         Zap Level at and above which stacktraces are captured (one of 'info', 'error', 'panic').
   --zap-time-encoding value
         Zap time encoding (one of 'epoch', 'millis', 'nano', 'iso8601', 'rfc3339' or 'rfc3339nano'). Defaults to 'epoch'.
+        
+OPTIONS can also be set via environment variables (with SCREAMING_SNAKE_CASE instead of kebab-case). CLI flags have precedence. 
 ```
 
 ### Setup in the cluster

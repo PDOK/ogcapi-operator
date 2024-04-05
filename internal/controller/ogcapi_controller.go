@@ -80,7 +80,8 @@ var (
 // OGCAPIReconciler reconciles a OGCAPI object
 type OGCAPIReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme       *runtime.Scheme
+	GokoalaImage string
 }
 
 //+kubebuilder:rbac:groups=pdok.nl,resources=ogcapis,verbs=get;list;watch;create;update;patch;delete
@@ -325,7 +326,7 @@ func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deplo
 		}
 		podTemplateSpec.Spec = *patchedPod
 	}
-	podTemplateSpec.Spec.Containers[0].Image = ogcAPI.Spec.PodImage
+	podTemplateSpec.Spec.Containers[0].Image = r.GokoalaImage
 	deployment.Spec.Template = podTemplateSpec
 
 	if err := ensureSetGVK(r.Client, deployment, deployment); err != nil {

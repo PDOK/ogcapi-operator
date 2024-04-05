@@ -9,7 +9,6 @@ metadata:
     app.kubernetes.io/created-by: ogcapi-operator
   name: ogcapi-sample
 spec:
-  podImage: docker.io/pdok/gokoala:0.39.13
   podSpecPatch:
     volumes:
       name: images
@@ -17,6 +16,7 @@ spec:
         name: some-suffixed-configmap-name-12345678
     containers:
       - name: gokoala
+        image: docker.io/pdok/gokoala:my-test-build
         envFrom:
           - configMapRef:
               name: other-suffixed-configmap-name-abcdef01
