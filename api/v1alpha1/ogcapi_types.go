@@ -32,6 +32,8 @@ import (
 )
 
 // OGCAPISpec defines the desired state of OGCAPI
+// +kubebuilder:pruning:PreserveUnknownFields
+// ^^ unknown fields are allowed (but ignored and not maintained when marshalling) for backwards compatibility
 type OGCAPISpec struct {
 	Service gokoalaconfig.Config `json:"service"`
 	//+kubebuilder:validation:Type=object
