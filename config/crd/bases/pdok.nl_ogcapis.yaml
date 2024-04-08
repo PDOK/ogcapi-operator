@@ -37,7 +37,9 @@ spec:
           metadata:
             type: object
           spec:
-            description: OGCAPISpec defines the desired state of OGCAPI
+            description: |-
+              OGCAPISpec defines the desired state of OGCAPI
+              ^^ unknown fields are allowed (but ignored and not maintained when marshalling) for backwards compatibility
             properties:
               podSpecPatch:
                 description: Optional strategic merge patch for the pod in the deployment.
@@ -1927,6 +1929,7 @@ spec:
             required:
             - service
             type: object
+            x-kubernetes-preserve-unknown-fields: true
           status:
             description: OGCAPIStatus defines the observed state of OGCAPI
             properties:
