@@ -42,33 +42,36 @@ func (r *OGCAPI) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// TODO(user): EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-
-// TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
+// Note: change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
 //+kubebuilder:webhook:path=/validate-pdok-nl-v1alpha1-ogcapi,mutating=false,failurePolicy=fail,sideEffects=None,groups=pdok.nl,resources=ogcapis,verbs=create;update,versions=v1alpha1,name=vogcapi.kb.io,admissionReviewVersions=v1
 
+// Concerning deprecation warning, see open issue: https://github.com/kubernetes-sigs/kubebuilder/issues/3721
 var _ webhook.Validator = &OGCAPI{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (r *OGCAPI) ValidateCreate() (admission.Warnings, error) {
 	ogcapilog.Info("validate create", "name", r.Name)
-
-	// TODO(user): fill in your validation logic upon object creation.
+	// NOTE: Validation of the 'service' part in the OGCAPI is implicitly performed
+	// by gokoalaconfig.Config.UnmarshallYAML(). No need to explicitly invoke anything.
+	// Please add additional GoKoala specific validations in GoKoala's UnmarshallYAML() method.
+	// Any other validations may be added below.
 	return nil, nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (r *OGCAPI) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
+// the 'old' Object is passed as an argument, so it can be used in the validation
+func (r *OGCAPI) ValidateUpdate(_ runtime.Object) (admission.Warnings, error) {
 	ogcapilog.Info("validate update", "name", r.Name)
-
-	// TODO(user): fill in your validation logic upon object update.
+	// NOTE: Validation of the 'service' part in the OGCAPI is implicitly performed
+	// by gokoalaconfig.Config.UnmarshallYAML(). No need to explicitly invoke anything.
+	// Please add additional GoKoala specific validations in GoKoala's UnmarshallYAML() method.
+	// Any other validations may be added below.
 	return nil, nil
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
 func (r *OGCAPI) ValidateDelete() (admission.Warnings, error) {
 	ogcapilog.Info("validate delete", "name", r.Name)
-
-	// TODO(user): fill in your validation logic upon object deletion.
+	// noop
 	return nil, nil
 }
