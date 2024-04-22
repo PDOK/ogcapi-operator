@@ -52,7 +52,7 @@ var _ webhook.Validator = &OGCAPI{}
 func (r *OGCAPI) ValidateCreate() (admission.Warnings, error) {
 	ogcapilog.Info("validate create", "name", r.Name)
 	// NOTE: Validation of the 'service' part in the OGCAPI is implicitly performed
-	// by gokoalaconfig.Config.UnmarshallYAML(). No need to explicitly invoke anything.
+	// by gokoalaconfig.Config.UnmarshalYAML(). No need to explicitly invoke anything.
 	// Please add additional GoKoala specific validations in GoKoala's UnmarshallYAML() method.
 	// Any other validations may be added below.
 	return nil, nil
@@ -63,7 +63,7 @@ func (r *OGCAPI) ValidateCreate() (admission.Warnings, error) {
 func (r *OGCAPI) ValidateUpdate(_ runtime.Object) (admission.Warnings, error) {
 	ogcapilog.Info("validate update", "name", r.Name)
 	// NOTE: Validation of the 'service' part in the OGCAPI is implicitly performed
-	// by gokoalaconfig.Config.UnmarshallYAML(). No need to explicitly invoke anything.
+	// by gokoalaconfig.Config.UnmarshalYAML(). No need to explicitly invoke anything.
 	// Please add additional GoKoala specific validations in GoKoala's UnmarshallYAML() method.
 	// Any other validations may be added below.
 	return nil, nil
