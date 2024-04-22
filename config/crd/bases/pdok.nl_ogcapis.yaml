@@ -84,25 +84,6 @@ spec:
                       - value
                       type: object
                     type: array
-                  datasetMetadata:
-                    description: External reference to metadata register that further
-                      describes this API and dataset (a CSW service)
-                    properties:
-                      api:
-                        description: Reference to metadata describing this API (service
-                          record).
-                        type: string
-                      dataset:
-                        description: Reference to metadata describing this dataset
-                          (dataset record).
-                        type: string
-                      source:
-                        description: Name of the registry where additional metadata
-                          about this API/dataset is hosted (a CSW service)
-                        type: string
-                    required:
-                    - source
-                    type: object
                   keywords:
                     description: Keywords to make this API beter discoverable
                     items:
