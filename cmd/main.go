@@ -75,6 +75,8 @@ func main() {
 	var secureMetrics bool
 	var enableHTTP2 bool
 	var gokoalaImage string
+	var enableWebhooks bool
+
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
@@ -85,6 +87,7 @@ func main() {
 	flag.BoolVar(&enableHTTP2, "enable-http2", false,
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
 	flag.StringVar(&gokoalaImage, "gokoala-image", defaultGokoalaImage, "The image to use in the gokoala pod")
+	flag.BoolVar(&enableWebhooks, "enable-webhooks", true, "Enable admission webhooks")
 
 	opts := zap.Options{
 		Development: true,
@@ -154,7 +157,7 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "OGCAPI")
 		os.Exit(1)
 	}
-	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
+	if enableWebhooks {
 		if err = (&pdoknlv1alpha1.OGCAPI{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "OGCAPI")
 			os.Exit(1)
