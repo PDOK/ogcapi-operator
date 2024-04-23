@@ -31,6 +31,9 @@ The resources created/owned by this operator will be deleted again when the corr
 
 The resources will be in the same namespace as the corresponding OGCAPI CR.
 
+Additionally, the operator will also validate submitted OGCAPI CRs using a validating 
+admission webhook.
+
 ## Run/usage
 
 ```shell
@@ -91,9 +94,12 @@ Please refer to the general documentation in the [kubebuilder book](https://kube
 
 The project is written in Go and scaffolded with [kubebuilder](https://kubebuilder.io).
 
-### kubebuilder
+### Running locally
 
-This operator was scaffolded with [kubebuilder](https://kubebuilder.io)
+When running locally disable the webhook using `export ENABLE_WEBHOOKS=false`.
+See [running and deploying the controller](https://kubebuilder.io/cronjob-tutorial/running) for details.
+
+### kubebuilder
 
 Read the manual when you want/need to make changes.
 E.g. run `make test` before committing.
@@ -116,6 +122,7 @@ Contacting the maintainers can be done through the issue tracker.
 
 ## License
 
+```
 MIT License
 
 Copyright (c) 2024 Publieke Dienstverlening op de Kaart
@@ -137,4 +144,4 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
+```
