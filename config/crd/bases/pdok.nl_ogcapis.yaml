@@ -454,12 +454,13 @@ spec:
                                           minItems: 2
                                           type: array
                                         srs:
-                                          description: Projection (SRS/CRS) used
+                                          description: Projection (SRS/CRS) to be
+                                            used. When none is provided WGS84 (http://www.opengis.net/def/crs/OGC/1.3/CRS84)
+                                            is used.
                                           pattern: ^EPSG:\d+$
                                           type: string
                                       required:
                                       - bbox
-                                      - srs
                                       type: object
                                     keywords:
                                       description: Keywords to make this collection
@@ -902,12 +903,13 @@ spec:
                                           minItems: 2
                                           type: array
                                         srs:
-                                          description: Projection (SRS/CRS) used
+                                          description: Projection (SRS/CRS) to be
+                                            used. When none is provided WGS84 (http://www.opengis.net/def/crs/OGC/1.3/CRS84)
+                                            is used.
                                           pattern: ^EPSG:\d+$
                                           type: string
                                       required:
                                       - bbox
-                                      - srs
                                       type: object
                                     keywords:
                                       description: Keywords to make this collection
@@ -1710,12 +1712,13 @@ spec:
                                           minItems: 2
                                           type: array
                                         srs:
-                                          description: Projection (SRS/CRS) used
+                                          description: Projection (SRS/CRS) to be
+                                            used. When none is provided WGS84 (http://www.opengis.net/def/crs/OGC/1.3/CRS84)
+                                            is used.
                                           pattern: ^EPSG:\d+$
                                           type: string
                                       required:
                                       - bbox
-                                      - srs
                                       type: object
                                     keywords:
                                       description: Keywords to make this collection

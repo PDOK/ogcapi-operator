@@ -3,7 +3,7 @@ module github.com/PDOK/ogcapi-operator
 go 1.22.2
 
 require (
-	github.com/PDOK/gokoala v0.47.0
+	github.com/PDOK/gokoala v0.48.1
 	github.com/onsi/ginkgo/v2 v2.17.1
 	github.com/onsi/gomega v1.32.0
 	github.com/peterbourgon/ff v1.7.1
