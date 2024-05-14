@@ -60,12 +60,12 @@ spec:
                   baseUrl:
                     description: The base URL - that's the part until the OGC API
                       landing page - under which this API is served
-                    pattern: ^(https?://.+)|(\$\{.+\})
+                    pattern: ^(https?://.+)|(\$\{.+\}.*)
                     type: string
                   datasetCatalogUrl:
                     description: Optional reference to a catalog/portal/registry that
                       lists all datasets, not just this one
-                    pattern: ^(https?://.+)|(\$\{.+\})
+                    pattern: ^(https?://.+)|(\$\{.+\}.*)
                     type: string
                   datasetDetails:
                     description: Key/value pairs to add extra information to the landing
@@ -104,7 +104,7 @@ spec:
                         type: string
                       url:
                         description: URL to license text on the web
-                        pattern: ^(https?://.+)|(\$\{.+\})
+                        pattern: ^(https?://.+)|(\$\{.+\}.*)
                         type: string
                     required:
                     - name
@@ -124,7 +124,7 @@ spec:
                                 3dViewerUrl:
                                   description: Optional URL to 3D viewer to visualize
                                     the given collection of 3D Tiles.
-                                  pattern: ^(https?://.+)|(\$\{.+\})
+                                  pattern: ^(https?://.+)|(\$\{.+\}.*)
                                   type: string
                                 datasources:
                                   description: Optional collection specific datasources.
@@ -195,6 +195,13 @@ spec:
                                                   file:
                                                     description: Filename of the GeoPackage
                                                     type: string
+                                                  inMemoryCacheSize:
+                                                    default: 15MiB
+                                                    description: |-
+                                                      Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
+                                                    type: string
                                                   logHttpRequests:
                                                     default: false
                                                     description: Only for debug purposes!
@@ -233,14 +240,84 @@ spec:
                                                 description: Settings to read a GeoPackage
                                                   from local disk
                                                 properties:
+                                                  download:
+                                                    description: |-
+                                                      Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                                      downloaded to local disk and stored at the location specified in "file".
+                                                    properties:
+                                                      from:
+                                                        description: |-
+                                                          Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                          during startup and stored at the location specified in "file".
+                                                        pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                        type: string
+                                                      maxRetries:
+                                                        default: 5
+                                                        description: 'Advanced setting:
+                                                          Maximum number of retries
+                                                          when retrying HTTP requests
+                                                          to download (part of) GeoPackage.'
+                                                        minimum: 1
+                                                        type: integer
+                                                      parallelism:
+                                                        default: 4
+                                                        description: |-
+                                                          Advanced setting: Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                          Setting this to 1 will disable concurrent downloads.
+                                                        minimum: 1
+                                                        type: integer
+                                                      retryDelay:
+                                                        default: 1s
+                                                        description: 'Advanced setting:
+                                                          Minimum delay to use when
+                                                          retrying HTTP request to
+                                                          download (part of) GeoPackage.'
+                                                        format: duration
+                                                        type: string
+                                                      retryMaxDelay:
+                                                        default: 30s
+                                                        description: 'Advanced setting:
+                                                          Maximum overall delay of
+                                                          the exponential backoff
+                                                          while retrying HTTP requests
+                                                          to download (part of) GeoPackage.'
+                                                        format: duration
+                                                        type: string
+                                                      timeout:
+                                                        default: 2m
+                                                        description: 'Advanced setting:
+                                                          HTTP request timeout when
+                                                          downloading (part of) GeoPackage.'
+                                                        format: duration
+                                                        type: string
+                                                      tlsSkipVerify:
+                                                        default: false
+                                                        description: 'Advanced setting:
+                                                          when true TLS certs are
+                                                          NOT validated, false otherwise.
+                                                          Only use true for your own
+                                                          self-signed certificates!'
+                                                        type: boolean
+                                                    required:
+                                                    - from
+                                                    type: object
                                                   fid:
                                                     default: fid
                                                     description: Feature id column
                                                       name
                                                     type: string
                                                   file:
-                                                    description: Location of GeoPackage
-                                                      on disk
+                                                    description: |-
+                                                      Location of GeoPackage on disk.
+                                                      You can place the GeoPackage here manually (out-of-band) or you can specify "init"
+                                                      and let the application download the GeoPackage for you and store it at this location.
+                                                    type: string
+                                                  inMemoryCacheSize:
+                                                    default: 15MiB
+                                                    description: |-
+                                                      Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
                                                     type: string
                                                   maxBBoxSizeToUseWithRTree:
                                                     default: 30000
@@ -334,6 +411,13 @@ spec:
                                                 file:
                                                   description: Filename of the GeoPackage
                                                   type: string
+                                                inMemoryCacheSize:
+                                                  default: 15MiB
+                                                  description: |-
+                                                    Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                    See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
+                                                  type: string
                                                 logHttpRequests:
                                                   default: false
                                                   description: Only for debug purposes!
@@ -370,13 +454,83 @@ spec:
                                               description: Settings to read a GeoPackage
                                                 from local disk
                                               properties:
+                                                download:
+                                                  description: |-
+                                                    Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                                    downloaded to local disk and stored at the location specified in "file".
+                                                  properties:
+                                                    from:
+                                                      description: |-
+                                                        Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                        during startup and stored at the location specified in "file".
+                                                      pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                      type: string
+                                                    maxRetries:
+                                                      default: 5
+                                                      description: 'Advanced setting:
+                                                        Maximum number of retries
+                                                        when retrying HTTP requests
+                                                        to download (part of) GeoPackage.'
+                                                      minimum: 1
+                                                      type: integer
+                                                    parallelism:
+                                                      default: 4
+                                                      description: |-
+                                                        Advanced setting: Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                        Setting this to 1 will disable concurrent downloads.
+                                                      minimum: 1
+                                                      type: integer
+                                                    retryDelay:
+                                                      default: 1s
+                                                      description: 'Advanced setting:
+                                                        Minimum delay to use when
+                                                        retrying HTTP request to download
+                                                        (part of) GeoPackage.'
+                                                      format: duration
+                                                      type: string
+                                                    retryMaxDelay:
+                                                      default: 30s
+                                                      description: 'Advanced setting:
+                                                        Maximum overall delay of the
+                                                        exponential backoff while
+                                                        retrying HTTP requests to
+                                                        download (part of) GeoPackage.'
+                                                      format: duration
+                                                      type: string
+                                                    timeout:
+                                                      default: 2m
+                                                      description: 'Advanced setting:
+                                                        HTTP request timeout when
+                                                        downloading (part of) GeoPackage.'
+                                                      format: duration
+                                                      type: string
+                                                    tlsSkipVerify:
+                                                      default: false
+                                                      description: 'Advanced setting:
+                                                        when true TLS certs are NOT
+                                                        validated, false otherwise.
+                                                        Only use true for your own
+                                                        self-signed certificates!'
+                                                      type: boolean
+                                                  required:
+                                                  - from
+                                                  type: object
                                                 fid:
                                                   default: fid
                                                   description: Feature id column name
                                                   type: string
                                                 file:
-                                                  description: Location of GeoPackage
-                                                    on disk
+                                                  description: |-
+                                                    Location of GeoPackage on disk.
+                                                    You can place the GeoPackage here manually (out-of-band) or you can specify "init"
+                                                    and let the application download the GeoPackage for you and store it at this location.
+                                                  type: string
+                                                inMemoryCacheSize:
+                                                  default: 15MiB
+                                                  description: |-
+                                                    Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                    See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
                                                   type: string
                                                 maxBBoxSizeToUseWithRTree:
                                                   default: 30000
@@ -416,6 +570,12 @@ spec:
                                             default: Filter features by this property
                                             description: Explains this property filter
                                             type: string
+                                          indexRequired:
+                                            default: true
+                                            description: |-
+                                              When true the property/column in the feature table needs to be indexed. Initialization will fail
+                                              when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                            type: boolean
                                           name:
                                             description: Needs to match with a column
                                               name in the feature table (in the configured
@@ -541,7 +701,7 @@ spec:
                           tileServer:
                             description: Reference to the server (or object storage)
                               hosting the 3D Tiles
-                            pattern: ^(https?://.+)|(\$\{.+\})
+                            pattern: ^(https?://.+)|(\$\{.+\}.*)
                             type: string
                           validateResponses:
                             default: true
@@ -572,7 +732,7 @@ spec:
                                 3dViewerUrl:
                                   description: Optional URL to 3D viewer to visualize
                                     the given collection of 3D Tiles.
-                                  pattern: ^(https?://.+)|(\$\{.+\})
+                                  pattern: ^(https?://.+)|(\$\{.+\}.*)
                                   type: string
                                 datasources:
                                   description: Optional collection specific datasources.
@@ -643,6 +803,13 @@ spec:
                                                   file:
                                                     description: Filename of the GeoPackage
                                                     type: string
+                                                  inMemoryCacheSize:
+                                                    default: 15MiB
+                                                    description: |-
+                                                      Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
+                                                    type: string
                                                   logHttpRequests:
                                                     default: false
                                                     description: Only for debug purposes!
@@ -681,14 +848,84 @@ spec:
                                                 description: Settings to read a GeoPackage
                                                   from local disk
                                                 properties:
+                                                  download:
+                                                    description: |-
+                                                      Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                                      downloaded to local disk and stored at the location specified in "file".
+                                                    properties:
+                                                      from:
+                                                        description: |-
+                                                          Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                          during startup and stored at the location specified in "file".
+                                                        pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                        type: string
+                                                      maxRetries:
+                                                        default: 5
+                                                        description: 'Advanced setting:
+                                                          Maximum number of retries
+                                                          when retrying HTTP requests
+                                                          to download (part of) GeoPackage.'
+                                                        minimum: 1
+                                                        type: integer
+                                                      parallelism:
+                                                        default: 4
+                                                        description: |-
+                                                          Advanced setting: Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                          Setting this to 1 will disable concurrent downloads.
+                                                        minimum: 1
+                                                        type: integer
+                                                      retryDelay:
+                                                        default: 1s
+                                                        description: 'Advanced setting:
+                                                          Minimum delay to use when
+                                                          retrying HTTP request to
+                                                          download (part of) GeoPackage.'
+                                                        format: duration
+                                                        type: string
+                                                      retryMaxDelay:
+                                                        default: 30s
+                                                        description: 'Advanced setting:
+                                                          Maximum overall delay of
+                                                          the exponential backoff
+                                                          while retrying HTTP requests
+                                                          to download (part of) GeoPackage.'
+                                                        format: duration
+                                                        type: string
+                                                      timeout:
+                                                        default: 2m
+                                                        description: 'Advanced setting:
+                                                          HTTP request timeout when
+                                                          downloading (part of) GeoPackage.'
+                                                        format: duration
+                                                        type: string
+                                                      tlsSkipVerify:
+                                                        default: false
+                                                        description: 'Advanced setting:
+                                                          when true TLS certs are
+                                                          NOT validated, false otherwise.
+                                                          Only use true for your own
+                                                          self-signed certificates!'
+                                                        type: boolean
+                                                    required:
+                                                    - from
+                                                    type: object
                                                   fid:
                                                     default: fid
                                                     description: Feature id column
                                                       name
                                                     type: string
                                                   file:
-                                                    description: Location of GeoPackage
-                                                      on disk
+                                                    description: |-
+                                                      Location of GeoPackage on disk.
+                                                      You can place the GeoPackage here manually (out-of-band) or you can specify "init"
+                                                      and let the application download the GeoPackage for you and store it at this location.
+                                                    type: string
+                                                  inMemoryCacheSize:
+                                                    default: 15MiB
+                                                    description: |-
+                                                      Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
                                                     type: string
                                                   maxBBoxSizeToUseWithRTree:
                                                     default: 30000
@@ -782,6 +1019,13 @@ spec:
                                                 file:
                                                   description: Filename of the GeoPackage
                                                   type: string
+                                                inMemoryCacheSize:
+                                                  default: 15MiB
+                                                  description: |-
+                                                    Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                    See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
+                                                  type: string
                                                 logHttpRequests:
                                                   default: false
                                                   description: Only for debug purposes!
@@ -818,13 +1062,83 @@ spec:
                                               description: Settings to read a GeoPackage
                                                 from local disk
                                               properties:
+                                                download:
+                                                  description: |-
+                                                    Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                                    downloaded to local disk and stored at the location specified in "file".
+                                                  properties:
+                                                    from:
+                                                      description: |-
+                                                        Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                        during startup and stored at the location specified in "file".
+                                                      pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                      type: string
+                                                    maxRetries:
+                                                      default: 5
+                                                      description: 'Advanced setting:
+                                                        Maximum number of retries
+                                                        when retrying HTTP requests
+                                                        to download (part of) GeoPackage.'
+                                                      minimum: 1
+                                                      type: integer
+                                                    parallelism:
+                                                      default: 4
+                                                      description: |-
+                                                        Advanced setting: Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                        Setting this to 1 will disable concurrent downloads.
+                                                      minimum: 1
+                                                      type: integer
+                                                    retryDelay:
+                                                      default: 1s
+                                                      description: 'Advanced setting:
+                                                        Minimum delay to use when
+                                                        retrying HTTP request to download
+                                                        (part of) GeoPackage.'
+                                                      format: duration
+                                                      type: string
+                                                    retryMaxDelay:
+                                                      default: 30s
+                                                      description: 'Advanced setting:
+                                                        Maximum overall delay of the
+                                                        exponential backoff while
+                                                        retrying HTTP requests to
+                                                        download (part of) GeoPackage.'
+                                                      format: duration
+                                                      type: string
+                                                    timeout:
+                                                      default: 2m
+                                                      description: 'Advanced setting:
+                                                        HTTP request timeout when
+                                                        downloading (part of) GeoPackage.'
+                                                      format: duration
+                                                      type: string
+                                                    tlsSkipVerify:
+                                                      default: false
+                                                      description: 'Advanced setting:
+                                                        when true TLS certs are NOT
+                                                        validated, false otherwise.
+                                                        Only use true for your own
+                                                        self-signed certificates!'
+                                                      type: boolean
+                                                  required:
+                                                  - from
+                                                  type: object
                                                 fid:
                                                   default: fid
                                                   description: Feature id column name
                                                   type: string
                                                 file:
-                                                  description: Location of GeoPackage
-                                                    on disk
+                                                  description: |-
+                                                    Location of GeoPackage on disk.
+                                                    You can place the GeoPackage here manually (out-of-band) or you can specify "init"
+                                                    and let the application download the GeoPackage for you and store it at this location.
+                                                  type: string
+                                                inMemoryCacheSize:
+                                                  default: 15MiB
+                                                  description: |-
+                                                    Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                    See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
                                                   type: string
                                                 maxBBoxSizeToUseWithRTree:
                                                   default: 30000
@@ -864,6 +1178,12 @@ spec:
                                             default: Filter features by this property
                                             description: Explains this property filter
                                             type: string
+                                          indexRequired:
+                                            default: true
+                                            description: |-
+                                              When true the property/column in the feature table needs to be indexed. Initialization will fail
+                                              when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                            type: boolean
                                           name:
                                             description: Needs to match with a column
                                               name in the feature table (in the configured
@@ -1052,6 +1372,13 @@ spec:
                                             file:
                                               description: Filename of the GeoPackage
                                               type: string
+                                            inMemoryCacheSize:
+                                              default: 15MiB
+                                              description: |-
+                                                Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
+                                              type: string
                                             logHttpRequests:
                                               default: false
                                               description: Only for debug purposes!
@@ -1088,13 +1415,81 @@ spec:
                                           description: Settings to read a GeoPackage
                                             from local disk
                                           properties:
+                                            download:
+                                              description: |-
+                                                Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                                downloaded to local disk and stored at the location specified in "file".
+                                              properties:
+                                                from:
+                                                  description: |-
+                                                    Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                    during startup and stored at the location specified in "file".
+                                                  pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                  type: string
+                                                maxRetries:
+                                                  default: 5
+                                                  description: 'Advanced setting:
+                                                    Maximum number of retries when
+                                                    retrying HTTP requests to download
+                                                    (part of) GeoPackage.'
+                                                  minimum: 1
+                                                  type: integer
+                                                parallelism:
+                                                  default: 4
+                                                  description: |-
+                                                    Advanced setting: Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                    Setting this to 1 will disable concurrent downloads.
+                                                  minimum: 1
+                                                  type: integer
+                                                retryDelay:
+                                                  default: 1s
+                                                  description: 'Advanced setting:
+                                                    Minimum delay to use when retrying
+                                                    HTTP request to download (part
+                                                    of) GeoPackage.'
+                                                  format: duration
+                                                  type: string
+                                                retryMaxDelay:
+                                                  default: 30s
+                                                  description: 'Advanced setting:
+                                                    Maximum overall delay of the exponential
+                                                    backoff while retrying HTTP requests
+                                                    to download (part of) GeoPackage.'
+                                                  format: duration
+                                                  type: string
+                                                timeout:
+                                                  default: 2m
+                                                  description: 'Advanced setting:
+                                                    HTTP request timeout when downloading
+                                                    (part of) GeoPackage.'
+                                                  format: duration
+                                                  type: string
+                                                tlsSkipVerify:
+                                                  default: false
+                                                  description: 'Advanced setting:
+                                                    when true TLS certs are NOT validated,
+                                                    false otherwise. Only use true
+                                                    for your own self-signed certificates!'
+                                                  type: boolean
+                                              required:
+                                              - from
+                                              type: object
                                             fid:
                                               default: fid
                                               description: Feature id column name
                                               type: string
                                             file:
-                                              description: Location of GeoPackage
-                                                on disk
+                                              description: |-
+                                                Location of GeoPackage on disk.
+                                                You can place the GeoPackage here manually (out-of-band) or you can specify "init"
+                                                and let the application download the GeoPackage for you and store it at this location.
+                                              type: string
+                                            inMemoryCacheSize:
+                                              default: 15MiB
+                                              description: |-
+                                                Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
                                               type: string
                                             maxBBoxSizeToUseWithRTree:
                                               default: 30000
@@ -1185,6 +1580,13 @@ spec:
                                           file:
                                             description: Filename of the GeoPackage
                                             type: string
+                                          inMemoryCacheSize:
+                                            default: 15MiB
+                                            description: |-
+                                              Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                              See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                              Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
+                                            type: string
                                           logHttpRequests:
                                             default: false
                                             description: Only for debug purposes!
@@ -1221,13 +1623,80 @@ spec:
                                         description: Settings to read a GeoPackage
                                           from local disk
                                         properties:
+                                          download:
+                                            description: |-
+                                              Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                              downloaded to local disk and stored at the location specified in "file".
+                                            properties:
+                                              from:
+                                                description: |-
+                                                  Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                  during startup and stored at the location specified in "file".
+                                                pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                type: string
+                                              maxRetries:
+                                                default: 5
+                                                description: 'Advanced setting: Maximum
+                                                  number of retries when retrying
+                                                  HTTP requests to download (part
+                                                  of) GeoPackage.'
+                                                minimum: 1
+                                                type: integer
+                                              parallelism:
+                                                default: 4
+                                                description: |-
+                                                  Advanced setting: Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                  Setting this to 1 will disable concurrent downloads.
+                                                minimum: 1
+                                                type: integer
+                                              retryDelay:
+                                                default: 1s
+                                                description: 'Advanced setting: Minimum
+                                                  delay to use when retrying HTTP
+                                                  request to download (part of) GeoPackage.'
+                                                format: duration
+                                                type: string
+                                              retryMaxDelay:
+                                                default: 30s
+                                                description: 'Advanced setting: Maximum
+                                                  overall delay of the exponential
+                                                  backoff while retrying HTTP requests
+                                                  to download (part of) GeoPackage.'
+                                                format: duration
+                                                type: string
+                                              timeout:
+                                                default: 2m
+                                                description: 'Advanced setting: HTTP
+                                                  request timeout when downloading
+                                                  (part of) GeoPackage.'
+                                                format: duration
+                                                type: string
+                                              tlsSkipVerify:
+                                                default: false
+                                                description: 'Advanced setting: when
+                                                  true TLS certs are NOT validated,
+                                                  false otherwise. Only use true for
+                                                  your own self-signed certificates!'
+                                                type: boolean
+                                            required:
+                                            - from
+                                            type: object
                                           fid:
                                             default: fid
                                             description: Feature id column name
                                             type: string
                                           file:
-                                            description: Location of GeoPackage on
-                                              disk
+                                            description: |-
+                                              Location of GeoPackage on disk.
+                                              You can place the GeoPackage here manually (out-of-band) or you can specify "init"
+                                              and let the application download the GeoPackage for you and store it at this location.
+                                            type: string
+                                          inMemoryCacheSize:
+                                            default: 15MiB
+                                            description: |-
+                                              Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                              See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                              Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
                                             type: string
                                           maxBBoxSizeToUseWithRTree:
                                             default: 30000
@@ -1287,7 +1756,7 @@ spec:
                             description: Reference to an external service implementing
                               the process API. GoKoala acts only as a proxy for OGC
                               API Processes.
-                            pattern: ^(https?://.+)|(\$\{.+\})
+                            pattern: ^(https?://.+)|(\$\{.+\}.*)
                             type: string
                           supportsCallback:
                             description: Enable to advertise callback operations on
@@ -1379,7 +1848,7 @@ spec:
                                 3dViewerUrl:
                                   description: Optional URL to 3D viewer to visualize
                                     the given collection of 3D Tiles.
-                                  pattern: ^(https?://.+)|(\$\{.+\})
+                                  pattern: ^(https?://.+)|(\$\{.+\}.*)
                                   type: string
                                 datasources:
                                   description: Optional collection specific datasources.
@@ -1450,6 +1919,13 @@ spec:
                                                   file:
                                                     description: Filename of the GeoPackage
                                                     type: string
+                                                  inMemoryCacheSize:
+                                                    default: 15MiB
+                                                    description: |-
+                                                      Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
+                                                    type: string
                                                   logHttpRequests:
                                                     default: false
                                                     description: Only for debug purposes!
@@ -1488,14 +1964,84 @@ spec:
                                                 description: Settings to read a GeoPackage
                                                   from local disk
                                                 properties:
+                                                  download:
+                                                    description: |-
+                                                      Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                                      downloaded to local disk and stored at the location specified in "file".
+                                                    properties:
+                                                      from:
+                                                        description: |-
+                                                          Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                          during startup and stored at the location specified in "file".
+                                                        pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                        type: string
+                                                      maxRetries:
+                                                        default: 5
+                                                        description: 'Advanced setting:
+                                                          Maximum number of retries
+                                                          when retrying HTTP requests
+                                                          to download (part of) GeoPackage.'
+                                                        minimum: 1
+                                                        type: integer
+                                                      parallelism:
+                                                        default: 4
+                                                        description: |-
+                                                          Advanced setting: Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                          Setting this to 1 will disable concurrent downloads.
+                                                        minimum: 1
+                                                        type: integer
+                                                      retryDelay:
+                                                        default: 1s
+                                                        description: 'Advanced setting:
+                                                          Minimum delay to use when
+                                                          retrying HTTP request to
+                                                          download (part of) GeoPackage.'
+                                                        format: duration
+                                                        type: string
+                                                      retryMaxDelay:
+                                                        default: 30s
+                                                        description: 'Advanced setting:
+                                                          Maximum overall delay of
+                                                          the exponential backoff
+                                                          while retrying HTTP requests
+                                                          to download (part of) GeoPackage.'
+                                                        format: duration
+                                                        type: string
+                                                      timeout:
+                                                        default: 2m
+                                                        description: 'Advanced setting:
+                                                          HTTP request timeout when
+                                                          downloading (part of) GeoPackage.'
+                                                        format: duration
+                                                        type: string
+                                                      tlsSkipVerify:
+                                                        default: false
+                                                        description: 'Advanced setting:
+                                                          when true TLS certs are
+                                                          NOT validated, false otherwise.
+                                                          Only use true for your own
+                                                          self-signed certificates!'
+                                                        type: boolean
+                                                    required:
+                                                    - from
+                                                    type: object
                                                   fid:
                                                     default: fid
                                                     description: Feature id column
                                                       name
                                                     type: string
                                                   file:
-                                                    description: Location of GeoPackage
-                                                      on disk
+                                                    description: |-
+                                                      Location of GeoPackage on disk.
+                                                      You can place the GeoPackage here manually (out-of-band) or you can specify "init"
+                                                      and let the application download the GeoPackage for you and store it at this location.
+                                                    type: string
+                                                  inMemoryCacheSize:
+                                                    default: 15MiB
+                                                    description: |-
+                                                      Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
                                                     type: string
                                                   maxBBoxSizeToUseWithRTree:
                                                     default: 30000
@@ -1589,6 +2135,13 @@ spec:
                                                 file:
                                                   description: Filename of the GeoPackage
                                                   type: string
+                                                inMemoryCacheSize:
+                                                  default: 15MiB
+                                                  description: |-
+                                                    Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                    See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
+                                                  type: string
                                                 logHttpRequests:
                                                   default: false
                                                   description: Only for debug purposes!
@@ -1625,13 +2178,83 @@ spec:
                                               description: Settings to read a GeoPackage
                                                 from local disk
                                               properties:
+                                                download:
+                                                  description: |-
+                                                    Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                                    downloaded to local disk and stored at the location specified in "file".
+                                                  properties:
+                                                    from:
+                                                      description: |-
+                                                        Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                        during startup and stored at the location specified in "file".
+                                                      pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                      type: string
+                                                    maxRetries:
+                                                      default: 5
+                                                      description: 'Advanced setting:
+                                                        Maximum number of retries
+                                                        when retrying HTTP requests
+                                                        to download (part of) GeoPackage.'
+                                                      minimum: 1
+                                                      type: integer
+                                                    parallelism:
+                                                      default: 4
+                                                      description: |-
+                                                        Advanced setting: Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                        Setting this to 1 will disable concurrent downloads.
+                                                      minimum: 1
+                                                      type: integer
+                                                    retryDelay:
+                                                      default: 1s
+                                                      description: 'Advanced setting:
+                                                        Minimum delay to use when
+                                                        retrying HTTP request to download
+                                                        (part of) GeoPackage.'
+                                                      format: duration
+                                                      type: string
+                                                    retryMaxDelay:
+                                                      default: 30s
+                                                      description: 'Advanced setting:
+                                                        Maximum overall delay of the
+                                                        exponential backoff while
+                                                        retrying HTTP requests to
+                                                        download (part of) GeoPackage.'
+                                                      format: duration
+                                                      type: string
+                                                    timeout:
+                                                      default: 2m
+                                                      description: 'Advanced setting:
+                                                        HTTP request timeout when
+                                                        downloading (part of) GeoPackage.'
+                                                      format: duration
+                                                      type: string
+                                                    tlsSkipVerify:
+                                                      default: false
+                                                      description: 'Advanced setting:
+                                                        when true TLS certs are NOT
+                                                        validated, false otherwise.
+                                                        Only use true for your own
+                                                        self-signed certificates!'
+                                                      type: boolean
+                                                  required:
+                                                  - from
+                                                  type: object
                                                 fid:
                                                   default: fid
                                                   description: Feature id column name
                                                   type: string
                                                 file:
-                                                  description: Location of GeoPackage
-                                                    on disk
+                                                  description: |-
+                                                    Location of GeoPackage on disk.
+                                                    You can place the GeoPackage here manually (out-of-band) or you can specify "init"
+                                                    and let the application download the GeoPackage for you and store it at this location.
+                                                  type: string
+                                                inMemoryCacheSize:
+                                                  default: 15MiB
+                                                  description: |-
+                                                    Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                    See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
                                                   type: string
                                                 maxBBoxSizeToUseWithRTree:
                                                   default: 30000
@@ -1671,6 +2294,12 @@ spec:
                                             default: Filter features by this property
                                             description: Explains this property filter
                                             type: string
+                                          indexRequired:
+                                            default: true
+                                            description: |-
+                                              When true the property/column in the feature table needs to be indexed. Initialization will fail
+                                              when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                            type: boolean
                                           name:
                                             description: Needs to match with a column
                                               name in the feature table (in the configured
@@ -1824,7 +2453,7 @@ spec:
                           tileServer:
                             description: Reference to the server (or object storage)
                               hosting the tiles
-                            pattern: ^(https?://.+)|(\$\{.+\})
+                            pattern: ^(https?://.+)|(\$\{.+\}.*)
                             type: string
                           types:
                             description: Could be 'vector' and/or 'raster' to indicate
@@ -1858,7 +2487,7 @@ spec:
                         description: Location where resources (e.g. thumbnails) specific
                           to the given dataset are hosted. This is optional if Directory
                           is set
-                        pattern: ^(https?://.+)|(\$\{.+\})
+                        pattern: ^(https?://.+)|(\$\{.+\}.*)
                         type: string
                     type: object
                   serviceIdentifier:
@@ -1875,7 +2504,7 @@ spec:
                         type: string
                       url:
                         description: URL to external support webpage
-                        pattern: ^(https?://.+)|(\$\{.+\})
+                        pattern: ^(https?://.+)|(\$\{.+\}.*)
                         type: string
                     required:
                     - name
