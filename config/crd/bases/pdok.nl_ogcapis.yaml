@@ -195,12 +195,12 @@ spec:
                                                     description: Filename of the GeoPackage
                                                     type: string
                                                   inMemoryCacheSize:
-                                                    default: 15MiB
+                                                    default: -2000
                                                     description: |-
-                                                      Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
                                                       See https://sqlite.org/pragma.html#pragma_cache_size for details.
-                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
-                                                    type: string
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                    type: integer
                                                   logHttpRequests:
                                                     default: false
                                                     description: Only for debug purposes!
@@ -312,12 +312,12 @@ spec:
                                                       and let the application download the GeoPackage for you and store it at this location.
                                                     type: string
                                                   inMemoryCacheSize:
-                                                    default: 15MiB
+                                                    default: -2000
                                                     description: |-
-                                                      Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
                                                       See https://sqlite.org/pragma.html#pragma_cache_size for details.
-                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
-                                                    type: string
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                    type: integer
                                                   maxBBoxSizeToUseWithRTree:
                                                     default: 30000
                                                     description: When the number of
@@ -410,12 +410,12 @@ spec:
                                                   description: Filename of the GeoPackage
                                                   type: string
                                                 inMemoryCacheSize:
-                                                  default: 15MiB
+                                                  default: -2000
                                                   description: |-
-                                                    Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                    ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
                                                     See https://sqlite.org/pragma.html#pragma_cache_size for details.
-                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
-                                                  type: string
+                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                  type: integer
                                                 logHttpRequests:
                                                   default: false
                                                   description: Only for debug purposes!
@@ -524,12 +524,12 @@ spec:
                                                     and let the application download the GeoPackage for you and store it at this location.
                                                   type: string
                                                 inMemoryCacheSize:
-                                                  default: 15MiB
+                                                  default: -2000
                                                   description: |-
-                                                    Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                    ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
                                                     See https://sqlite.org/pragma.html#pragma_cache_size for details.
-                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
-                                                  type: string
+                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                  type: integer
                                                 maxBBoxSizeToUseWithRTree:
                                                   default: 30000
                                                   description: When the number of
@@ -801,12 +801,12 @@ spec:
                                                     description: Filename of the GeoPackage
                                                     type: string
                                                   inMemoryCacheSize:
-                                                    default: 15MiB
+                                                    default: -2000
                                                     description: |-
-                                                      Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
                                                       See https://sqlite.org/pragma.html#pragma_cache_size for details.
-                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
-                                                    type: string
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                    type: integer
                                                   logHttpRequests:
                                                     default: false
                                                     description: Only for debug purposes!
@@ -918,12 +918,12 @@ spec:
                                                       and let the application download the GeoPackage for you and store it at this location.
                                                     type: string
                                                   inMemoryCacheSize:
-                                                    default: 15MiB
+                                                    default: -2000
                                                     description: |-
-                                                      Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
                                                       See https://sqlite.org/pragma.html#pragma_cache_size for details.
-                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
-                                                    type: string
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                    type: integer
                                                   maxBBoxSizeToUseWithRTree:
                                                     default: 30000
                                                     description: When the number of
@@ -1016,12 +1016,12 @@ spec:
                                                   description: Filename of the GeoPackage
                                                   type: string
                                                 inMemoryCacheSize:
-                                                  default: 15MiB
+                                                  default: -2000
                                                   description: |-
-                                                    Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                    ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
                                                     See https://sqlite.org/pragma.html#pragma_cache_size for details.
-                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
-                                                  type: string
+                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                  type: integer
                                                 logHttpRequests:
                                                   default: false
                                                   description: Only for debug purposes!
@@ -1130,12 +1130,12 @@ spec:
                                                     and let the application download the GeoPackage for you and store it at this location.
                                                   type: string
                                                 inMemoryCacheSize:
-                                                  default: 15MiB
+                                                  default: -2000
                                                   description: |-
-                                                    Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                    ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
                                                     See https://sqlite.org/pragma.html#pragma_cache_size for details.
-                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
-                                                  type: string
+                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                  type: integer
                                                 maxBBoxSizeToUseWithRTree:
                                                   default: 30000
                                                   description: When the number of
@@ -1368,12 +1368,12 @@ spec:
                                               description: Filename of the GeoPackage
                                               type: string
                                             inMemoryCacheSize:
-                                              default: 15MiB
+                                              default: -2000
                                               description: |-
-                                                Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
                                                 See https://sqlite.org/pragma.html#pragma_cache_size for details.
-                                                Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
-                                              type: string
+                                                Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                              type: integer
                                             logHttpRequests:
                                               default: false
                                               description: Only for debug purposes!
@@ -1480,12 +1480,12 @@ spec:
                                                 and let the application download the GeoPackage for you and store it at this location.
                                               type: string
                                             inMemoryCacheSize:
-                                              default: 15MiB
+                                              default: -2000
                                               description: |-
-                                                Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
                                                 See https://sqlite.org/pragma.html#pragma_cache_size for details.
-                                                Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
-                                              type: string
+                                                Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                              type: integer
                                             maxBBoxSizeToUseWithRTree:
                                               default: 30000
                                               description: When the number of features
@@ -1575,12 +1575,12 @@ spec:
                                             description: Filename of the GeoPackage
                                             type: string
                                           inMemoryCacheSize:
-                                            default: 15MiB
+                                            default: -2000
                                             description: |-
-                                              Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                              ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
                                               See https://sqlite.org/pragma.html#pragma_cache_size for details.
-                                              Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
-                                            type: string
+                                              Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                            type: integer
                                           logHttpRequests:
                                             default: false
                                             description: Only for debug purposes!
@@ -1685,12 +1685,12 @@ spec:
                                               and let the application download the GeoPackage for you and store it at this location.
                                             type: string
                                           inMemoryCacheSize:
-                                            default: 15MiB
+                                            default: -2000
                                             description: |-
-                                              Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                              ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
                                               See https://sqlite.org/pragma.html#pragma_cache_size for details.
-                                              Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
-                                            type: string
+                                              Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                            type: integer
                                           maxBBoxSizeToUseWithRTree:
                                             default: 30000
                                             description: When the number of features
@@ -1912,12 +1912,12 @@ spec:
                                                     description: Filename of the GeoPackage
                                                     type: string
                                                   inMemoryCacheSize:
-                                                    default: 15MiB
+                                                    default: -2000
                                                     description: |-
-                                                      Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
                                                       See https://sqlite.org/pragma.html#pragma_cache_size for details.
-                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
-                                                    type: string
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                    type: integer
                                                   logHttpRequests:
                                                     default: false
                                                     description: Only for debug purposes!
@@ -2029,12 +2029,12 @@ spec:
                                                       and let the application download the GeoPackage for you and store it at this location.
                                                     type: string
                                                   inMemoryCacheSize:
-                                                    default: 15MiB
+                                                    default: -2000
                                                     description: |-
-                                                      Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
                                                       See https://sqlite.org/pragma.html#pragma_cache_size for details.
-                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
-                                                    type: string
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                    type: integer
                                                   maxBBoxSizeToUseWithRTree:
                                                     default: 30000
                                                     description: When the number of
@@ -2127,12 +2127,12 @@ spec:
                                                   description: Filename of the GeoPackage
                                                   type: string
                                                 inMemoryCacheSize:
-                                                  default: 15MiB
+                                                  default: -2000
                                                   description: |-
-                                                    Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                    ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
                                                     See https://sqlite.org/pragma.html#pragma_cache_size for details.
-                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
-                                                  type: string
+                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                  type: integer
                                                 logHttpRequests:
                                                   default: false
                                                   description: Only for debug purposes!
@@ -2241,12 +2241,12 @@ spec:
                                                     and let the application download the GeoPackage for you and store it at this location.
                                                   type: string
                                                 inMemoryCacheSize:
-                                                  default: 15MiB
+                                                  default: -2000
                                                   description: |-
-                                                    Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                    ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
                                                     See https://sqlite.org/pragma.html#pragma_cache_size for details.
-                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). We use 15MiB as default.
-                                                  type: string
+                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                  type: integer
                                                 maxBBoxSizeToUseWithRTree:
                                                   default: 30000
                                                   description: When the number of
