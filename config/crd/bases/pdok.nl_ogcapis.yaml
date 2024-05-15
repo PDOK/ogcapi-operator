@@ -224,9 +224,9 @@ spec:
                                                     format: duration
                                                     type: string
                                                   user:
-                                                    description: 'Username of the
-                                                      storage account, e.g: devstoreaccount1
-                                                      when using Azurite'
+                                                    description: Username of the storage
+                                                      account, like devstoreaccount1
+                                                      when using Azurite
                                                     type: string
                                                 required:
                                                 - auth
@@ -437,9 +437,9 @@ spec:
                                                   format: duration
                                                   type: string
                                                 user:
-                                                  description: 'Username of the storage
-                                                    account, e.g: devstoreaccount1
-                                                    when using Azurite'
+                                                  description: Username of the storage
+                                                    account, like devstoreaccount1
+                                                    when using Azurite
                                                   type: string
                                               required:
                                               - auth
@@ -830,9 +830,9 @@ spec:
                                                     format: duration
                                                     type: string
                                                   user:
-                                                    description: 'Username of the
-                                                      storage account, e.g: devstoreaccount1
-                                                      when using Azurite'
+                                                    description: Username of the storage
+                                                      account, like devstoreaccount1
+                                                      when using Azurite
                                                     type: string
                                                 required:
                                                 - auth
@@ -1043,9 +1043,9 @@ spec:
                                                   format: duration
                                                   type: string
                                                 user:
-                                                  description: 'Username of the storage
-                                                    account, e.g: devstoreaccount1
-                                                    when using Azurite'
+                                                  description: Username of the storage
+                                                    account, like devstoreaccount1
+                                                    when using Azurite
                                                   type: string
                                               required:
                                               - auth
@@ -1395,9 +1395,9 @@ spec:
                                               format: duration
                                               type: string
                                             user:
-                                              description: 'Username of the storage
-                                                account, e.g: devstoreaccount1 when
-                                                using Azurite'
+                                              description: Username of the storage
+                                                account, like devstoreaccount1 when
+                                                using Azurite
                                               type: string
                                           required:
                                           - auth
@@ -1602,9 +1602,8 @@ spec:
                                             format: duration
                                             type: string
                                           user:
-                                            description: 'Username of the storage
-                                              account, e.g: devstoreaccount1 when
-                                              using Azurite'
+                                            description: Username of the storage account,
+                                              like devstoreaccount1 when using Azurite
                                             type: string
                                         required:
                                         - auth
@@ -1942,9 +1941,9 @@ spec:
                                                     format: duration
                                                     type: string
                                                   user:
-                                                    description: 'Username of the
-                                                      storage account, e.g: devstoreaccount1
-                                                      when using Azurite'
+                                                    description: Username of the storage
+                                                      account, like devstoreaccount1
+                                                      when using Azurite
                                                     type: string
                                                 required:
                                                 - auth
@@ -2155,9 +2154,9 @@ spec:
                                                   format: duration
                                                   type: string
                                                 user:
-                                                  description: 'Username of the storage
-                                                    account, e.g: devstoreaccount1
-                                                    when using Azurite'
+                                                  description: Username of the storage
+                                                    account, like devstoreaccount1
+                                                    when using Azurite
                                                   type: string
                                               required:
                                               - auth
