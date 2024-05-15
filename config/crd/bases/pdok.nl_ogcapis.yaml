@@ -179,9 +179,8 @@ spec:
                                                     type: object
                                                   connection:
                                                     description: |-
-                                                      Reference to the cloud storage (either azure or google at the moment), e.g:
-                                                      - azure?emulator=127.0.0.1:10000&sas=0
-                                                      - google
+                                                      Reference to the cloud storage (either azure or google at the moment).
+                                                      For example 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'
                                                     type: string
                                                   container:
                                                     description: Container/bucket
@@ -243,7 +242,7 @@ spec:
                                                   download:
                                                     description: |-
                                                       Optional initialization task to download a GeoPackage during startup. GeoPackage will be
-                                                      downloaded to local disk and stored at the location specified in "file".
+                                                      downloaded to local disk and stored at the location specified in File.
                                                     properties:
                                                       from:
                                                         description: |-
@@ -253,50 +252,50 @@ spec:
                                                         type: string
                                                       maxRetries:
                                                         default: 5
-                                                        description: 'Advanced setting:
+                                                        description: ADVANCED SETTING.
                                                           Maximum number of retries
                                                           when retrying HTTP requests
-                                                          to download (part of) GeoPackage.'
+                                                          to download (part of) GeoPackage.
                                                         minimum: 1
                                                         type: integer
                                                       parallelism:
                                                         default: 4
                                                         description: |-
-                                                          Advanced setting: Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                          ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
                                                           Setting this to 1 will disable concurrent downloads.
                                                         minimum: 1
                                                         type: integer
                                                       retryDelay:
                                                         default: 1s
-                                                        description: 'Advanced setting:
+                                                        description: ADVANCED SETTING.
                                                           Minimum delay to use when
                                                           retrying HTTP request to
-                                                          download (part of) GeoPackage.'
+                                                          download (part of) GeoPackage.
                                                         format: duration
                                                         type: string
                                                       retryMaxDelay:
                                                         default: 30s
-                                                        description: 'Advanced setting:
+                                                        description: ADVANCED SETTING.
                                                           Maximum overall delay of
                                                           the exponential backoff
                                                           while retrying HTTP requests
-                                                          to download (part of) GeoPackage.'
+                                                          to download (part of) GeoPackage.
                                                         format: duration
                                                         type: string
                                                       timeout:
                                                         default: 2m
-                                                        description: 'Advanced setting:
+                                                        description: ADVANCED SETTING.
                                                           HTTP request timeout when
-                                                          downloading (part of) GeoPackage.'
+                                                          downloading (part of) GeoPackage.
                                                         format: duration
                                                         type: string
                                                       tlsSkipVerify:
                                                         default: false
-                                                        description: 'Advanced setting:
-                                                          when true TLS certs are
+                                                        description: ADVANCED SETTING.
+                                                          When true TLS certs are
                                                           NOT validated, false otherwise.
                                                           Only use true for your own
-                                                          self-signed certificates!'
+                                                          self-signed certificates!
                                                         type: boolean
                                                     required:
                                                     - from
@@ -309,7 +308,7 @@ spec:
                                                   file:
                                                     description: |-
                                                       Location of GeoPackage on disk.
-                                                      You can place the GeoPackage here manually (out-of-band) or you can specify "init"
+                                                      You can place the GeoPackage here manually (out-of-band) or you can specify Download
                                                       and let the application download the GeoPackage for you and store it at this location.
                                                     type: string
                                                   inMemoryCacheSize:
@@ -396,9 +395,8 @@ spec:
                                                   type: object
                                                 connection:
                                                   description: |-
-                                                    Reference to the cloud storage (either azure or google at the moment), e.g:
-                                                    - azure?emulator=127.0.0.1:10000&sas=0
-                                                    - google
+                                                    Reference to the cloud storage (either azure or google at the moment).
+                                                    For example 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'
                                                   type: string
                                                 container:
                                                   description: Container/bucket on
@@ -457,7 +455,7 @@ spec:
                                                 download:
                                                   description: |-
                                                     Optional initialization task to download a GeoPackage during startup. GeoPackage will be
-                                                    downloaded to local disk and stored at the location specified in "file".
+                                                    downloaded to local disk and stored at the location specified in File.
                                                   properties:
                                                     from:
                                                       description: |-
@@ -467,50 +465,50 @@ spec:
                                                       type: string
                                                     maxRetries:
                                                       default: 5
-                                                      description: 'Advanced setting:
+                                                      description: ADVANCED SETTING.
                                                         Maximum number of retries
                                                         when retrying HTTP requests
-                                                        to download (part of) GeoPackage.'
+                                                        to download (part of) GeoPackage.
                                                       minimum: 1
                                                       type: integer
                                                     parallelism:
                                                       default: 4
                                                       description: |-
-                                                        Advanced setting: Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                        ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
                                                         Setting this to 1 will disable concurrent downloads.
                                                       minimum: 1
                                                       type: integer
                                                     retryDelay:
                                                       default: 1s
-                                                      description: 'Advanced setting:
+                                                      description: ADVANCED SETTING.
                                                         Minimum delay to use when
                                                         retrying HTTP request to download
-                                                        (part of) GeoPackage.'
+                                                        (part of) GeoPackage.
                                                       format: duration
                                                       type: string
                                                     retryMaxDelay:
                                                       default: 30s
-                                                      description: 'Advanced setting:
+                                                      description: ADVANCED SETTING.
                                                         Maximum overall delay of the
                                                         exponential backoff while
                                                         retrying HTTP requests to
-                                                        download (part of) GeoPackage.'
+                                                        download (part of) GeoPackage.
                                                       format: duration
                                                       type: string
                                                     timeout:
                                                       default: 2m
-                                                      description: 'Advanced setting:
+                                                      description: ADVANCED SETTING.
                                                         HTTP request timeout when
-                                                        downloading (part of) GeoPackage.'
+                                                        downloading (part of) GeoPackage.
                                                       format: duration
                                                       type: string
                                                     tlsSkipVerify:
                                                       default: false
-                                                      description: 'Advanced setting:
-                                                        when true TLS certs are NOT
+                                                      description: ADVANCED SETTING.
+                                                        When true TLS certs are NOT
                                                         validated, false otherwise.
                                                         Only use true for your own
-                                                        self-signed certificates!'
+                                                        self-signed certificates!
                                                       type: boolean
                                                   required:
                                                   - from
@@ -522,7 +520,7 @@ spec:
                                                 file:
                                                   description: |-
                                                     Location of GeoPackage on disk.
-                                                    You can place the GeoPackage here manually (out-of-band) or you can specify "init"
+                                                    You can place the GeoPackage here manually (out-of-band) or you can specify Download
                                                     and let the application download the GeoPackage for you and store it at this location.
                                                   type: string
                                                 inMemoryCacheSize:
@@ -787,9 +785,8 @@ spec:
                                                     type: object
                                                   connection:
                                                     description: |-
-                                                      Reference to the cloud storage (either azure or google at the moment), e.g:
-                                                      - azure?emulator=127.0.0.1:10000&sas=0
-                                                      - google
+                                                      Reference to the cloud storage (either azure or google at the moment).
+                                                      For example 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'
                                                     type: string
                                                   container:
                                                     description: Container/bucket
@@ -851,7 +848,7 @@ spec:
                                                   download:
                                                     description: |-
                                                       Optional initialization task to download a GeoPackage during startup. GeoPackage will be
-                                                      downloaded to local disk and stored at the location specified in "file".
+                                                      downloaded to local disk and stored at the location specified in File.
                                                     properties:
                                                       from:
                                                         description: |-
@@ -861,50 +858,50 @@ spec:
                                                         type: string
                                                       maxRetries:
                                                         default: 5
-                                                        description: 'Advanced setting:
+                                                        description: ADVANCED SETTING.
                                                           Maximum number of retries
                                                           when retrying HTTP requests
-                                                          to download (part of) GeoPackage.'
+                                                          to download (part of) GeoPackage.
                                                         minimum: 1
                                                         type: integer
                                                       parallelism:
                                                         default: 4
                                                         description: |-
-                                                          Advanced setting: Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                          ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
                                                           Setting this to 1 will disable concurrent downloads.
                                                         minimum: 1
                                                         type: integer
                                                       retryDelay:
                                                         default: 1s
-                                                        description: 'Advanced setting:
+                                                        description: ADVANCED SETTING.
                                                           Minimum delay to use when
                                                           retrying HTTP request to
-                                                          download (part of) GeoPackage.'
+                                                          download (part of) GeoPackage.
                                                         format: duration
                                                         type: string
                                                       retryMaxDelay:
                                                         default: 30s
-                                                        description: 'Advanced setting:
+                                                        description: ADVANCED SETTING.
                                                           Maximum overall delay of
                                                           the exponential backoff
                                                           while retrying HTTP requests
-                                                          to download (part of) GeoPackage.'
+                                                          to download (part of) GeoPackage.
                                                         format: duration
                                                         type: string
                                                       timeout:
                                                         default: 2m
-                                                        description: 'Advanced setting:
+                                                        description: ADVANCED SETTING.
                                                           HTTP request timeout when
-                                                          downloading (part of) GeoPackage.'
+                                                          downloading (part of) GeoPackage.
                                                         format: duration
                                                         type: string
                                                       tlsSkipVerify:
                                                         default: false
-                                                        description: 'Advanced setting:
-                                                          when true TLS certs are
+                                                        description: ADVANCED SETTING.
+                                                          When true TLS certs are
                                                           NOT validated, false otherwise.
                                                           Only use true for your own
-                                                          self-signed certificates!'
+                                                          self-signed certificates!
                                                         type: boolean
                                                     required:
                                                     - from
@@ -917,7 +914,7 @@ spec:
                                                   file:
                                                     description: |-
                                                       Location of GeoPackage on disk.
-                                                      You can place the GeoPackage here manually (out-of-band) or you can specify "init"
+                                                      You can place the GeoPackage here manually (out-of-band) or you can specify Download
                                                       and let the application download the GeoPackage for you and store it at this location.
                                                     type: string
                                                   inMemoryCacheSize:
@@ -1004,9 +1001,8 @@ spec:
                                                   type: object
                                                 connection:
                                                   description: |-
-                                                    Reference to the cloud storage (either azure or google at the moment), e.g:
-                                                    - azure?emulator=127.0.0.1:10000&sas=0
-                                                    - google
+                                                    Reference to the cloud storage (either azure or google at the moment).
+                                                    For example 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'
                                                   type: string
                                                 container:
                                                   description: Container/bucket on
@@ -1065,7 +1061,7 @@ spec:
                                                 download:
                                                   description: |-
                                                     Optional initialization task to download a GeoPackage during startup. GeoPackage will be
-                                                    downloaded to local disk and stored at the location specified in "file".
+                                                    downloaded to local disk and stored at the location specified in File.
                                                   properties:
                                                     from:
                                                       description: |-
@@ -1075,50 +1071,50 @@ spec:
                                                       type: string
                                                     maxRetries:
                                                       default: 5
-                                                      description: 'Advanced setting:
+                                                      description: ADVANCED SETTING.
                                                         Maximum number of retries
                                                         when retrying HTTP requests
-                                                        to download (part of) GeoPackage.'
+                                                        to download (part of) GeoPackage.
                                                       minimum: 1
                                                       type: integer
                                                     parallelism:
                                                       default: 4
                                                       description: |-
-                                                        Advanced setting: Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                        ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
                                                         Setting this to 1 will disable concurrent downloads.
                                                       minimum: 1
                                                       type: integer
                                                     retryDelay:
                                                       default: 1s
-                                                      description: 'Advanced setting:
+                                                      description: ADVANCED SETTING.
                                                         Minimum delay to use when
                                                         retrying HTTP request to download
-                                                        (part of) GeoPackage.'
+                                                        (part of) GeoPackage.
                                                       format: duration
                                                       type: string
                                                     retryMaxDelay:
                                                       default: 30s
-                                                      description: 'Advanced setting:
+                                                      description: ADVANCED SETTING.
                                                         Maximum overall delay of the
                                                         exponential backoff while
                                                         retrying HTTP requests to
-                                                        download (part of) GeoPackage.'
+                                                        download (part of) GeoPackage.
                                                       format: duration
                                                       type: string
                                                     timeout:
                                                       default: 2m
-                                                      description: 'Advanced setting:
+                                                      description: ADVANCED SETTING.
                                                         HTTP request timeout when
-                                                        downloading (part of) GeoPackage.'
+                                                        downloading (part of) GeoPackage.
                                                       format: duration
                                                       type: string
                                                     tlsSkipVerify:
                                                       default: false
-                                                      description: 'Advanced setting:
-                                                        when true TLS certs are NOT
+                                                      description: ADVANCED SETTING.
+                                                        When true TLS certs are NOT
                                                         validated, false otherwise.
                                                         Only use true for your own
-                                                        self-signed certificates!'
+                                                        self-signed certificates!
                                                       type: boolean
                                                   required:
                                                   - from
@@ -1130,7 +1126,7 @@ spec:
                                                 file:
                                                   description: |-
                                                     Location of GeoPackage on disk.
-                                                    You can place the GeoPackage here manually (out-of-band) or you can specify "init"
+                                                    You can place the GeoPackage here manually (out-of-band) or you can specify Download
                                                     and let the application download the GeoPackage for you and store it at this location.
                                                   type: string
                                                 inMemoryCacheSize:
@@ -1357,9 +1353,8 @@ spec:
                                               type: object
                                             connection:
                                               description: |-
-                                                Reference to the cloud storage (either azure or google at the moment), e.g:
-                                                - azure?emulator=127.0.0.1:10000&sas=0
-                                                - google
+                                                Reference to the cloud storage (either azure or google at the moment).
+                                                For example 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'
                                               type: string
                                             container:
                                               description: Container/bucket on the
@@ -1418,7 +1413,7 @@ spec:
                                             download:
                                               description: |-
                                                 Optional initialization task to download a GeoPackage during startup. GeoPackage will be
-                                                downloaded to local disk and stored at the location specified in "file".
+                                                downloaded to local disk and stored at the location specified in File.
                                               properties:
                                                 from:
                                                   description: |-
@@ -1428,48 +1423,48 @@ spec:
                                                   type: string
                                                 maxRetries:
                                                   default: 5
-                                                  description: 'Advanced setting:
-                                                    Maximum number of retries when
-                                                    retrying HTTP requests to download
-                                                    (part of) GeoPackage.'
+                                                  description: ADVANCED SETTING. Maximum
+                                                    number of retries when retrying
+                                                    HTTP requests to download (part
+                                                    of) GeoPackage.
                                                   minimum: 1
                                                   type: integer
                                                 parallelism:
                                                   default: 4
                                                   description: |-
-                                                    Advanced setting: Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                    ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
                                                     Setting this to 1 will disable concurrent downloads.
                                                   minimum: 1
                                                   type: integer
                                                 retryDelay:
                                                   default: 1s
-                                                  description: 'Advanced setting:
-                                                    Minimum delay to use when retrying
-                                                    HTTP request to download (part
-                                                    of) GeoPackage.'
+                                                  description: ADVANCED SETTING. Minimum
+                                                    delay to use when retrying HTTP
+                                                    request to download (part of)
+                                                    GeoPackage.
                                                   format: duration
                                                   type: string
                                                 retryMaxDelay:
                                                   default: 30s
-                                                  description: 'Advanced setting:
-                                                    Maximum overall delay of the exponential
+                                                  description: ADVANCED SETTING. Maximum
+                                                    overall delay of the exponential
                                                     backoff while retrying HTTP requests
-                                                    to download (part of) GeoPackage.'
+                                                    to download (part of) GeoPackage.
                                                   format: duration
                                                   type: string
                                                 timeout:
                                                   default: 2m
-                                                  description: 'Advanced setting:
-                                                    HTTP request timeout when downloading
-                                                    (part of) GeoPackage.'
+                                                  description: ADVANCED SETTING. HTTP
+                                                    request timeout when downloading
+                                                    (part of) GeoPackage.
                                                   format: duration
                                                   type: string
                                                 tlsSkipVerify:
                                                   default: false
-                                                  description: 'Advanced setting:
-                                                    when true TLS certs are NOT validated,
+                                                  description: ADVANCED SETTING. When
+                                                    true TLS certs are NOT validated,
                                                     false otherwise. Only use true
-                                                    for your own self-signed certificates!'
+                                                    for your own self-signed certificates!
                                                   type: boolean
                                               required:
                                               - from
@@ -1481,7 +1476,7 @@ spec:
                                             file:
                                               description: |-
                                                 Location of GeoPackage on disk.
-                                                You can place the GeoPackage here manually (out-of-band) or you can specify "init"
+                                                You can place the GeoPackage here manually (out-of-band) or you can specify Download
                                                 and let the application download the GeoPackage for you and store it at this location.
                                               type: string
                                             inMemoryCacheSize:
@@ -1565,9 +1560,8 @@ spec:
                                             type: object
                                           connection:
                                             description: |-
-                                              Reference to the cloud storage (either azure or google at the moment), e.g:
-                                              - azure?emulator=127.0.0.1:10000&sas=0
-                                              - google
+                                              Reference to the cloud storage (either azure or google at the moment).
+                                              For example 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'
                                             type: string
                                           container:
                                             description: Container/bucket on the storage
@@ -1626,7 +1620,7 @@ spec:
                                           download:
                                             description: |-
                                               Optional initialization task to download a GeoPackage during startup. GeoPackage will be
-                                              downloaded to local disk and stored at the location specified in "file".
+                                              downloaded to local disk and stored at the location specified in File.
                                             properties:
                                               from:
                                                 description: |-
@@ -1636,47 +1630,47 @@ spec:
                                                 type: string
                                               maxRetries:
                                                 default: 5
-                                                description: 'Advanced setting: Maximum
+                                                description: ADVANCED SETTING. Maximum
                                                   number of retries when retrying
                                                   HTTP requests to download (part
-                                                  of) GeoPackage.'
+                                                  of) GeoPackage.
                                                 minimum: 1
                                                 type: integer
                                               parallelism:
                                                 default: 4
                                                 description: |-
-                                                  Advanced setting: Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                  ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
                                                   Setting this to 1 will disable concurrent downloads.
                                                 minimum: 1
                                                 type: integer
                                               retryDelay:
                                                 default: 1s
-                                                description: 'Advanced setting: Minimum
+                                                description: ADVANCED SETTING. Minimum
                                                   delay to use when retrying HTTP
-                                                  request to download (part of) GeoPackage.'
+                                                  request to download (part of) GeoPackage.
                                                 format: duration
                                                 type: string
                                               retryMaxDelay:
                                                 default: 30s
-                                                description: 'Advanced setting: Maximum
+                                                description: ADVANCED SETTING. Maximum
                                                   overall delay of the exponential
                                                   backoff while retrying HTTP requests
-                                                  to download (part of) GeoPackage.'
+                                                  to download (part of) GeoPackage.
                                                 format: duration
                                                 type: string
                                               timeout:
                                                 default: 2m
-                                                description: 'Advanced setting: HTTP
+                                                description: ADVANCED SETTING. HTTP
                                                   request timeout when downloading
-                                                  (part of) GeoPackage.'
+                                                  (part of) GeoPackage.
                                                 format: duration
                                                 type: string
                                               tlsSkipVerify:
                                                 default: false
-                                                description: 'Advanced setting: when
+                                                description: ADVANCED SETTING. When
                                                   true TLS certs are NOT validated,
                                                   false otherwise. Only use true for
-                                                  your own self-signed certificates!'
+                                                  your own self-signed certificates!
                                                 type: boolean
                                             required:
                                             - from
@@ -1688,7 +1682,7 @@ spec:
                                           file:
                                             description: |-
                                               Location of GeoPackage on disk.
-                                              You can place the GeoPackage here manually (out-of-band) or you can specify "init"
+                                              You can place the GeoPackage here manually (out-of-band) or you can specify Download
                                               and let the application download the GeoPackage for you and store it at this location.
                                             type: string
                                           inMemoryCacheSize:
@@ -1903,9 +1897,8 @@ spec:
                                                     type: object
                                                   connection:
                                                     description: |-
-                                                      Reference to the cloud storage (either azure or google at the moment), e.g:
-                                                      - azure?emulator=127.0.0.1:10000&sas=0
-                                                      - google
+                                                      Reference to the cloud storage (either azure or google at the moment).
+                                                      For example 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'
                                                     type: string
                                                   container:
                                                     description: Container/bucket
@@ -1967,7 +1960,7 @@ spec:
                                                   download:
                                                     description: |-
                                                       Optional initialization task to download a GeoPackage during startup. GeoPackage will be
-                                                      downloaded to local disk and stored at the location specified in "file".
+                                                      downloaded to local disk and stored at the location specified in File.
                                                     properties:
                                                       from:
                                                         description: |-
@@ -1977,50 +1970,50 @@ spec:
                                                         type: string
                                                       maxRetries:
                                                         default: 5
-                                                        description: 'Advanced setting:
+                                                        description: ADVANCED SETTING.
                                                           Maximum number of retries
                                                           when retrying HTTP requests
-                                                          to download (part of) GeoPackage.'
+                                                          to download (part of) GeoPackage.
                                                         minimum: 1
                                                         type: integer
                                                       parallelism:
                                                         default: 4
                                                         description: |-
-                                                          Advanced setting: Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                          ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
                                                           Setting this to 1 will disable concurrent downloads.
                                                         minimum: 1
                                                         type: integer
                                                       retryDelay:
                                                         default: 1s
-                                                        description: 'Advanced setting:
+                                                        description: ADVANCED SETTING.
                                                           Minimum delay to use when
                                                           retrying HTTP request to
-                                                          download (part of) GeoPackage.'
+                                                          download (part of) GeoPackage.
                                                         format: duration
                                                         type: string
                                                       retryMaxDelay:
                                                         default: 30s
-                                                        description: 'Advanced setting:
+                                                        description: ADVANCED SETTING.
                                                           Maximum overall delay of
                                                           the exponential backoff
                                                           while retrying HTTP requests
-                                                          to download (part of) GeoPackage.'
+                                                          to download (part of) GeoPackage.
                                                         format: duration
                                                         type: string
                                                       timeout:
                                                         default: 2m
-                                                        description: 'Advanced setting:
+                                                        description: ADVANCED SETTING.
                                                           HTTP request timeout when
-                                                          downloading (part of) GeoPackage.'
+                                                          downloading (part of) GeoPackage.
                                                         format: duration
                                                         type: string
                                                       tlsSkipVerify:
                                                         default: false
-                                                        description: 'Advanced setting:
-                                                          when true TLS certs are
+                                                        description: ADVANCED SETTING.
+                                                          When true TLS certs are
                                                           NOT validated, false otherwise.
                                                           Only use true for your own
-                                                          self-signed certificates!'
+                                                          self-signed certificates!
                                                         type: boolean
                                                     required:
                                                     - from
@@ -2033,7 +2026,7 @@ spec:
                                                   file:
                                                     description: |-
                                                       Location of GeoPackage on disk.
-                                                      You can place the GeoPackage here manually (out-of-band) or you can specify "init"
+                                                      You can place the GeoPackage here manually (out-of-band) or you can specify Download
                                                       and let the application download the GeoPackage for you and store it at this location.
                                                     type: string
                                                   inMemoryCacheSize:
@@ -2120,9 +2113,8 @@ spec:
                                                   type: object
                                                 connection:
                                                   description: |-
-                                                    Reference to the cloud storage (either azure or google at the moment), e.g:
-                                                    - azure?emulator=127.0.0.1:10000&sas=0
-                                                    - google
+                                                    Reference to the cloud storage (either azure or google at the moment).
+                                                    For example 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'
                                                   type: string
                                                 container:
                                                   description: Container/bucket on
@@ -2181,7 +2173,7 @@ spec:
                                                 download:
                                                   description: |-
                                                     Optional initialization task to download a GeoPackage during startup. GeoPackage will be
-                                                    downloaded to local disk and stored at the location specified in "file".
+                                                    downloaded to local disk and stored at the location specified in File.
                                                   properties:
                                                     from:
                                                       description: |-
@@ -2191,50 +2183,50 @@ spec:
                                                       type: string
                                                     maxRetries:
                                                       default: 5
-                                                      description: 'Advanced setting:
+                                                      description: ADVANCED SETTING.
                                                         Maximum number of retries
                                                         when retrying HTTP requests
-                                                        to download (part of) GeoPackage.'
+                                                        to download (part of) GeoPackage.
                                                       minimum: 1
                                                       type: integer
                                                     parallelism:
                                                       default: 4
                                                       description: |-
-                                                        Advanced setting: Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                        ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
                                                         Setting this to 1 will disable concurrent downloads.
                                                       minimum: 1
                                                       type: integer
                                                     retryDelay:
                                                       default: 1s
-                                                      description: 'Advanced setting:
+                                                      description: ADVANCED SETTING.
                                                         Minimum delay to use when
                                                         retrying HTTP request to download
-                                                        (part of) GeoPackage.'
+                                                        (part of) GeoPackage.
                                                       format: duration
                                                       type: string
                                                     retryMaxDelay:
                                                       default: 30s
-                                                      description: 'Advanced setting:
+                                                      description: ADVANCED SETTING.
                                                         Maximum overall delay of the
                                                         exponential backoff while
                                                         retrying HTTP requests to
-                                                        download (part of) GeoPackage.'
+                                                        download (part of) GeoPackage.
                                                       format: duration
                                                       type: string
                                                     timeout:
                                                       default: 2m
-                                                      description: 'Advanced setting:
+                                                      description: ADVANCED SETTING.
                                                         HTTP request timeout when
-                                                        downloading (part of) GeoPackage.'
+                                                        downloading (part of) GeoPackage.
                                                       format: duration
                                                       type: string
                                                     tlsSkipVerify:
                                                       default: false
-                                                      description: 'Advanced setting:
-                                                        when true TLS certs are NOT
+                                                      description: ADVANCED SETTING.
+                                                        When true TLS certs are NOT
                                                         validated, false otherwise.
                                                         Only use true for your own
-                                                        self-signed certificates!'
+                                                        self-signed certificates!
                                                       type: boolean
                                                   required:
                                                   - from
@@ -2246,7 +2238,7 @@ spec:
                                                 file:
                                                   description: |-
                                                     Location of GeoPackage on disk.
-                                                    You can place the GeoPackage here manually (out-of-band) or you can specify "init"
+                                                    You can place the GeoPackage here manually (out-of-band) or you can specify Download
                                                     and let the application download the GeoPackage for you and store it at this location.
                                                   type: string
                                                 inMemoryCacheSize:
