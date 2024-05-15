@@ -53,8 +53,12 @@ USAGE:
 OPTIONS:
   -h, --help
         Display these options.
+  --cert-dir
+        CertDir contains the webhook server key and certificate. Defaults to <temp-dir>/k8s-webhook-server/serving-certs.
   --enable-http2
         If set, HTTP/2 will be enabled for the metrics and webhook servers
+  --enable-webhooks
+        Enable admission webhooks
   --gokoala-image string
         The image to use in the gokoala pod (defaults to the latest compatible image)
   --health-probe-bind-address string

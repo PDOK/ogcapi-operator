@@ -76,6 +76,7 @@ func main() {
 	var enableHTTP2 bool
 	var gokoalaImage string
 	var enableWebhooks bool
+	var certDir string
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
@@ -88,6 +89,7 @@ func main() {
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
 	flag.StringVar(&gokoalaImage, "gokoala-image", defaultGokoalaImage, "The image to use in the gokoala pod")
 	flag.BoolVar(&enableWebhooks, "enable-webhooks", true, "Enable admission webhooks")
+	flag.StringVar(&certDir, "cert-dir", "", "CertDir contains the webhook server key and certificate. Defaults to <temp-dir>/k8s-webhook-server/serving-certs.")
 
 	opts := zap.Options{
 		Development: true,
@@ -118,6 +120,7 @@ func main() {
 	}
 
 	webhookServer := webhook.NewServer(webhook.Options{
+		CertDir: certDir,
 		TLSOpts: tlsOpts,
 	})
 
