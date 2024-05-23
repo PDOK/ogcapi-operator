@@ -442,10 +442,17 @@ func getBareIngressRoute(ogcAPI metav1.Object) *traefikiov1alpha1.IngressRoute {
 }
 
 func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *pdoknlv1alpha1.OGCAPI, ingressRoute *traefikiov1alpha1.IngressRoute) error {
+	uptime_url := ogcAPI.Spec.Service.BaseURL.String() + "/health"
 	name := ingressRoute.GetName()
 	labels := cloneOrEmptyMap(ogcAPI.GetLabels())
 	if err := setImmutableLabels(r.Client, ingressRoute, labels); err != nil {
 		return err
+	}
+	ingressRoute.Annotations = map[string]string{
+		"uptime.pdok.nl/id":   getBareService(ogcAPI).GetName(),
+		"uptime.pdok.nl/name": ogcAPI.Spec.Service.Title,
+		"uptime.pdok.nl/url":  uptime_url,
+		"uptime.pdok.nl/tags": "public-stats,ogcapi",
 	}
 	ingressRoute.Spec = traefikiov1alpha1.IngressRouteSpec{
 		Routes: []traefikiov1alpha1.Route{
