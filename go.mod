@@ -1,9 +1,9 @@
 module github.com/PDOK/ogcapi-operator
 
-go 1.22.3
+go 1.22.4
 
 require (
-	github.com/PDOK/gokoala v0.50.5
+	github.com/PDOK/gokoala v0.51.0
 	github.com/onsi/ginkgo/v2 v2.17.1
 	github.com/onsi/gomega v1.32.0
 	github.com/peterbourgon/ff v1.7.1
@@ -30,6 +30,7 @@ require (
 	github.com/creasty/defaults v1.7.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/docker/go-units v0.5.0 // indirect
+	github.com/elnormous/contenttype v1.0.4 // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/evanphx/json-patch/v5 v5.8.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
