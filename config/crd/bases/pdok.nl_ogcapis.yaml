@@ -203,19 +203,19 @@ spec:
                                                     type: integer
                                                   logHttpRequests:
                                                     default: false
-                                                    description: Only for debug purposes!
-                                                      When true all HTTP requests
-                                                      executed by sqlite to cloud
-                                                      object storage are logged to
-                                                      stdout
+                                                    description: ADVANCED SETTING.
+                                                      Only for debug purposes! When
+                                                      true all HTTP requests executed
+                                                      by sqlite to cloud object storage
+                                                      are logged to stdout
                                                     type: boolean
                                                   maxBBoxSizeToUseWithRTree:
                                                     default: 30000
-                                                    description: When the number of
-                                                      features in a bbox stay within
-                                                      the given value use an RTree
-                                                      index, otherwise use a BTree
-                                                      index
+                                                    description: ADVANCED SETTING.
+                                                      When the number of features
+                                                      in a bbox stay within the given
+                                                      value use an RTree index, otherwise
+                                                      use a BTree index
                                                     type: integer
                                                   queryTimeout:
                                                     default: 15s
@@ -320,11 +320,11 @@ spec:
                                                     type: integer
                                                   maxBBoxSizeToUseWithRTree:
                                                     default: 30000
-                                                    description: When the number of
-                                                      features in a bbox stay within
-                                                      the given value use an RTree
-                                                      index, otherwise use a BTree
-                                                      index
+                                                    description: ADVANCED SETTING.
+                                                      When the number of features
+                                                      in a bbox stay within the given
+                                                      value use an RTree index, otherwise
+                                                      use a BTree index
                                                     type: integer
                                                   queryTimeout:
                                                     default: 15s
@@ -418,17 +418,19 @@ spec:
                                                   type: integer
                                                 logHttpRequests:
                                                   default: false
-                                                  description: Only for debug purposes!
-                                                    When true all HTTP requests executed
-                                                    by sqlite to cloud object storage
+                                                  description: ADVANCED SETTING. Only
+                                                    for debug purposes! When true
+                                                    all HTTP requests executed by
+                                                    sqlite to cloud object storage
                                                     are logged to stdout
                                                   type: boolean
                                                 maxBBoxSizeToUseWithRTree:
                                                   default: 30000
-                                                  description: When the number of
-                                                    features in a bbox stay within
-                                                    the given value use an RTree index,
-                                                    otherwise use a BTree index
+                                                  description: ADVANCED SETTING. When
+                                                    the number of features in a bbox
+                                                    stay within the given value use
+                                                    an RTree index, otherwise use
+                                                    a BTree index
                                                   type: integer
                                                 queryTimeout:
                                                   default: 15s
@@ -532,10 +534,11 @@ spec:
                                                   type: integer
                                                 maxBBoxSizeToUseWithRTree:
                                                   default: 30000
-                                                  description: When the number of
-                                                    features in a bbox stay within
-                                                    the given value use an RTree index,
-                                                    otherwise use a BTree index
+                                                  description: ADVANCED SETTING. When
+                                                    the number of features in a bbox
+                                                    stay within the given value use
+                                                    an RTree index, otherwise use
+                                                    a BTree index
                                                   type: integer
                                                 queryTimeout:
                                                   default: 15s
@@ -564,6 +567,20 @@ spec:
                                         https://docs.ogc.org/is/17-069r4/17-069r4.html#_parameters_for_filtering_on_feature_properties
                                       items:
                                         properties:
+                                          allowedValues:
+                                            description: Static list of allowed values
+                                              to be used as input for this property
+                                              filter. Will be enforced by OpenAPI
+                                              spec.
+                                            items:
+                                              type: string
+                                            type: array
+                                          deriveAllowedValuesFromDatasource:
+                                            default: false
+                                            description: |-
+                                              Derive list of allowed values for this property filter from the corresponding column in the datastore.
+                                              Use with caution since it can increase startup time when used on large tables. Make sure an index in present.
+                                            type: boolean
                                           description:
                                             default: Filter features by this property
                                             description: Explains this property filter
@@ -587,6 +604,69 @@ spec:
                                 id:
                                   description: Unique ID of the collection
                                   type: string
+                                links:
+                                  description: Links pertaining to this collection
+                                    (e.g., downloads, documentation)
+                                  properties:
+                                    downloads:
+                                      description: Links to downloads of entire collection.
+                                        These will be rendered as rel=enclosure links
+                                      items:
+                                        properties:
+                                          assetUrl:
+                                            description: Full URL to the file to be
+                                              downloaded
+                                            pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                            type: string
+                                          mediaType:
+                                            description: Media type of the file to
+                                              be downloaded
+                                            type: string
+                                          name:
+                                            description: Name of the provided download
+                                            type: string
+                                          size:
+                                            description: Approximate size of the file
+                                              to be downloaded
+                                            type: string
+                                        required:
+                                        - assetUrl
+                                        - mediaType
+                                        - name
+                                        type: object
+                                      type: array
+                                  type: object
+                                mapSheetDownloads:
+                                  description: Downloads available for this collection
+                                  properties:
+                                    properties:
+                                      description: Properties that provide the download
+                                        details per map sheet
+                                      properties:
+                                        assetUrl:
+                                          description: Property containing file download
+                                            URL
+                                          type: string
+                                        mapSheetId:
+                                          description: Property containing the map
+                                            sheet identifier
+                                          type: string
+                                        mediaType:
+                                          description: Property containing file media
+                                            type
+                                          type: string
+                                        size:
+                                          description: Property containing file size
+                                          type: string
+                                      required:
+                                      - assetUrl
+                                      - mapSheetId
+                                      - mediaType
+                                      - size
+                                      type: object
+                                  required:
+                                  - properties
+                                  type: object
                                 metadata:
                                   description: Metadata describing the collection
                                     contents
@@ -809,19 +889,19 @@ spec:
                                                     type: integer
                                                   logHttpRequests:
                                                     default: false
-                                                    description: Only for debug purposes!
-                                                      When true all HTTP requests
-                                                      executed by sqlite to cloud
-                                                      object storage are logged to
-                                                      stdout
+                                                    description: ADVANCED SETTING.
+                                                      Only for debug purposes! When
+                                                      true all HTTP requests executed
+                                                      by sqlite to cloud object storage
+                                                      are logged to stdout
                                                     type: boolean
                                                   maxBBoxSizeToUseWithRTree:
                                                     default: 30000
-                                                    description: When the number of
-                                                      features in a bbox stay within
-                                                      the given value use an RTree
-                                                      index, otherwise use a BTree
-                                                      index
+                                                    description: ADVANCED SETTING.
+                                                      When the number of features
+                                                      in a bbox stay within the given
+                                                      value use an RTree index, otherwise
+                                                      use a BTree index
                                                     type: integer
                                                   queryTimeout:
                                                     default: 15s
@@ -926,11 +1006,11 @@ spec:
                                                     type: integer
                                                   maxBBoxSizeToUseWithRTree:
                                                     default: 30000
-                                                    description: When the number of
-                                                      features in a bbox stay within
-                                                      the given value use an RTree
-                                                      index, otherwise use a BTree
-                                                      index
+                                                    description: ADVANCED SETTING.
+                                                      When the number of features
+                                                      in a bbox stay within the given
+                                                      value use an RTree index, otherwise
+                                                      use a BTree index
                                                     type: integer
                                                   queryTimeout:
                                                     default: 15s
@@ -1024,17 +1104,19 @@ spec:
                                                   type: integer
                                                 logHttpRequests:
                                                   default: false
-                                                  description: Only for debug purposes!
-                                                    When true all HTTP requests executed
-                                                    by sqlite to cloud object storage
+                                                  description: ADVANCED SETTING. Only
+                                                    for debug purposes! When true
+                                                    all HTTP requests executed by
+                                                    sqlite to cloud object storage
                                                     are logged to stdout
                                                   type: boolean
                                                 maxBBoxSizeToUseWithRTree:
                                                   default: 30000
-                                                  description: When the number of
-                                                    features in a bbox stay within
-                                                    the given value use an RTree index,
-                                                    otherwise use a BTree index
+                                                  description: ADVANCED SETTING. When
+                                                    the number of features in a bbox
+                                                    stay within the given value use
+                                                    an RTree index, otherwise use
+                                                    a BTree index
                                                   type: integer
                                                 queryTimeout:
                                                   default: 15s
@@ -1138,10 +1220,11 @@ spec:
                                                   type: integer
                                                 maxBBoxSizeToUseWithRTree:
                                                   default: 30000
-                                                  description: When the number of
-                                                    features in a bbox stay within
-                                                    the given value use an RTree index,
-                                                    otherwise use a BTree index
+                                                  description: ADVANCED SETTING. When
+                                                    the number of features in a bbox
+                                                    stay within the given value use
+                                                    an RTree index, otherwise use
+                                                    a BTree index
                                                   type: integer
                                                 queryTimeout:
                                                   default: 15s
@@ -1170,6 +1253,20 @@ spec:
                                         https://docs.ogc.org/is/17-069r4/17-069r4.html#_parameters_for_filtering_on_feature_properties
                                       items:
                                         properties:
+                                          allowedValues:
+                                            description: Static list of allowed values
+                                              to be used as input for this property
+                                              filter. Will be enforced by OpenAPI
+                                              spec.
+                                            items:
+                                              type: string
+                                            type: array
+                                          deriveAllowedValuesFromDatasource:
+                                            default: false
+                                            description: |-
+                                              Derive list of allowed values for this property filter from the corresponding column in the datastore.
+                                              Use with caution since it can increase startup time when used on large tables. Make sure an index in present.
+                                            type: boolean
                                           description:
                                             default: Filter features by this property
                                             description: Explains this property filter
@@ -1193,6 +1290,69 @@ spec:
                                 id:
                                   description: Unique ID of the collection
                                   type: string
+                                links:
+                                  description: Links pertaining to this collection
+                                    (e.g., downloads, documentation)
+                                  properties:
+                                    downloads:
+                                      description: Links to downloads of entire collection.
+                                        These will be rendered as rel=enclosure links
+                                      items:
+                                        properties:
+                                          assetUrl:
+                                            description: Full URL to the file to be
+                                              downloaded
+                                            pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                            type: string
+                                          mediaType:
+                                            description: Media type of the file to
+                                              be downloaded
+                                            type: string
+                                          name:
+                                            description: Name of the provided download
+                                            type: string
+                                          size:
+                                            description: Approximate size of the file
+                                              to be downloaded
+                                            type: string
+                                        required:
+                                        - assetUrl
+                                        - mediaType
+                                        - name
+                                        type: object
+                                      type: array
+                                  type: object
+                                mapSheetDownloads:
+                                  description: Downloads available for this collection
+                                  properties:
+                                    properties:
+                                      description: Properties that provide the download
+                                        details per map sheet
+                                      properties:
+                                        assetUrl:
+                                          description: Property containing file download
+                                            URL
+                                          type: string
+                                        mapSheetId:
+                                          description: Property containing the map
+                                            sheet identifier
+                                          type: string
+                                        mediaType:
+                                          description: Property containing file media
+                                            type
+                                          type: string
+                                        size:
+                                          description: Property containing file size
+                                          type: string
+                                      required:
+                                      - assetUrl
+                                      - mapSheetId
+                                      - mediaType
+                                      - size
+                                      type: object
+                                  required:
+                                  - properties
+                                  type: object
                                 metadata:
                                   description: Metadata describing the collection
                                     contents
@@ -1376,17 +1536,18 @@ spec:
                                               type: integer
                                             logHttpRequests:
                                               default: false
-                                              description: Only for debug purposes!
-                                                When true all HTTP requests executed
-                                                by sqlite to cloud object storage
-                                                are logged to stdout
+                                              description: ADVANCED SETTING. Only
+                                                for debug purposes! When true all
+                                                HTTP requests executed by sqlite to
+                                                cloud object storage are logged to
+                                                stdout
                                               type: boolean
                                             maxBBoxSizeToUseWithRTree:
                                               default: 30000
-                                              description: When the number of features
-                                                in a bbox stay within the given value
-                                                use an RTree index, otherwise use
-                                                a BTree index
+                                              description: ADVANCED SETTING. When
+                                                the number of features in a bbox stay
+                                                within the given value use an RTree
+                                                index, otherwise use a BTree index
                                               type: integer
                                             queryTimeout:
                                               default: 15s
@@ -1488,10 +1649,10 @@ spec:
                                               type: integer
                                             maxBBoxSizeToUseWithRTree:
                                               default: 30000
-                                              description: When the number of features
-                                                in a bbox stay within the given value
-                                                use an RTree index, otherwise use
-                                                a BTree index
+                                              description: ADVANCED SETTING. When
+                                                the number of features in a bbox stay
+                                                within the given value use an RTree
+                                                index, otherwise use a BTree index
                                               type: integer
                                             queryTimeout:
                                               default: 15s
@@ -1583,17 +1744,17 @@ spec:
                                             type: integer
                                           logHttpRequests:
                                             default: false
-                                            description: Only for debug purposes!
-                                              When true all HTTP requests executed
-                                              by sqlite to cloud object storage are
-                                              logged to stdout
+                                            description: ADVANCED SETTING. Only for
+                                              debug purposes! When true all HTTP requests
+                                              executed by sqlite to cloud object storage
+                                              are logged to stdout
                                             type: boolean
                                           maxBBoxSizeToUseWithRTree:
                                             default: 30000
-                                            description: When the number of features
-                                              in a bbox stay within the given value
-                                              use an RTree index, otherwise use a
-                                              BTree index
+                                            description: ADVANCED SETTING. When the
+                                              number of features in a bbox stay within
+                                              the given value use an RTree index,
+                                              otherwise use a BTree index
                                             type: integer
                                           queryTimeout:
                                             default: 15s
@@ -1693,10 +1854,10 @@ spec:
                                             type: integer
                                           maxBBoxSizeToUseWithRTree:
                                             default: 30000
-                                            description: When the number of features
-                                              in a bbox stay within the given value
-                                              use an RTree index, otherwise use a
-                                              BTree index
+                                            description: ADVANCED SETTING. When the
+                                              number of features in a bbox stay within
+                                              the given value use an RTree index,
+                                              otherwise use a BTree index
                                             type: integer
                                           queryTimeout:
                                             default: 15s
@@ -1920,19 +2081,19 @@ spec:
                                                     type: integer
                                                   logHttpRequests:
                                                     default: false
-                                                    description: Only for debug purposes!
-                                                      When true all HTTP requests
-                                                      executed by sqlite to cloud
-                                                      object storage are logged to
-                                                      stdout
+                                                    description: ADVANCED SETTING.
+                                                      Only for debug purposes! When
+                                                      true all HTTP requests executed
+                                                      by sqlite to cloud object storage
+                                                      are logged to stdout
                                                     type: boolean
                                                   maxBBoxSizeToUseWithRTree:
                                                     default: 30000
-                                                    description: When the number of
-                                                      features in a bbox stay within
-                                                      the given value use an RTree
-                                                      index, otherwise use a BTree
-                                                      index
+                                                    description: ADVANCED SETTING.
+                                                      When the number of features
+                                                      in a bbox stay within the given
+                                                      value use an RTree index, otherwise
+                                                      use a BTree index
                                                     type: integer
                                                   queryTimeout:
                                                     default: 15s
@@ -2037,11 +2198,11 @@ spec:
                                                     type: integer
                                                   maxBBoxSizeToUseWithRTree:
                                                     default: 30000
-                                                    description: When the number of
-                                                      features in a bbox stay within
-                                                      the given value use an RTree
-                                                      index, otherwise use a BTree
-                                                      index
+                                                    description: ADVANCED SETTING.
+                                                      When the number of features
+                                                      in a bbox stay within the given
+                                                      value use an RTree index, otherwise
+                                                      use a BTree index
                                                     type: integer
                                                   queryTimeout:
                                                     default: 15s
@@ -2135,17 +2296,19 @@ spec:
                                                   type: integer
                                                 logHttpRequests:
                                                   default: false
-                                                  description: Only for debug purposes!
-                                                    When true all HTTP requests executed
-                                                    by sqlite to cloud object storage
+                                                  description: ADVANCED SETTING. Only
+                                                    for debug purposes! When true
+                                                    all HTTP requests executed by
+                                                    sqlite to cloud object storage
                                                     are logged to stdout
                                                   type: boolean
                                                 maxBBoxSizeToUseWithRTree:
                                                   default: 30000
-                                                  description: When the number of
-                                                    features in a bbox stay within
-                                                    the given value use an RTree index,
-                                                    otherwise use a BTree index
+                                                  description: ADVANCED SETTING. When
+                                                    the number of features in a bbox
+                                                    stay within the given value use
+                                                    an RTree index, otherwise use
+                                                    a BTree index
                                                   type: integer
                                                 queryTimeout:
                                                   default: 15s
@@ -2249,10 +2412,11 @@ spec:
                                                   type: integer
                                                 maxBBoxSizeToUseWithRTree:
                                                   default: 30000
-                                                  description: When the number of
-                                                    features in a bbox stay within
-                                                    the given value use an RTree index,
-                                                    otherwise use a BTree index
+                                                  description: ADVANCED SETTING. When
+                                                    the number of features in a bbox
+                                                    stay within the given value use
+                                                    an RTree index, otherwise use
+                                                    a BTree index
                                                   type: integer
                                                 queryTimeout:
                                                   default: 15s
@@ -2281,6 +2445,20 @@ spec:
                                         https://docs.ogc.org/is/17-069r4/17-069r4.html#_parameters_for_filtering_on_feature_properties
                                       items:
                                         properties:
+                                          allowedValues:
+                                            description: Static list of allowed values
+                                              to be used as input for this property
+                                              filter. Will be enforced by OpenAPI
+                                              spec.
+                                            items:
+                                              type: string
+                                            type: array
+                                          deriveAllowedValuesFromDatasource:
+                                            default: false
+                                            description: |-
+                                              Derive list of allowed values for this property filter from the corresponding column in the datastore.
+                                              Use with caution since it can increase startup time when used on large tables. Make sure an index in present.
+                                            type: boolean
                                           description:
                                             default: Filter features by this property
                                             description: Explains this property filter
@@ -2304,6 +2482,69 @@ spec:
                                 id:
                                   description: Unique ID of the collection
                                   type: string
+                                links:
+                                  description: Links pertaining to this collection
+                                    (e.g., downloads, documentation)
+                                  properties:
+                                    downloads:
+                                      description: Links to downloads of entire collection.
+                                        These will be rendered as rel=enclosure links
+                                      items:
+                                        properties:
+                                          assetUrl:
+                                            description: Full URL to the file to be
+                                              downloaded
+                                            pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                            type: string
+                                          mediaType:
+                                            description: Media type of the file to
+                                              be downloaded
+                                            type: string
+                                          name:
+                                            description: Name of the provided download
+                                            type: string
+                                          size:
+                                            description: Approximate size of the file
+                                              to be downloaded
+                                            type: string
+                                        required:
+                                        - assetUrl
+                                        - mediaType
+                                        - name
+                                        type: object
+                                      type: array
+                                  type: object
+                                mapSheetDownloads:
+                                  description: Downloads available for this collection
+                                  properties:
+                                    properties:
+                                      description: Properties that provide the download
+                                        details per map sheet
+                                      properties:
+                                        assetUrl:
+                                          description: Property containing file download
+                                            URL
+                                          type: string
+                                        mapSheetId:
+                                          description: Property containing the map
+                                            sheet identifier
+                                          type: string
+                                        mediaType:
+                                          description: Property containing file media
+                                            type
+                                          type: string
+                                        size:
+                                          description: Property containing file size
+                                          type: string
+                                      required:
+                                      - assetUrl
+                                      - mapSheetId
+                                      - mediaType
+                                      - size
+                                      type: object
+                                  required:
+                                  - properties
+                                  type: object
                                 metadata:
                                   description: Metadata describing the collection
                                     contents
@@ -2517,9 +2758,7 @@ spec:
                     type: string
                 required:
                 - abstract
-                - availableLanguages
                 - baseUrl
-                - datasetCatalogUrl
                 - license
                 - ogcApi
                 - serviceIdentifier
