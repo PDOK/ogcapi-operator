@@ -450,7 +450,7 @@ func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *pdoknlv1alpha1.OGCAPI, ing
 	}
 	ingressRoute.Annotations = map[string]string{
 		"uptime.pdok.nl/id":   getBareService(ogcAPI).GetName(),
-		"uptime.pdok.nl/name": ogcAPI.Spec.Service.Title,
+		"uptime.pdok.nl/name": ogcAPI.Spec.Service.Title + " OGC API",
 		"uptime.pdok.nl/url":  uptimeURL,
 		"uptime.pdok.nl/tags": "public-stats,ogcapi",
 	}
