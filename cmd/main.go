@@ -51,7 +51,7 @@ import (
 )
 
 const (
-	defaultGokoalaImage = "docker.io/pdok/gokoala:0.50.5"
+	defaultGokoalaImage = "docker.io/pdok/gokoala:0.52.0"
 )
 
 var (
