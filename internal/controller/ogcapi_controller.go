@@ -26,6 +26,7 @@ package controller
 
 import (
 	"context"
+	"crypto/sha1" //nolint:gosec  // sha1 is only used for ID generation here, not crypto
 	"fmt"
 	"strconv"
 	"time"
@@ -449,8 +450,8 @@ func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *pdoknlv1alpha1.OGCAPI, ing
 		return err
 	}
 	ingressRoute.Annotations = map[string]string{
-		"uptime.pdok.nl/id":   getBareService(ogcAPI).GetName(),
-		"uptime.pdok.nl/name": ogcAPI.Spec.Service.Title + " OGC API",
+		"uptime.pdok.nl/id":   fmt.Sprintf("%x", sha1.Sum([]byte(getBareService(ogcAPI).GetName()+"-ogcapi"))), //nolint:gosec  // sha1 is only used for ID generation here, not crypto
+		"uptime.pdok.nl/name": fmt.Sprintf("%s %s OGC API", ogcAPI.Spec.Service.Title, ogcAPI.Spec.Service.Version),
 		"uptime.pdok.nl/url":  uptimeURL,
 		"uptime.pdok.nl/tags": "public-stats,ogcapi",
 	}
