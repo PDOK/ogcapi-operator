@@ -26,7 +26,7 @@ package controller
 
 import (
 	"context"
-	"crypto/sha1"
+	"crypto/sha1" //nolint:gosec  // sha1 is only used for ID generation here, not crypto
 	"fmt"
 	"strconv"
 	"time"
