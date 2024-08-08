@@ -657,26 +657,31 @@ spec:
                                       type: array
                                   type: object
                                 mapSheetDownloads:
-                                  description: Downloads available for this collection
+                                  description: |-
+                                    Downloads available for this collection through map sheets. Note that 'map sheets' refer to a map
+                                    divided in rectangle areas that can be downloaded individually.
                                   properties:
                                     properties:
-                                      description: Properties that provide the download
-                                        details per map sheet
+                                      description: |-
+                                        Properties that provide the download details per map sheet. Note that 'map sheets' refer to a map
+                                        divided in rectangle areas that can be downloaded individually.
                                       properties:
                                         assetUrl:
-                                          description: Property containing file download
-                                            URL
+                                          description: Property/column containing
+                                            file download URL
                                           type: string
                                         mapSheetId:
-                                          description: Property containing the map
-                                            sheet identifier
+                                          description: Property/column containing
+                                            the map sheet identifier
                                           type: string
                                         mediaType:
-                                          description: Property containing file media
-                                            type
+                                          description: The actual media type (not
+                                            a property/column) of the download, like
+                                            application/zip.
                                           type: string
                                         size:
-                                          description: Property containing file size
+                                          description: Property/column containing
+                                            file size
                                           type: string
                                       required:
                                       - assetUrl
@@ -792,6 +797,41 @@ spec:
                                     only required when "implicit tiling" extension
                                     is used.
                                   type: string
+                                web:
+                                  description: Configuration specifically related
+                                    to HTML/Web representation
+                                  properties:
+                                    featureViewer:
+                                      description: Viewer config for displaying a
+                                        single feature on a map
+                                      properties:
+                                        maxScale:
+                                          description: |-
+                                            Minimal initial zoom level of the viewer when rendering features, specified by scale denominator
+                                            (not set by default).
+                                          type: integer
+                                        minScale:
+                                          description: |-
+                                            Maximum initial zoom level of the viewer when rendering features, specified by scale denominator.
+                                            Defaults to 1000 (= scale 1:1000).
+                                          type: integer
+                                      type: object
+                                    featuresViewer:
+                                      description: Viewer config for displaying multiple
+                                        features on a map
+                                      properties:
+                                        maxScale:
+                                          description: |-
+                                            Minimal initial zoom level of the viewer when rendering features, specified by scale denominator
+                                            (not set by default).
+                                          type: integer
+                                        minScale:
+                                          description: |-
+                                            Maximum initial zoom level of the viewer when rendering features, specified by scale denominator.
+                                            Defaults to 1000 (= scale 1:1000).
+                                          type: integer
+                                      type: object
+                                  type: object
                               required:
                               - id
                               type: object
@@ -1363,26 +1403,31 @@ spec:
                                       type: array
                                   type: object
                                 mapSheetDownloads:
-                                  description: Downloads available for this collection
+                                  description: |-
+                                    Downloads available for this collection through map sheets. Note that 'map sheets' refer to a map
+                                    divided in rectangle areas that can be downloaded individually.
                                   properties:
                                     properties:
-                                      description: Properties that provide the download
-                                        details per map sheet
+                                      description: |-
+                                        Properties that provide the download details per map sheet. Note that 'map sheets' refer to a map
+                                        divided in rectangle areas that can be downloaded individually.
                                       properties:
                                         assetUrl:
-                                          description: Property containing file download
-                                            URL
+                                          description: Property/column containing
+                                            file download URL
                                           type: string
                                         mapSheetId:
-                                          description: Property containing the map
-                                            sheet identifier
+                                          description: Property/column containing
+                                            the map sheet identifier
                                           type: string
                                         mediaType:
-                                          description: Property containing file media
-                                            type
+                                          description: The actual media type (not
+                                            a property/column) of the download, like
+                                            application/zip.
                                           type: string
                                         size:
-                                          description: Property containing file size
+                                          description: Property/column containing
+                                            file size
                                           type: string
                                       required:
                                       - assetUrl
@@ -1498,6 +1543,41 @@ spec:
                                     only required when "implicit tiling" extension
                                     is used.
                                   type: string
+                                web:
+                                  description: Configuration specifically related
+                                    to HTML/Web representation
+                                  properties:
+                                    featureViewer:
+                                      description: Viewer config for displaying a
+                                        single feature on a map
+                                      properties:
+                                        maxScale:
+                                          description: |-
+                                            Minimal initial zoom level of the viewer when rendering features, specified by scale denominator
+                                            (not set by default).
+                                          type: integer
+                                        minScale:
+                                          description: |-
+                                            Maximum initial zoom level of the viewer when rendering features, specified by scale denominator.
+                                            Defaults to 1000 (= scale 1:1000).
+                                          type: integer
+                                      type: object
+                                    featuresViewer:
+                                      description: Viewer config for displaying multiple
+                                        features on a map
+                                      properties:
+                                        maxScale:
+                                          description: |-
+                                            Minimal initial zoom level of the viewer when rendering features, specified by scale denominator
+                                            (not set by default).
+                                          type: integer
+                                        minScale:
+                                          description: |-
+                                            Maximum initial zoom level of the viewer when rendering features, specified by scale denominator.
+                                            Defaults to 1000 (= scale 1:1000).
+                                          type: integer
+                                      type: object
+                                  type: object
                               required:
                               - id
                               type: object
@@ -2595,26 +2675,31 @@ spec:
                                       type: array
                                   type: object
                                 mapSheetDownloads:
-                                  description: Downloads available for this collection
+                                  description: |-
+                                    Downloads available for this collection through map sheets. Note that 'map sheets' refer to a map
+                                    divided in rectangle areas that can be downloaded individually.
                                   properties:
                                     properties:
-                                      description: Properties that provide the download
-                                        details per map sheet
+                                      description: |-
+                                        Properties that provide the download details per map sheet. Note that 'map sheets' refer to a map
+                                        divided in rectangle areas that can be downloaded individually.
                                       properties:
                                         assetUrl:
-                                          description: Property containing file download
-                                            URL
+                                          description: Property/column containing
+                                            file download URL
                                           type: string
                                         mapSheetId:
-                                          description: Property containing the map
-                                            sheet identifier
+                                          description: Property/column containing
+                                            the map sheet identifier
                                           type: string
                                         mediaType:
-                                          description: Property containing file media
-                                            type
+                                          description: The actual media type (not
+                                            a property/column) of the download, like
+                                            application/zip.
                                           type: string
                                         size:
-                                          description: Property containing file size
+                                          description: Property/column containing
+                                            file size
                                           type: string
                                       required:
                                       - assetUrl
@@ -2730,6 +2815,41 @@ spec:
                                     only required when "implicit tiling" extension
                                     is used.
                                   type: string
+                                web:
+                                  description: Configuration specifically related
+                                    to HTML/Web representation
+                                  properties:
+                                    featureViewer:
+                                      description: Viewer config for displaying a
+                                        single feature on a map
+                                      properties:
+                                        maxScale:
+                                          description: |-
+                                            Minimal initial zoom level of the viewer when rendering features, specified by scale denominator
+                                            (not set by default).
+                                          type: integer
+                                        minScale:
+                                          description: |-
+                                            Maximum initial zoom level of the viewer when rendering features, specified by scale denominator.
+                                            Defaults to 1000 (= scale 1:1000).
+                                          type: integer
+                                      type: object
+                                    featuresViewer:
+                                      description: Viewer config for displaying multiple
+                                        features on a map
+                                      properties:
+                                        maxScale:
+                                          description: |-
+                                            Minimal initial zoom level of the viewer when rendering features, specified by scale denominator
+                                            (not set by default).
+                                          type: integer
+                                        minScale:
+                                          description: |-
+                                            Maximum initial zoom level of the viewer when rendering features, specified by scale denominator.
+                                            Defaults to 1000 (= scale 1:1000).
+                                          type: integer
+                                      type: object
+                                  type: object
                               required:
                               - id
                               type: object

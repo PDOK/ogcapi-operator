@@ -1,9 +1,9 @@
 module github.com/PDOK/ogcapi-operator
 
-go 1.22.4
+go 1.22.6
 
 require (
-	github.com/PDOK/gokoala v0.52.0
+	github.com/PDOK/gokoala v0.53.4
 	github.com/onsi/ginkgo/v2 v2.17.1
 	github.com/onsi/gomega v1.32.0
 	github.com/peterbourgon/ff v1.7.1
