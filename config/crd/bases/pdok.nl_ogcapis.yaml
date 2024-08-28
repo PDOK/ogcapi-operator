@@ -777,8 +777,9 @@ spec:
                                   - description
                                   type: object
                                 supportedSrs:
-                                  description: Specifies in what projections (SRS/CRS)
-                                    the tiles are offered
+                                  description: |-
+                                    Specifies in what projections (SRS/CRS) the tiles are offered
+                                    Note: Only marked as optional in CRD to support top-level OR collection-level tiles
                                   items:
                                     properties:
                                       srs:
@@ -809,8 +810,9 @@ spec:
                                     ID to the underlying table in the datasource.
                                   type: string
                                 tileServer:
-                                  description: Reference to the server (or object
-                                    storage) hosting the tiles
+                                  description: |-
+                                    Reference to the server (or object storage) hosting the tiles.
+                                    Note: Only marked as optional in CRD to support top-level OR collection-level tiles
                                   pattern: ^(https?://.+)|(\$\{.+\}.*)
                                   type: string
                                 tileServerPath:
@@ -818,8 +820,9 @@ spec:
                                     tileserver. Defaults to the collection ID.
                                   type: string
                                 types:
-                                  description: Could be 'vector' and/or 'raster' to
-                                    indicate the types of tiles offered
+                                  description: |-
+                                    Could be 'vector' and/or 'raster' to indicate the types of tiles offered
+                                    Note: Only marked as optional in CRD to support top-level OR collection-level tiles
                                   items:
                                     enum:
                                     - raster
@@ -880,9 +883,6 @@ spec:
                                   type: object
                               required:
                               - id
-                              - supportedSrs
-                              - tileServer
-                              - types
                               type: object
                             type: array
                           tileServer:
@@ -1572,8 +1572,9 @@ spec:
                                   - description
                                   type: object
                                 supportedSrs:
-                                  description: Specifies in what projections (SRS/CRS)
-                                    the tiles are offered
+                                  description: |-
+                                    Specifies in what projections (SRS/CRS) the tiles are offered
+                                    Note: Only marked as optional in CRD to support top-level OR collection-level tiles
                                   items:
                                     properties:
                                       srs:
@@ -1604,8 +1605,9 @@ spec:
                                     ID to the underlying table in the datasource.
                                   type: string
                                 tileServer:
-                                  description: Reference to the server (or object
-                                    storage) hosting the tiles
+                                  description: |-
+                                    Reference to the server (or object storage) hosting the tiles.
+                                    Note: Only marked as optional in CRD to support top-level OR collection-level tiles
                                   pattern: ^(https?://.+)|(\$\{.+\}.*)
                                   type: string
                                 tileServerPath:
@@ -1613,8 +1615,9 @@ spec:
                                     tileserver. Defaults to the collection ID.
                                   type: string
                                 types:
-                                  description: Could be 'vector' and/or 'raster' to
-                                    indicate the types of tiles offered
+                                  description: |-
+                                    Could be 'vector' and/or 'raster' to indicate the types of tiles offered
+                                    Note: Only marked as optional in CRD to support top-level OR collection-level tiles
                                   items:
                                     enum:
                                     - raster
@@ -1675,9 +1678,6 @@ spec:
                                   type: object
                               required:
                               - id
-                              - supportedSrs
-                              - tileServer
-                              - types
                               type: object
                             type: array
                           datasources:
@@ -2893,8 +2893,9 @@ spec:
                                   - description
                                   type: object
                                 supportedSrs:
-                                  description: Specifies in what projections (SRS/CRS)
-                                    the tiles are offered
+                                  description: |-
+                                    Specifies in what projections (SRS/CRS) the tiles are offered
+                                    Note: Only marked as optional in CRD to support top-level OR collection-level tiles
                                   items:
                                     properties:
                                       srs:
@@ -2925,8 +2926,9 @@ spec:
                                     ID to the underlying table in the datasource.
                                   type: string
                                 tileServer:
-                                  description: Reference to the server (or object
-                                    storage) hosting the tiles
+                                  description: |-
+                                    Reference to the server (or object storage) hosting the tiles.
+                                    Note: Only marked as optional in CRD to support top-level OR collection-level tiles
                                   pattern: ^(https?://.+)|(\$\{.+\}.*)
                                   type: string
                                 tileServerPath:
@@ -2934,8 +2936,9 @@ spec:
                                     tileserver. Defaults to the collection ID.
                                   type: string
                                 types:
-                                  description: Could be 'vector' and/or 'raster' to
-                                    indicate the types of tiles offered
+                                  description: |-
+                                    Could be 'vector' and/or 'raster' to indicate the types of tiles offered
+                                    Note: Only marked as optional in CRD to support top-level OR collection-level tiles
                                   items:
                                     enum:
                                     - raster
@@ -2996,14 +2999,12 @@ spec:
                                   type: object
                               required:
                               - id
-                              - supportedSrs
-                              - tileServer
-                              - types
                               type: object
                             type: array
                           supportedSrs:
-                            description: Specifies in what projections (SRS/CRS) the
-                              tiles are offered
+                            description: |-
+                              Specifies in what projections (SRS/CRS) the tiles are offered
+                              Note: Only marked as optional in CRD to support top-level OR collection-level tiles
                             items:
                               properties:
                                 srs:
@@ -3030,13 +3031,15 @@ spec:
                               type: object
                             type: array
                           tileServer:
-                            description: Reference to the server (or object storage)
-                              hosting the tiles
+                            description: |-
+                              Reference to the server (or object storage) hosting the tiles.
+                              Note: Only marked as optional in CRD to support top-level OR collection-level tiles
                             pattern: ^(https?://.+)|(\$\{.+\}.*)
                             type: string
                           types:
-                            description: Could be 'vector' and/or 'raster' to indicate
-                              the types of tiles offered
+                            description: |-
+                              Could be 'vector' and/or 'raster' to indicate the types of tiles offered
+                              Note: Only marked as optional in CRD to support top-level OR collection-level tiles
                             items:
                               enum:
                               - raster
@@ -3047,10 +3050,6 @@ spec:
                             description: Optional template to the vector tiles on
                               the tileserver. Defaults to {tms}/{z}/{x}/{y}.pbf.
                             type: string
-                        required:
-                        - supportedSrs
-                        - tileServer
-                        - types
                         type: object
                     type: object
                   resources:
