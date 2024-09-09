@@ -880,6 +880,11 @@ spec:
                                             Defaults to 1000 (= scale 1:1000).
                                           type: integer
                                       type: object
+                                    urlAsHyperlink:
+                                      description: Whether URLs (to external resources)
+                                        in the HTML representation of features should
+                                        be rendered as hyperlinks.
+                                      type: boolean
                                   type: object
                               required:
                               - id
@@ -1675,6 +1680,11 @@ spec:
                                             Defaults to 1000 (= scale 1:1000).
                                           type: integer
                                       type: object
+                                    urlAsHyperlink:
+                                      description: Whether URLs (to external resources)
+                                        in the HTML representation of features should
+                                        be rendered as hyperlinks.
+                                      type: boolean
                                   type: object
                               required:
                               - id
@@ -2996,6 +3006,11 @@ spec:
                                             Defaults to 1000 (= scale 1:1000).
                                           type: integer
                                       type: object
+                                    urlAsHyperlink:
+                                      description: Whether URLs (to external resources)
+                                        in the HTML representation of features should
+                                        be rendered as hyperlinks.
+                                      type: boolean
                                   type: object
                               required:
                               - id
