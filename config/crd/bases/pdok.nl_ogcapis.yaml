@@ -62,6 +62,13 @@ spec:
                       landing page - under which this API is served
                     pattern: ^(https?://.+)|(\$\{.+\}.*)
                     type: string
+                  collectionOrder:
+                    description: |-
+                      Order in which collections (containing features, tiles, 3d tiles, etc.) should be returned.
+                      When not specified collections are returned in alphabetic order.
+                    items:
+                      type: string
+                    type: array
                   datasetCatalogUrl:
                     description: Optional reference to a catalog/portal/registry that
                       lists all datasets, not just this one
