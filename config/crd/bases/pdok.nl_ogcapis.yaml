@@ -783,6 +783,31 @@ spec:
                                   required:
                                   - description
                                   type: object
+                                properties:
+                                  description: |-
+                                    Properties/fields of features in this collection. This setting controls two things:
+
+
+                                    A) allows one to exclude certain properties, when propertiesExcludeUnknown=true
+                                    B) allows one sort the properties in the given order, when propertiesInSpecificOrder=true
+
+
+                                    When not set all available properties are returned in API responses, in alphabetical order.
+                                  items:
+                                    type: string
+                                  type: array
+                                propertiesExcludeUnknown:
+                                  default: false
+                                  description: |-
+                                    When true properties not listed under 'properties' are excluded from API responses. When false
+                                    unlisted properties are also included in API responses.
+                                  type: boolean
+                                propertiesInSpecificOrder:
+                                  default: false
+                                  description: |-
+                                    When true properties are returned according to the ordering specified under 'properties'. When false
+                                    properties are returned in alphabetical order.
+                                  type: boolean
                                 supportedSrs:
                                   description: |-
                                     Specifies in what projections (SRS/CRS) the tiles are offered
@@ -1583,6 +1608,31 @@ spec:
                                   required:
                                   - description
                                   type: object
+                                properties:
+                                  description: |-
+                                    Properties/fields of features in this collection. This setting controls two things:
+
+
+                                    A) allows one to exclude certain properties, when propertiesExcludeUnknown=true
+                                    B) allows one sort the properties in the given order, when propertiesInSpecificOrder=true
+
+
+                                    When not set all available properties are returned in API responses, in alphabetical order.
+                                  items:
+                                    type: string
+                                  type: array
+                                propertiesExcludeUnknown:
+                                  default: false
+                                  description: |-
+                                    When true properties not listed under 'properties' are excluded from API responses. When false
+                                    unlisted properties are also included in API responses.
+                                  type: boolean
+                                propertiesInSpecificOrder:
+                                  default: false
+                                  description: |-
+                                    When true properties are returned according to the ordering specified under 'properties'. When false
+                                    properties are returned in alphabetical order.
+                                  type: boolean
                                 supportedSrs:
                                   description: |-
                                     Specifies in what projections (SRS/CRS) the tiles are offered
@@ -2909,6 +2959,31 @@ spec:
                                   required:
                                   - description
                                   type: object
+                                properties:
+                                  description: |-
+                                    Properties/fields of features in this collection. This setting controls two things:
+
+
+                                    A) allows one to exclude certain properties, when propertiesExcludeUnknown=true
+                                    B) allows one sort the properties in the given order, when propertiesInSpecificOrder=true
+
+
+                                    When not set all available properties are returned in API responses, in alphabetical order.
+                                  items:
+                                    type: string
+                                  type: array
+                                propertiesExcludeUnknown:
+                                  default: false
+                                  description: |-
+                                    When true properties not listed under 'properties' are excluded from API responses. When false
+                                    unlisted properties are also included in API responses.
+                                  type: boolean
+                                propertiesInSpecificOrder:
+                                  default: false
+                                  description: |-
+                                    When true properties are returned according to the ordering specified under 'properties'. When false
+                                    properties are returned in alphabetical order.
+                                  type: boolean
                                 supportedSrs:
                                   description: |-
                                     Specifies in what projections (SRS/CRS) the tiles are offered
