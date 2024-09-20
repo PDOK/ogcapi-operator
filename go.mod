@@ -1,15 +1,15 @@
 module github.com/PDOK/ogcapi-operator
 
-go 1.22.6
+go 1.23.1
 
 require (
-	github.com/PDOK/gokoala v0.55.0
+	github.com/PDOK/gokoala v0.56.0
 	github.com/onsi/ginkgo/v2 v2.17.1
 	github.com/onsi/gomega v1.32.0
 	github.com/peterbourgon/ff v1.7.1
 	github.com/pkg/errors v0.9.1
 	github.com/traefik/traefik/v2 v2.11.0
-	golang.org/x/text v0.17.0
+	golang.org/x/text v0.18.0
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d
 	k8s.io/api v0.29.3
 	k8s.io/apimachinery v0.29.3
@@ -24,7 +24,9 @@ replace github.com/abbot/go-http-auth => github.com/abbot/go-http-auth v0.4.0 //
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
+	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/creasty/defaults v1.7.0 // indirect
@@ -75,6 +77,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/traefik/paerser v0.2.0 // indirect
+	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect
 	golang.org/x/crypto v0.24.0 // indirect
