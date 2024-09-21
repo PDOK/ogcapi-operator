@@ -118,11 +118,32 @@ func strategicMergePatch[T, P any](obj *T, patch *P) (*T, error) {
 	return &newObj, nil
 }
 
-func createIngressRuleMatchFromURL(url url.URL, includeLocalhost bool) string {
+func createIngressRuleMatchFromURL(url url.URL, includeLocalhost, matchUnderscoreVersions bool) string {
+	var hostMatch string
 	if includeLocalhost {
-		return fmt.Sprintf("(Host(`localhost`) || Host(`%v`)) && PathPrefix(`%v`)", url.Hostname(), url.EscapedPath())
+		hostMatch = fmt.Sprintf("(Host(`localhost`) || Host(`%s`))", url.Hostname())
+	} else {
+		hostMatch = fmt.Sprintf("Host(`%s`)", url.Hostname())
 	}
-	return fmt.Sprintf("Host(`%v`) && PathPrefix(`%v`)", url.Hostname(), url.EscapedPath())
+	var pathMatch string
+	if matchUnderscoreVersions {
+		pathMatch = createPathRegexpForUnderscoreVersions(url.EscapedPath())
+	} else {
+		pathMatch = fmt.Sprintf("PathPrefix(`%s`)", url.EscapedPath())
+	}
+	return fmt.Sprintf("%s && %s", hostMatch, pathMatch)
+}
+
+func createPathRegexpForUnderscoreVersions(path string) string {
+	// luckily Traefik also uses golang regular expressions syntax
+	// first create a regexp that literally matches the path
+	pathRegexp := regexp.QuoteMeta(path)
+	// then replace any occurrences of /v1_0/ (or v2_1 or v3_6) to make the "underscore part" optional
+	pathRegexp = regexp.MustCompile(`/(v\d+)(_\d+)(/|$)`).ReplaceAllString(pathRegexp, `/$1($2)?$3`)
+	// then replace any occurrences of /v1/ (or v2 or v3) with a pattern for that v1 plus an optional "underscore part"
+	pathRegexp = regexp.MustCompile(`/(v\d+)(/|$)`).ReplaceAllString(pathRegexp, `/$1(_\d+)?$2`)
+	pathRegexp = "^" + pathRegexp + "$"
+	return fmt.Sprintf("PathRegexp(`%s`)", pathRegexp)
 }
 
 func addHashSuffix(obj client.Object) error {

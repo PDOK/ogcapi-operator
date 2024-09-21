@@ -459,7 +459,7 @@ func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *pdoknlv1alpha1.OGCAPI, ing
 		Routes: []traefikiov1alpha1.Route{
 			{
 				Kind:  "Rule",
-				Match: createIngressRuleMatchFromURL(*ogcAPI.Spec.Service.BaseURL.URL, true),
+				Match: createIngressRuleMatchFromURL(*ogcAPI.Spec.Service.BaseURL.URL, true, true),
 				Services: []traefikiov1alpha1.Service{
 					{
 						LoadBalancerSpec: traefikiov1alpha1.LoadBalancerSpec{
