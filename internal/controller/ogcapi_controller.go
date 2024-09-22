@@ -455,11 +455,12 @@ func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *pdoknlv1alpha1.OGCAPI, ing
 		"uptime.pdok.nl/url":  uptimeURL,
 		"uptime.pdok.nl/tags": "public-stats,ogcapi",
 	}
+	matchRule, _ := createIngressRuleAndStripPrefixForURL(*ogcAPI.Spec.Service.BaseURL.URL, true, true, true)
 	ingressRoute.Spec = traefikiov1alpha1.IngressRouteSpec{
 		Routes: []traefikiov1alpha1.Route{
 			{
 				Kind:  "Rule",
-				Match: createIngressRuleMatchFromURL(*ogcAPI.Spec.Service.BaseURL.URL, true, true),
+				Match: matchRule,
 				Services: []traefikiov1alpha1.Service{
 					{
 						LoadBalancerSpec: traefikiov1alpha1.LoadBalancerSpec{
@@ -503,10 +504,11 @@ func (r *OGCAPIReconciler) mutateStripPrefixMiddleware(ogcAPI *pdoknlv1alpha1.OG
 	if err := setImmutableLabels(r.Client, middleware, labels); err != nil {
 		return err
 	}
+	_, stripPrefixRegex := createIngressRuleAndStripPrefixForURL(*ogcAPI.Spec.Service.BaseURL.URL, true, true, true)
 	middleware.Spec = traefikiov1alpha1.MiddlewareSpec{
-		StripPrefix: &traefikdynamic.StripPrefix{
-			Prefixes: []string{
-				ogcAPI.Spec.Service.BaseURL.URL.EscapedPath(),
+		StripPrefixRegex: &traefikdynamic.StripPrefixRegex{
+			Regex: []string{
+				stripPrefixRegex,
 			},
 		},
 	}
