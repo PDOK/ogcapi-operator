@@ -31,6 +31,7 @@ import (
 	"maps"
 	"net/url"
 	"regexp"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 
@@ -118,23 +119,42 @@ func strategicMergePatch[T, P any](obj *T, patch *P) (*T, error) {
 	return &newObj, nil
 }
 
-func createIngressRuleMatchFromURL(url url.URL, includeLocalhost, matchUnderscoreVersions bool) string {
+func createIngressRuleAndStripPrefixForURL(url url.URL, includeLocalhost, matchUnderscoreVersions, traefikV2 bool) (string, string) {
 	var hostMatch string
 	if includeLocalhost {
 		hostMatch = fmt.Sprintf("(Host(`localhost`) || Host(`%s`))", url.Hostname())
 	} else {
 		hostMatch = fmt.Sprintf("Host(`%s`)", url.Hostname())
 	}
-	var pathMatch string
-	if matchUnderscoreVersions {
-		pathMatch = createPathRegexpForUnderscoreVersions(url.EscapedPath())
-	} else {
-		pathMatch = fmt.Sprintf("PathPrefix(`%s`)", url.EscapedPath())
+
+	path := url.EscapedPath()
+	if path == "" {
+		return hostMatch, ""
 	}
-	return fmt.Sprintf("%s && %s", hostMatch, pathMatch)
+
+	var pathMatch, stripPrefixRegexp string
+	if matchUnderscoreVersions {
+		pathRegexp := createRegexpForUnderscoreVersions(path)
+		if traefikV2 {
+			// Traefik v2: embed a regex in Path by using {name: regex}
+			pathMatch = fmt.Sprintf("PathPrefix(`/{path:%s}`)", pathRegexp)
+		} else {
+			// Traefik v3: match all as a regex
+			pathMatch = fmt.Sprintf("PathRegexp(`^/%s`)", pathRegexp)
+		}
+		stripPrefixRegexp = fmt.Sprintf("^/%s", pathRegexp) //nolint:perfsprint
+	} else {
+		pathMatch = fmt.Sprintf("PathPrefix(`%s`)", path)
+		stripPrefixRegexp = fmt.Sprintf("^%s", regexp.QuoteMeta(path)) //nolint:perfsprint
+	}
+
+	matchRule := fmt.Sprintf("%s && %s", hostMatch, pathMatch)
+	return matchRule, stripPrefixRegexp
 }
 
-func createPathRegexpForUnderscoreVersions(path string) string {
+// (leading slash is stripped)
+func createRegexpForUnderscoreVersions(path string) string {
+	path = strings.TrimLeft(path, "/")
 	// luckily Traefik also uses golang regular expressions syntax
 	// first create a regexp that literally matches the path
 	pathRegexp := regexp.QuoteMeta(path)
@@ -142,8 +162,7 @@ func createPathRegexpForUnderscoreVersions(path string) string {
 	pathRegexp = regexp.MustCompile(`/(v\d+)(_\d+)(/|$)`).ReplaceAllString(pathRegexp, `/$1($2)?$3`)
 	// then replace any occurrences of /v1/ (or v2 or v3) with a pattern for that v1 plus an optional "underscore part"
 	pathRegexp = regexp.MustCompile(`/(v\d+)(/|$)`).ReplaceAllString(pathRegexp, `/$1(_\d+)?$2`)
-	pathRegexp = "^" + pathRegexp + "$"
-	return fmt.Sprintf("PathRegexp(`%s`)", pathRegexp)
+	return pathRegexp
 }
 
 func addHashSuffix(obj client.Object) error {
