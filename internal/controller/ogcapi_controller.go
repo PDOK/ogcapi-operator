@@ -194,7 +194,7 @@ func (r *OGCAPIReconciler) createOrUpdateAllForOGCAPI(ctx context.Context, ogcAP
 
 	corsHeadersMiddleware := getBareCorsHeadersMiddleware(ogcAPI)
 	operationResults[getObjectFullName(r.Client, corsHeadersMiddleware)], err = controllerutil.CreateOrUpdate(ctx, r.Client, corsHeadersMiddleware, func() error {
-		return r.mutateCorsHeadersMiddleware(ogcAPI, corsHeadersMiddleware)
+		return r.mutateHeadersMiddleware(ogcAPI, corsHeadersMiddleware)
 	})
 	if err != nil {
 		return operationResults, fmt.Errorf("could not create or update resource %s: %w", getObjectFullName(c, corsHeadersMiddleware), err)
@@ -528,13 +528,14 @@ func getBareCorsHeadersMiddleware(obj metav1.Object) *traefikiov1alpha1.Middlewa
 	}
 }
 
-func (r *OGCAPIReconciler) mutateCorsHeadersMiddleware(obj metav1.Object, middleware *traefikiov1alpha1.Middleware) error {
+func (r *OGCAPIReconciler) mutateHeadersMiddleware(obj metav1.Object, middleware *traefikiov1alpha1.Middleware) error {
 	labels := cloneOrEmptyMap(obj.GetLabels())
 	if err := setImmutableLabels(r.Client, middleware, labels); err != nil {
 		return err
 	}
 	middleware.Spec = traefikiov1alpha1.MiddlewareSpec{
 		Headers: &traefikdynamic.Headers{
+			// CORS
 			AccessControlAllowHeaders: []string{
 				"X-Requested-With",
 			},
@@ -551,6 +552,10 @@ func (r *OGCAPIReconciler) mutateCorsHeadersMiddleware(obj metav1.Object, middle
 				"Link",
 			},
 			AccessControlMaxAge: 86400,
+			// Other headers
+			CustomResponseHeaders: map[string]string{
+				"Cache-Control": "public, max-age=3600, no-transform",
+			},
 		},
 	}
 	if err := ensureSetGVK(r.Client, middleware, middleware); err != nil {
