@@ -555,7 +555,7 @@ func (r *OGCAPIReconciler) mutateHeadersMiddleware(obj metav1.Object, middleware
 			// Other headers
 			CustomResponseHeaders: map[string]string{
 				"Cache-Control": "public, max-age=3600, no-transform",
-				"Vary":          "Accept",
+				"Vary":          "Accept, Accept-Encoding",
 			},
 		},
 	}
