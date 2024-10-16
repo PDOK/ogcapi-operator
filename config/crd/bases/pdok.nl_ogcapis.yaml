@@ -222,12 +222,12 @@ spec:
                                                       are logged to stdout
                                                     type: boolean
                                                   maxBBoxSizeToUseWithRTree:
-                                                    default: 30000
+                                                    default: 8000
                                                     description: ADVANCED SETTING.
                                                       When the number of features
                                                       in a bbox stay within the given
                                                       value use an RTree index, otherwise
-                                                      use a BTree index
+                                                      use a BTree index.
                                                     type: integer
                                                   queryTimeout:
                                                     default: 15s
@@ -336,12 +336,12 @@ spec:
                                                       Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
                                                     type: integer
                                                   maxBBoxSizeToUseWithRTree:
-                                                    default: 30000
+                                                    default: 8000
                                                     description: ADVANCED SETTING.
                                                       When the number of features
                                                       in a bbox stay within the given
                                                       value use an RTree index, otherwise
-                                                      use a BTree index
+                                                      use a BTree index.
                                                     type: integer
                                                   queryTimeout:
                                                     default: 15s
@@ -447,12 +447,12 @@ spec:
                                                     are logged to stdout
                                                   type: boolean
                                                 maxBBoxSizeToUseWithRTree:
-                                                  default: 30000
+                                                  default: 8000
                                                   description: ADVANCED SETTING. When
                                                     the number of features in a bbox
                                                     stay within the given value use
                                                     an RTree index, otherwise use
-                                                    a BTree index
+                                                    a BTree index.
                                                   type: integer
                                                 queryTimeout:
                                                   default: 15s
@@ -560,12 +560,12 @@ spec:
                                                     Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
                                                   type: integer
                                                 maxBBoxSizeToUseWithRTree:
-                                                  default: 30000
+                                                  default: 8000
                                                   description: ADVANCED SETTING. When
                                                     the number of features in a bbox
                                                     stay within the given value use
                                                     an RTree index, otherwise use
-                                                    a BTree index
+                                                    a BTree index.
                                                   type: integer
                                                 queryTimeout:
                                                   default: 15s
@@ -1047,12 +1047,12 @@ spec:
                                                       are logged to stdout
                                                     type: boolean
                                                   maxBBoxSizeToUseWithRTree:
-                                                    default: 30000
+                                                    default: 8000
                                                     description: ADVANCED SETTING.
                                                       When the number of features
                                                       in a bbox stay within the given
                                                       value use an RTree index, otherwise
-                                                      use a BTree index
+                                                      use a BTree index.
                                                     type: integer
                                                   queryTimeout:
                                                     default: 15s
@@ -1161,12 +1161,12 @@ spec:
                                                       Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
                                                     type: integer
                                                   maxBBoxSizeToUseWithRTree:
-                                                    default: 30000
+                                                    default: 8000
                                                     description: ADVANCED SETTING.
                                                       When the number of features
                                                       in a bbox stay within the given
                                                       value use an RTree index, otherwise
-                                                      use a BTree index
+                                                      use a BTree index.
                                                     type: integer
                                                   queryTimeout:
                                                     default: 15s
@@ -1272,12 +1272,12 @@ spec:
                                                     are logged to stdout
                                                   type: boolean
                                                 maxBBoxSizeToUseWithRTree:
-                                                  default: 30000
+                                                  default: 8000
                                                   description: ADVANCED SETTING. When
                                                     the number of features in a bbox
                                                     stay within the given value use
                                                     an RTree index, otherwise use
-                                                    a BTree index
+                                                    a BTree index.
                                                   type: integer
                                                 queryTimeout:
                                                   default: 15s
@@ -1385,12 +1385,12 @@ spec:
                                                     Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
                                                   type: integer
                                                 maxBBoxSizeToUseWithRTree:
-                                                  default: 30000
+                                                  default: 8000
                                                   description: ADVANCED SETTING. When
                                                     the number of features in a bbox
                                                     stay within the given value use
                                                     an RTree index, otherwise use
-                                                    a BTree index
+                                                    a BTree index.
                                                   type: integer
                                                 queryTimeout:
                                                   default: 15s
@@ -1833,11 +1833,11 @@ spec:
                                                 stdout
                                               type: boolean
                                             maxBBoxSizeToUseWithRTree:
-                                              default: 30000
+                                              default: 8000
                                               description: ADVANCED SETTING. When
                                                 the number of features in a bbox stay
                                                 within the given value use an RTree
-                                                index, otherwise use a BTree index
+                                                index, otherwise use a BTree index.
                                               type: integer
                                             queryTimeout:
                                               default: 15s
@@ -1943,11 +1943,11 @@ spec:
                                                 Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
                                               type: integer
                                             maxBBoxSizeToUseWithRTree:
-                                              default: 30000
+                                              default: 8000
                                               description: ADVANCED SETTING. When
                                                 the number of features in a bbox stay
                                                 within the given value use an RTree
-                                                index, otherwise use a BTree index
+                                                index, otherwise use a BTree index.
                                               type: integer
                                             queryTimeout:
                                               default: 15s
@@ -2050,11 +2050,11 @@ spec:
                                               are logged to stdout
                                             type: boolean
                                           maxBBoxSizeToUseWithRTree:
-                                            default: 30000
+                                            default: 8000
                                             description: ADVANCED SETTING. When the
                                               number of features in a bbox stay within
                                               the given value use an RTree index,
-                                              otherwise use a BTree index
+                                              otherwise use a BTree index.
                                             type: integer
                                           queryTimeout:
                                             default: 15s
@@ -2158,11 +2158,11 @@ spec:
                                               Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
                                             type: integer
                                           maxBBoxSizeToUseWithRTree:
-                                            default: 30000
+                                            default: 8000
                                             description: ADVANCED SETTING. When the
                                               number of features in a bbox stay within
                                               the given value use an RTree index,
-                                              otherwise use a BTree index
+                                              otherwise use a BTree index.
                                             type: integer
                                           queryTimeout:
                                             default: 15s
@@ -2398,12 +2398,12 @@ spec:
                                                       are logged to stdout
                                                     type: boolean
                                                   maxBBoxSizeToUseWithRTree:
-                                                    default: 30000
+                                                    default: 8000
                                                     description: ADVANCED SETTING.
                                                       When the number of features
                                                       in a bbox stay within the given
                                                       value use an RTree index, otherwise
-                                                      use a BTree index
+                                                      use a BTree index.
                                                     type: integer
                                                   queryTimeout:
                                                     default: 15s
@@ -2512,12 +2512,12 @@ spec:
                                                       Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
                                                     type: integer
                                                   maxBBoxSizeToUseWithRTree:
-                                                    default: 30000
+                                                    default: 8000
                                                     description: ADVANCED SETTING.
                                                       When the number of features
                                                       in a bbox stay within the given
                                                       value use an RTree index, otherwise
-                                                      use a BTree index
+                                                      use a BTree index.
                                                     type: integer
                                                   queryTimeout:
                                                     default: 15s
@@ -2623,12 +2623,12 @@ spec:
                                                     are logged to stdout
                                                   type: boolean
                                                 maxBBoxSizeToUseWithRTree:
-                                                  default: 30000
+                                                  default: 8000
                                                   description: ADVANCED SETTING. When
                                                     the number of features in a bbox
                                                     stay within the given value use
                                                     an RTree index, otherwise use
-                                                    a BTree index
+                                                    a BTree index.
                                                   type: integer
                                                 queryTimeout:
                                                   default: 15s
@@ -2736,12 +2736,12 @@ spec:
                                                     Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
                                                   type: integer
                                                 maxBBoxSizeToUseWithRTree:
-                                                  default: 30000
+                                                  default: 8000
                                                   description: ADVANCED SETTING. When
                                                     the number of features in a bbox
                                                     stay within the given value use
                                                     an RTree index, otherwise use
-                                                    a BTree index
+                                                    a BTree index.
                                                   type: integer
                                                 queryTimeout:
                                                   default: 15s
