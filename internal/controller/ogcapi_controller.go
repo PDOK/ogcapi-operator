@@ -82,6 +82,7 @@ const (
 	stripPrefixName     = "strip-prefix"
 	corsHeadersName     = "cors-headers"
 	srvDir              = "/srv"
+	priorityAnnotation  = "priority.version-checker.io"
 )
 
 var (
@@ -254,6 +255,9 @@ func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deplo
 		return err
 	}
 
+	podTemplateAnnotations := cloneOrEmptyMap(deployment.Spec.Template.GetAnnotations())
+	podTemplateAnnotations[priorityAnnotation+"/"+gokoalaName] = "4"
+
 	matchLabels := cloneOrEmptyMap(labels)
 	deployment.Spec.Selector = &metav1.LabelSelector{
 		MatchLabels: matchLabels,
@@ -275,7 +279,8 @@ func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deplo
 
 	podTemplateSpec := corev1.PodTemplateSpec{
 		ObjectMeta: metav1.ObjectMeta{
-			Labels: matchLabels,
+			Labels:      matchLabels,
+			Annotations: podTemplateAnnotations,
 		},
 		Spec: corev1.PodSpec{
 			Volumes: []corev1.Volume{
