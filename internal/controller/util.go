@@ -119,7 +119,7 @@ func strategicMergePatch[T, P any](obj *T, patch *P) (*T, error) {
 	return &newObj, nil
 }
 
-func createIngressRuleAndStripPrefixForURL(url url.URL, includeLocalhost, matchUnderscoreVersions, traefikV2 bool) (string, string) {
+func createIngressRuleAndStripPrefixForBaseURL(url url.URL, includeLocalhost, matchUnderscoreVersions, traefikV2 bool) (string, string) {
 	var hostMatch string
 	if includeLocalhost {
 		hostMatch = fmt.Sprintf("(Host(`localhost`) || Host(`%s`))", url.Hostname())
@@ -128,33 +128,42 @@ func createIngressRuleAndStripPrefixForURL(url url.URL, includeLocalhost, matchU
 	}
 
 	path := url.EscapedPath()
+	trailingSlash := strings.HasSuffix(path, "/")
+	path = strings.Trim(path, "/")
 	if path == "" {
 		return hostMatch, ""
 	}
 
-	var pathMatch, stripPrefixRegexp string
+	var pathRegexp string
 	if matchUnderscoreVersions {
-		pathRegexp := createRegexpForUnderscoreVersions(path)
-		if traefikV2 {
-			// Traefik v2: embed a regex in Path by using {name: regex}
-			pathMatch = fmt.Sprintf("PathPrefix(`/{path:%s}`)", pathRegexp)
-		} else {
-			// Traefik v3: match all as a regex
-			pathMatch = fmt.Sprintf("PathRegexp(`^/%s`)", pathRegexp)
-		}
-		stripPrefixRegexp = fmt.Sprintf("^/%s", pathRegexp) //nolint:perfsprint
+		pathRegexp = createRegexpForUnderscoreVersions(path)
 	} else {
-		pathMatch = fmt.Sprintf("PathPrefix(`%s`)", path)
-		stripPrefixRegexp = fmt.Sprintf("^%s", regexp.QuoteMeta(path)) //nolint:perfsprint
+		pathRegexp = regexp.QuoteMeta(path)
+	}
+
+	trailingRegexp := "(/|$)" // to prevent matching too much after the last segment
+	if trailingSlash {
+		trailingRegexp = "/"
+	}
+
+	var pathMatch, stripPrefixRegexp string
+	if traefikV2 {
+		// Traefik v2: embed a regex in Path by using {name: regex}
+		pathMatch = fmt.Sprintf("PathPrefix(`/{path:%s%s}`)", pathRegexp, trailingRegexp)
+	} else {
+		// Traefik v3: match all as a regex
+		pathMatch = fmt.Sprintf("PathRegexp(`^/%s%s`)", pathRegexp, trailingRegexp)
+	}
+	stripPrefixRegexp = fmt.Sprintf("^/%s", pathRegexp) //nolint:perfsprint
+	if trailingSlash {
+		stripPrefixRegexp += "/"
 	}
 
 	matchRule := fmt.Sprintf("%s && %s", hostMatch, pathMatch)
 	return matchRule, stripPrefixRegexp
 }
 
-// (leading slash is stripped)
 func createRegexpForUnderscoreVersions(path string) string {
-	path = strings.TrimLeft(path, "/")
 	// luckily Traefik also uses golang regular expressions syntax
 	// first create a regexp that literally matches the path
 	pathRegexp := regexp.QuoteMeta(path)
