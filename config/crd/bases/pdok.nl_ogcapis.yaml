@@ -3154,9 +3154,9 @@ spec:
                       to the given dataset are hosted
                     properties:
                       directory:
-                        description: // Location where resources (e.g. thumbnails)
-                          specific to the given dataset are hosted. This is optional
-                          if URL is set
+                        description: Location where resources (e.g. thumbnails) specific
+                          to the given dataset are hosted. This is optional if URL
+                          is set
                         type: string
                       url:
                         description: Location where resources (e.g. thumbnails) specific
