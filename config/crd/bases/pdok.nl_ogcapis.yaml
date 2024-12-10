@@ -628,6 +628,20 @@ spec:
                                         type: object
                                       type: array
                                   type: object
+                                healthCheck:
+                                  description: Optional health check configuration
+                                  properties:
+                                    srs:
+                                      default: EPSG:28992
+                                      description: Projection (SRS/CRS) used for tile
+                                        healthcheck
+                                      pattern: ^EPSG:\d+$
+                                      type: string
+                                    tilePath:
+                                      description: Path to specific tile used for
+                                        healthcheck
+                                      type: string
+                                  type: object
                                 id:
                                   description: Unique ID of the collection
                                   type: string
@@ -1452,6 +1466,20 @@ spec:
                                         - name
                                         type: object
                                       type: array
+                                  type: object
+                                healthCheck:
+                                  description: Optional health check configuration
+                                  properties:
+                                    srs:
+                                      default: EPSG:28992
+                                      description: Projection (SRS/CRS) used for tile
+                                        healthcheck
+                                      pattern: ^EPSG:\d+$
+                                      type: string
+                                    tilePath:
+                                      description: Path to specific tile used for
+                                        healthcheck
+                                      type: string
                                   type: object
                                 id:
                                   description: Unique ID of the collection
@@ -2804,6 +2832,20 @@ spec:
                                         type: object
                                       type: array
                                   type: object
+                                healthCheck:
+                                  description: Optional health check configuration
+                                  properties:
+                                    srs:
+                                      default: EPSG:28992
+                                      description: Projection (SRS/CRS) used for tile
+                                        healthcheck
+                                      pattern: ^EPSG:\d+$
+                                      type: string
+                                    tilePath:
+                                      description: Path to specific tile used for
+                                        healthcheck
+                                      type: string
+                                  type: object
                                 id:
                                   description: Unique ID of the collection
                                   type: string
@@ -3098,6 +3140,18 @@ spec:
                               - id
                               type: object
                             type: array
+                          healthCheck:
+                            description: Optional health check configuration
+                            properties:
+                              srs:
+                                default: EPSG:28992
+                                description: Projection (SRS/CRS) used for tile healthcheck
+                                pattern: ^EPSG:\d+$
+                                type: string
+                              tilePath:
+                                description: Path to specific tile used for healthcheck
+                                type: string
+                            type: object
                           supportedSrs:
                             description: |-
                               Specifies in what projections (SRS/CRS) the tiles are offered

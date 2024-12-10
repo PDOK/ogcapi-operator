@@ -5,6 +5,8 @@ github.com/BurntSushi/toml v1.3.2 h1:o7IhLm0Msx3BaB+n3Ag7L8EVlByGnpq14C4YWiu/gL8
 github.com/BurntSushi/toml v1.3.2/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 github.com/PDOK/gokoala v0.58.0 h1:4oL+z4PoJsHkKS4DrexJLB/fmXTQEFq8dDA2hr/cCzY=
 github.com/PDOK/gokoala v0.58.0/go.mod h1:jT3LZWfUpwu0+itydD0a8PUflz0u1x73TNxLhEU4ugs=
+github.com/PDOK/gokoala v0.59.0 h1:tZpkb+AqEC/bIzLKBzpekXhLZBIafG4how9OR9wd6Vs=
+github.com/PDOK/gokoala v0.59.0/go.mod h1:jT3LZWfUpwu0+itydD0a8PUflz0u1x73TNxLhEU4ugs=
 github.com/bahlo/generic-list-go v0.2.0 h1:5sz/EEAK+ls5wF+NeqDpk5+iNdMDXrh3z3nPnH1Wvgk=
 github.com/bahlo/generic-list-go v0.2.0/go.mod h1:2KvAjgMlE5NNynlg/5iLrrCCZ2+5xWbdbCW3pNTGyYg=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
