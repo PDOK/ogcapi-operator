@@ -117,6 +117,28 @@ spec:
                     - name
                     - url
                     type: object
+                  metadataLinks:
+                    description: Metadata links
+                    items:
+                      properties:
+                        category:
+                          default: dataset
+                          description: Which category of the API this metadata concerns.
+                            E.g. dataset (in general), tiles or features
+                          type: string
+                        name:
+                          description: Name of the metadata collection/site/organization
+                          type: string
+                        url:
+                          description: URL to external metadata detail page
+                          pattern: ^(https?://.+)|(\$\{.+\}.*)
+                          type: string
+                      required:
+                      - category
+                      - name
+                      - url
+                      type: object
+                    type: array
                   ogcApi:
                     description: Define which OGC API building blocks this API supports
                     properties:
