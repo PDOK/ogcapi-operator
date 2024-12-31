@@ -666,6 +666,7 @@ spec:
                                   type: object
                                 id:
                                   description: Unique ID of the collection
+                                  pattern: ^[a-z0-9]([a-z0-9_-]*[a-z0-9]+|)$
                                   type: string
                                 links:
                                   description: Links pertaining to this collection
@@ -1505,6 +1506,7 @@ spec:
                                   type: object
                                 id:
                                   description: Unique ID of the collection
+                                  pattern: ^[a-z0-9]([a-z0-9_-]*[a-z0-9]+|)$
                                   type: string
                                 links:
                                   description: Links pertaining to this collection
@@ -2310,6 +2312,7 @@ spec:
                                   type: array
                                 id:
                                   description: Unique ID of this style
+                                  pattern: ^[a-z0-9]([a-z0-9_-]*[a-z0-9]+|)$
                                   type: string
                                 keywords:
                                   description: Keywords to make this style better
@@ -2870,6 +2873,7 @@ spec:
                                   type: object
                                 id:
                                   description: Unique ID of the collection
+                                  pattern: ^[a-z0-9]([a-z0-9_-]*[a-z0-9]+|)$
                                   type: string
                                 links:
                                   description: Links pertaining to this collection
