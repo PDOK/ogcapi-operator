@@ -619,9 +619,9 @@ func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI metav1.Object, h
 				StabilizationWindowSeconds: int32Ptr(900),
 				Policies: []autoscalingv2.HPAScalingPolicy{
 					{
-						Type:          autoscalingv2.PercentScalingPolicy,
-						Value:         int32(10),
-						PeriodSeconds: int32(300),
+						Type:          autoscalingv2.PodsScalingPolicy,
+						Value:         1,
+						PeriodSeconds: 300,
 					},
 				},
 			},
@@ -630,8 +630,8 @@ func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI metav1.Object, h
 				Policies: []autoscalingv2.HPAScalingPolicy{
 					{
 						Type:          autoscalingv2.PodsScalingPolicy,
-						Value:         int32(20),
-						PeriodSeconds: int32(60),
+						Value:         1,
+						PeriodSeconds: 60,
 					},
 				},
 			},
