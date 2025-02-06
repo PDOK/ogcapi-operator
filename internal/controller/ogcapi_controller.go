@@ -614,6 +614,28 @@ func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI metav1.Object, h
 				},
 			},
 		},
+		Behavior: &autoscalingv2.HorizontalPodAutoscalerBehavior{
+			ScaleDown: &autoscalingv2.HPAScalingRules{
+				StabilizationWindowSeconds: int32Ptr(900),
+				Policies: []autoscalingv2.HPAScalingPolicy{
+					{
+						Type:          autoscalingv2.PercentScalingPolicy,
+						Value:         int32(10),
+						PeriodSeconds: int32(300),
+					},
+				},
+			},
+			ScaleUp: &autoscalingv2.HPAScalingRules{
+				StabilizationWindowSeconds: int32Ptr(0),
+				Policies: []autoscalingv2.HPAScalingPolicy{
+					{
+						Type:          autoscalingv2.PodsScalingPolicy,
+						Value:         int32(20),
+						PeriodSeconds: int32(60),
+					},
+				},
+			},
+		},
 	}
 	if err := ensureSetGVK(r.Client, hpa, hpa); err != nil {
 		return err
