@@ -302,7 +302,7 @@ func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deplo
 					Env: []corev1.EnvVar{
 						{Name: configFileEnvVar, Value: srvDir + "/" + configName + "/" + configFileName},
 						{Name: debugPortEnvVar, Value: strconv.Itoa(debugPortNr)},
-						{Name: shutdownDelayEnvVar, Value: strconv.Itoa(15)},
+						{Name: shutdownDelayEnvVar, Value: strconv.Itoa(30)},
 					},
 					Resources: corev1.ResourceRequirements{
 						Limits: corev1.ResourceList{
