@@ -55,6 +55,7 @@ type OGCAPIStatus struct {
 // OGCAPI is the Schema for the ogcapis API
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:resource:categories=pdok
 type OGCAPI struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
