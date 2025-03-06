@@ -8,6 +8,8 @@ metadata:
 spec:
   group: pdok.nl
   names:
+    categories:
+    - pdok
     kind: OGCAPI
     listKind: OGCAPIList
     plural: ogcapis
