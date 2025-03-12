@@ -80,7 +80,7 @@ const (
 	configFileEnvVar    = "CONFIG_FILE"
 	shutdownDelayEnvVar = "SHUTDOWN_DELAY"
 	stripPrefixName     = "strip-prefix"
-	corsHeadersName     = "cors-headers"
+	headersName         = "cors-headers"
 	srvDir              = "/srv"
 	priorityAnnotation  = "priority.version-checker.io"
 )
@@ -94,6 +94,7 @@ type OGCAPIReconciler struct {
 	client.Client
 	Scheme       *runtime.Scheme
 	GokoalaImage string
+	CSP          string
 }
 
 //+kubebuilder:rbac:groups=pdok.nl,resources=ogcapis,verbs=get;list;watch;create;update;patch;delete
@@ -193,12 +194,12 @@ func (r *OGCAPIReconciler) createOrUpdateAllForOGCAPI(ctx context.Context, ogcAP
 		return operationResults, fmt.Errorf("could not create or update resource %s: %w", getObjectFullName(c, stripPrefixMiddleware), err)
 	}
 
-	corsHeadersMiddleware := getBareCorsHeadersMiddleware(ogcAPI)
-	operationResults[getObjectFullName(r.Client, corsHeadersMiddleware)], err = controllerutil.CreateOrUpdate(ctx, r.Client, corsHeadersMiddleware, func() error {
-		return r.mutateHeadersMiddleware(ogcAPI, corsHeadersMiddleware)
+	headersMiddleware := getBareHeadersMiddleware(ogcAPI)
+	operationResults[getObjectFullName(r.Client, headersMiddleware)], err = controllerutil.CreateOrUpdate(ctx, r.Client, headersMiddleware, func() error {
+		return r.mutateHeadersMiddleware(ogcAPI, headersMiddleware, r.CSP)
 	})
 	if err != nil {
-		return operationResults, fmt.Errorf("could not create or update resource %s: %w", getObjectFullName(c, corsHeadersMiddleware), err)
+		return operationResults, fmt.Errorf("could not create or update resource %s: %w", getObjectFullName(c, headersMiddleware), err)
 	}
 
 	ingressRoute := getBareIngressRoute(ogcAPI)
@@ -231,7 +232,7 @@ func (r *OGCAPIReconciler) deleteAllForOGCAPI(ctx context.Context, ogcAPI *pdokn
 		getBareDeployment(ogcAPI),
 		getBareService(ogcAPI),
 		getBareStripPrefixMiddleware(ogcAPI),
-		getBareCorsHeadersMiddleware(ogcAPI),
+		getBareHeadersMiddleware(ogcAPI),
 		getBareIngressRoute(ogcAPI),
 		getBareHorizontalPodAutoscaler(ogcAPI),
 	})
@@ -481,7 +482,7 @@ func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *pdoknlv1alpha1.OGCAPI, ing
 						Namespace: ogcAPI.GetNamespace(),
 					},
 					{
-						Name:      name + "-" + corsHeadersName,
+						Name:      name + "-" + headersName,
 						Namespace: ogcAPI.GetNamespace(),
 					},
 				},
@@ -523,17 +524,17 @@ func (r *OGCAPIReconciler) mutateStripPrefixMiddleware(ogcAPI *pdoknlv1alpha1.OG
 	return ctrl.SetControllerReference(ogcAPI, middleware, r.Scheme)
 }
 
-func getBareCorsHeadersMiddleware(obj metav1.Object) *traefikiov1alpha1.Middleware {
+func getBareHeadersMiddleware(obj metav1.Object) *traefikiov1alpha1.Middleware {
 	return &traefikiov1alpha1.Middleware{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: obj.GetName() + "-" + corsHeadersName,
+			Name: obj.GetName() + "-" + headersName,
 			// name might become too long. not handling here. will just fail on apply.
 			Namespace: obj.GetNamespace(),
 		},
 	}
 }
 
-func (r *OGCAPIReconciler) mutateHeadersMiddleware(obj metav1.Object, middleware *traefikiov1alpha1.Middleware) error {
+func (r *OGCAPIReconciler) mutateHeadersMiddleware(obj metav1.Object, middleware *traefikiov1alpha1.Middleware, csp string) error {
 	labels := cloneOrEmptyMap(obj.GetLabels())
 	if err := setImmutableLabels(r.Client, middleware, labels); err != nil {
 		return err
@@ -557,6 +558,10 @@ func (r *OGCAPIReconciler) mutateHeadersMiddleware(obj metav1.Object, middleware
 				"Link",
 			},
 			AccessControlMaxAge: 86400,
+			// CSP
+			ContentSecurityPolicy: csp,
+			// Frame-Options
+			FrameDeny: true,
 			// Other headers
 			CustomResponseHeaders: map[string]string{
 				"Cache-Control": "public, max-age=3600, no-transform",
