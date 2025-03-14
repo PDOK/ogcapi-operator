@@ -77,6 +77,7 @@ func main() {
 	var gokoalaImage string
 	var enableWebhooks bool
 	var certDir string
+	var csp string
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
@@ -90,6 +91,7 @@ func main() {
 	flag.StringVar(&gokoalaImage, "gokoala-image", defaultGokoalaImage, "The image to use in the gokoala pod")
 	flag.BoolVar(&enableWebhooks, "enable-webhooks", true, "Enable admission webhooks")
 	flag.StringVar(&certDir, "cert-dir", "", "CertDir contains the webhook server key and certificate. Defaults to <temp-dir>/k8s-webhook-server/serving-certs.")
+	flag.StringVar(&csp, "csp", "", "Content-Security-Policy to serve as a HTTP header")
 
 	opts := zap.Options{
 		Development: true,
@@ -156,6 +158,7 @@ func main() {
 		Client:       mgr.GetClient(),
 		Scheme:       mgr.GetScheme(),
 		GokoalaImage: gokoalaImage,
+		CSP:          csp,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "OGCAPI")
 		os.Exit(1)

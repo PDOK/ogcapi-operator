@@ -294,7 +294,7 @@ func getExpectedBareObjectsForOGCAPI(ogcAPI *pdoknlv1alpha1.OGCAPI, configMapNam
 		{obj: &appsv1.Deployment{}, key: types.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareDeployment(ogcAPI).GetName()}},
 		{obj: &corev1.ConfigMap{}, key: types.NamespacedName{Namespace: testOGCAPINamespace, Name: configMapName}},
 		{obj: &traefikiov1alpha1.Middleware{}, key: types.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareStripPrefixMiddleware(ogcAPI).GetName()}},
-		{obj: &traefikiov1alpha1.Middleware{}, key: types.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareCorsHeadersMiddleware(ogcAPI).GetName()}},
+		{obj: &traefikiov1alpha1.Middleware{}, key: types.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareHeadersMiddleware(ogcAPI).GetName()}},
 		{obj: &corev1.Service{}, key: types.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareService(ogcAPI).GetName()}},
 		{obj: &traefikiov1alpha1.IngressRoute{}, key: types.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareIngressRoute(ogcAPI).GetName()}},
 		{obj: &autoscalingv2.HorizontalPodAutoscaler{}, key: types.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareHorizontalPodAutoscaler(ogcAPI).GetName()}},
