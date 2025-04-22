@@ -2327,6 +2327,11 @@ spec:
                                     updated
                                   format: date-time
                                   type: string
+                                legend:
+                                  description: |-
+                                    Reference to a PNG image to offer as legend to end users.
+                                    The full path is constructed by appending Resources + Legend.
+                                  type: string
                                 thumbnail:
                                   description: |-
                                     Reference to a PNG image to use a thumbnail on the style metadata page.
