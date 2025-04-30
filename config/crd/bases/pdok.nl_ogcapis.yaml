@@ -655,6 +655,10 @@ spec:
                                 healthCheck:
                                   description: Optional health check configuration
                                   properties:
+                                    enabled:
+                                      description: Enable/disable healthcheck on tiles.
+                                        Defaults to true.
+                                      type: boolean
                                     srs:
                                       default: EPSG:28992
                                       description: Projection (SRS/CRS) used for tile
@@ -665,6 +669,8 @@ spec:
                                       description: Path to specific tile used for
                                         healthcheck
                                       type: string
+                                  required:
+                                  - enabled
                                   type: object
                                 id:
                                   description: Unique ID of the collection
@@ -1495,6 +1501,10 @@ spec:
                                 healthCheck:
                                   description: Optional health check configuration
                                   properties:
+                                    enabled:
+                                      description: Enable/disable healthcheck on tiles.
+                                        Defaults to true.
+                                      type: boolean
                                     srs:
                                       default: EPSG:28992
                                       description: Projection (SRS/CRS) used for tile
@@ -1505,6 +1515,8 @@ spec:
                                       description: Path to specific tile used for
                                         healthcheck
                                       type: string
+                                  required:
+                                  - enabled
                                   type: object
                                 id:
                                   description: Unique ID of the collection
@@ -2867,6 +2879,10 @@ spec:
                                 healthCheck:
                                   description: Optional health check configuration
                                   properties:
+                                    enabled:
+                                      description: Enable/disable healthcheck on tiles.
+                                        Defaults to true.
+                                      type: boolean
                                     srs:
                                       default: EPSG:28992
                                       description: Projection (SRS/CRS) used for tile
@@ -2877,6 +2893,8 @@ spec:
                                       description: Path to specific tile used for
                                         healthcheck
                                       type: string
+                                  required:
+                                  - enabled
                                   type: object
                                 id:
                                   description: Unique ID of the collection
@@ -3176,6 +3194,10 @@ spec:
                           healthCheck:
                             description: Optional health check configuration
                             properties:
+                              enabled:
+                                description: Enable/disable healthcheck on tiles.
+                                  Defaults to true.
+                                type: boolean
                               srs:
                                 default: EPSG:28992
                                 description: Projection (SRS/CRS) used for tile healthcheck
@@ -3184,6 +3206,8 @@ spec:
                               tilePath:
                                 description: Path to specific tile used for healthcheck
                                 type: string
+                            required:
+                            - enabled
                             type: object
                           supportedSrs:
                             description: |-
