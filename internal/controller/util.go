@@ -119,7 +119,7 @@ func strategicMergePatch[T, P any](obj *T, patch *P) (*T, error) {
 	return &newObj, nil
 }
 
-func createIngressRuleAndStripPrefixForBaseURL(url url.URL, includeLocalhost, matchUnderscoreVersions, traefikV2 bool) (string, string) {
+func createIngressRuleAndStripPrefixForBaseURL(url url.URL, includeLocalhost, matchUnderscoreVersions bool) (string, string) {
 	var hostMatch string
 	if includeLocalhost {
 		hostMatch = fmt.Sprintf("(Host(`localhost`) || Host(`%s`))", url.Hostname())
@@ -146,15 +146,8 @@ func createIngressRuleAndStripPrefixForBaseURL(url url.URL, includeLocalhost, ma
 		trailingRegexp = "/"
 	}
 
-	var pathMatch, stripPrefixRegexp string
-	if traefikV2 {
-		// Traefik v2: embed a regex in Path by using {name: regex}
-		pathMatch = fmt.Sprintf("PathPrefix(`/{path:%s%s}`)", pathRegexp, trailingRegexp)
-	} else {
-		// Traefik v3: match all as a regex
-		pathMatch = fmt.Sprintf("PathRegexp(`^/%s%s`)", pathRegexp, trailingRegexp)
-	}
-	stripPrefixRegexp = fmt.Sprintf("^/%s", pathRegexp) //nolint:perfsprint
+	pathMatch := fmt.Sprintf("PathRegexp(`^/%s%s`)", pathRegexp, trailingRegexp)
+	stripPrefixRegexp := fmt.Sprintf("^/%s", pathRegexp) //nolint:perfsprint
 	if trailingSlash {
 		stripPrefixRegexp += "/"
 	}
