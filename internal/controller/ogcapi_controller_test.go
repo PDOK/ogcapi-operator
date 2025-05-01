@@ -33,7 +33,7 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 
-	traefikiov1alpha1 "github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
+	traefikiov1alpha1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
