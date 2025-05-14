@@ -380,6 +380,16 @@ spec:
                                           postgis:
                                             description: PostGIS database to get the
                                               features from (not implemented yet).
+                                            properties:
+                                              externalFid:
+                                                description: |-
+                                                  External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                  It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                type: string
+                                              fid:
+                                                default: fid
+                                                description: Feature id column name
+                                                type: string
                                             type: object
                                           srs:
                                             description: Projection (SRS/CRS) used
@@ -604,6 +614,16 @@ spec:
                                         postgis:
                                           description: PostGIS database to get the
                                             features from (not implemented yet).
+                                          properties:
+                                            externalFid:
+                                              description: |-
+                                                External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                              type: string
+                                            fid:
+                                              default: fid
+                                              description: Feature id column name
+                                              type: string
                                           type: object
                                       type: object
                                   required:
@@ -656,6 +676,7 @@ spec:
                                   description: Optional health check configuration
                                   properties:
                                     enabled:
+                                      default: true
                                       description: Enable/disable healthcheck on tiles.
                                         Defaults to true.
                                       type: boolean
@@ -669,8 +690,6 @@ spec:
                                       description: Path to specific tile used for
                                         healthcheck
                                       type: string
-                                  required:
-                                  - enabled
                                   type: object
                                 id:
                                   description: Unique ID of the collection
@@ -1226,6 +1245,16 @@ spec:
                                           postgis:
                                             description: PostGIS database to get the
                                               features from (not implemented yet).
+                                            properties:
+                                              externalFid:
+                                                description: |-
+                                                  External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                  It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                type: string
+                                              fid:
+                                                default: fid
+                                                description: Feature id column name
+                                                type: string
                                             type: object
                                           srs:
                                             description: Projection (SRS/CRS) used
@@ -1450,6 +1479,16 @@ spec:
                                         postgis:
                                           description: PostGIS database to get the
                                             features from (not implemented yet).
+                                          properties:
+                                            externalFid:
+                                              description: |-
+                                                External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                              type: string
+                                            fid:
+                                              default: fid
+                                              description: Feature id column name
+                                              type: string
                                           type: object
                                       type: object
                                   required:
@@ -1502,6 +1541,7 @@ spec:
                                   description: Optional health check configuration
                                   properties:
                                     enabled:
+                                      default: true
                                       description: Enable/disable healthcheck on tiles.
                                         Defaults to true.
                                       type: boolean
@@ -1515,8 +1555,6 @@ spec:
                                       description: Path to specific tile used for
                                         healthcheck
                                       type: string
-                                  required:
-                                  - enabled
                                   type: object
                                 id:
                                   description: Unique ID of the collection
@@ -2028,6 +2066,16 @@ spec:
                                     postgis:
                                       description: PostGIS database to get the features
                                         from (not implemented yet).
+                                      properties:
+                                        externalFid:
+                                          description: |-
+                                            External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                            It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                          type: string
+                                        fid:
+                                          default: fid
+                                          description: Feature id column name
+                                          type: string
                                       type: object
                                     srs:
                                       description: Projection (SRS/CRS) used for the
@@ -2243,6 +2291,16 @@ spec:
                                   postgis:
                                     description: PostGIS database to get the features
                                       from (not implemented yet).
+                                    properties:
+                                      externalFid:
+                                        description: |-
+                                          External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                          It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                        type: string
+                                      fid:
+                                        default: fid
+                                        description: Feature id column name
+                                        type: string
                                     type: object
                                 type: object
                             required:
@@ -2604,6 +2662,16 @@ spec:
                                           postgis:
                                             description: PostGIS database to get the
                                               features from (not implemented yet).
+                                            properties:
+                                              externalFid:
+                                                description: |-
+                                                  External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                  It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                type: string
+                                              fid:
+                                                default: fid
+                                                description: Feature id column name
+                                                type: string
                                             type: object
                                           srs:
                                             description: Projection (SRS/CRS) used
@@ -2828,6 +2896,16 @@ spec:
                                         postgis:
                                           description: PostGIS database to get the
                                             features from (not implemented yet).
+                                          properties:
+                                            externalFid:
+                                              description: |-
+                                                External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                              type: string
+                                            fid:
+                                              default: fid
+                                              description: Feature id column name
+                                              type: string
                                           type: object
                                       type: object
                                   required:
@@ -2880,6 +2958,7 @@ spec:
                                   description: Optional health check configuration
                                   properties:
                                     enabled:
+                                      default: true
                                       description: Enable/disable healthcheck on tiles.
                                         Defaults to true.
                                       type: boolean
@@ -2893,8 +2972,6 @@ spec:
                                       description: Path to specific tile used for
                                         healthcheck
                                       type: string
-                                  required:
-                                  - enabled
                                   type: object
                                 id:
                                   description: Unique ID of the collection
@@ -3195,6 +3272,7 @@ spec:
                             description: Optional health check configuration
                             properties:
                               enabled:
+                                default: true
                                 description: Enable/disable healthcheck on tiles.
                                   Defaults to true.
                                 type: boolean
@@ -3206,8 +3284,6 @@ spec:
                               tilePath:
                                 description: Path to specific tile used for healthcheck
                                 type: string
-                            required:
-                            - enabled
                             type: object
                           supportedSrs:
                             description: |-
