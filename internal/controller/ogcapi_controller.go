@@ -40,7 +40,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	traefikdynamic "github.com/traefik/traefik/v2/pkg/config/dynamic"
+	traefikdynamic "github.com/traefik/traefik/v3/pkg/config/dynamic"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -52,7 +52,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 
-	traefikiov1alpha1 "github.com/traefik/traefik/v2/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
+	traefikiov1alpha1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
@@ -461,12 +461,13 @@ func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *pdoknlv1alpha1.OGCAPI, ing
 		"uptime.pdok.nl/url":  uptimeURL,
 		"uptime.pdok.nl/tags": "public-stats,ogcapi",
 	}
-	matchRule, _ := createIngressRuleAndStripPrefixForBaseURL(*ogcAPI.Spec.Service.BaseURL.URL, true, true, true)
+	matchRule, _ := createIngressRuleAndStripPrefixForBaseURL(*ogcAPI.Spec.Service.BaseURL.URL, true, true)
 	ingressRoute.Spec = traefikiov1alpha1.IngressRouteSpec{
 		Routes: []traefikiov1alpha1.Route{
 			{
-				Kind:  "Rule",
-				Match: matchRule,
+				Kind:   "Rule",
+				Match:  matchRule,
+				Syntax: "v3",
 				Services: []traefikiov1alpha1.Service{
 					{
 						LoadBalancerSpec: traefikiov1alpha1.LoadBalancerSpec{
@@ -510,7 +511,7 @@ func (r *OGCAPIReconciler) mutateStripPrefixMiddleware(ogcAPI *pdoknlv1alpha1.OG
 	if err := setImmutableLabels(r.Client, middleware, labels); err != nil {
 		return err
 	}
-	_, stripPrefixRegex := createIngressRuleAndStripPrefixForBaseURL(*ogcAPI.Spec.Service.BaseURL.URL, true, true, true)
+	_, stripPrefixRegex := createIngressRuleAndStripPrefixForBaseURL(*ogcAPI.Spec.Service.BaseURL.URL, true, true)
 	middleware.Spec = traefikiov1alpha1.MiddlewareSpec{
 		StripPrefixRegex: &traefikdynamic.StripPrefixRegex{
 			Regex: []string{

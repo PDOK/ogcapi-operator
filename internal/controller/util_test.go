@@ -12,7 +12,6 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 		url                     url.URL
 		includelocalhost        bool
 		matchUnderscoreVersions bool
-		traefikV2               bool
 	}
 	type wants struct {
 		rule   string
@@ -76,16 +75,6 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 			rule:   "Host(`example.com`) && PathRegexp(`^/some/path/v1(_\\d+)?(/|$)`)",
 			prefix: "^/some/path/v1(_\\d+)?"},
 	}, {
-		name: "v1, for traefikV2",
-		args: args{
-			url:                     mustURLParse(t, "http://example.com/some/path/v1"),
-			matchUnderscoreVersions: true,
-			traefikV2:               true,
-		},
-		wants: wants{
-			rule:   "Host(`example.com`) && PathPrefix(`/{path:some/path/v1(_\\d+)?(/|$)}`)",
-			prefix: "^/some/path/v1(_\\d+)?"},
-	}, {
 		name: "v2, followed by other segment",
 		args: args{
 			url:                     mustURLParse(t, "http://example.com/some/path/v2/foo"),
@@ -93,16 +82,6 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 		},
 		wants: wants{
 			rule:   "Host(`example.com`) && PathRegexp(`^/some/path/v2(_\\d+)?/foo(/|$)`)",
-			prefix: "^/some/path/v2(_\\d+)?/foo"},
-	}, {
-		name: "v2, followed by other segment, for traefikV2",
-		args: args{
-			url:                     mustURLParse(t, "http://example.com/some/path/v2/foo"),
-			matchUnderscoreVersions: true,
-			traefikV2:               true,
-		},
-		wants: wants{
-			rule:   "Host(`example.com`) && PathPrefix(`/{path:some/path/v2(_\\d+)?/foo(/|$)}`)",
 			prefix: "^/some/path/v2(_\\d+)?/foo"},
 	}, {
 		name: "v1_3",
@@ -134,7 +113,7 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 	}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rule, prefix := createIngressRuleAndStripPrefixForBaseURL(tt.args.url, tt.args.includelocalhost, tt.args.matchUnderscoreVersions, tt.args.traefikV2)
+			rule, prefix := createIngressRuleAndStripPrefixForBaseURL(tt.args.url, tt.args.includelocalhost, tt.args.matchUnderscoreVersions)
 			if rule != tt.wants.rule {
 				t.Errorf("createIngressRuleAndStripPrefixForBaseURL() = `%v`, _,\nwant rule `%v`", rule, tt.wants.rule)
 			}
