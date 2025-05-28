@@ -466,13 +466,13 @@ func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *pdoknlv1alpha1.OGCAPI, ing
 	ingressRoute.Spec.Routes = []traefikiov1alpha1.Route{}
 
 	// Collect all ingressRouteURLs (aliases)
-	ingressRouteUrls := ogcAPI.Spec.IngressRouteURLs
-	if len(ingressRouteUrls) == 0 {
-		ingressRouteUrls = smoothoperatormodel.IngressRouteURLs{{URL: smoothoperatormodel.URL{URL: ogcAPI.Spec.Service.BaseURL.URL}}}
+	ingressRouteURLs := ogcAPI.Spec.IngressRouteURLs
+	if len(ingressRouteURLs) == 0 {
+		ingressRouteURLs = smoothoperatormodel.IngressRouteURLs{{URL: smoothoperatormodel.URL{URL: ogcAPI.Spec.Service.BaseURL.URL}}}
 	}
 
-	for _, ingressRouteUrl := range ingressRouteUrls {
-		matchRule, _ := createIngressRuleAndStripPrefixForBaseURL(*ingressRouteUrl.URL.URL, true, true)
+	for _, ingressRouteURL := range ingressRouteURLs {
+		matchRule, _ := createIngressRuleAndStripPrefixForBaseURL(*ingressRouteURL.URL.URL, true, true)
 		ingressRoute.Spec.Routes = append(
 			ingressRoute.Spec.Routes,
 			traefikiov1alpha1.Route{

@@ -49,7 +49,6 @@ func (r *OGCAPI) SetupWebhookWithManager(mgr ctrl.Manager) error {
 // Note: change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
 //+kubebuilder:webhook:path=/validate-pdok-nl-v1alpha1-ogcapi,mutating=false,failurePolicy=fail,sideEffects=None,groups=pdok.nl,resources=ogcapis,verbs=create;update,versions=v1alpha1,name=vogcapi.kb.io,admissionReviewVersions=v1
 
-// Concerning deprecation warning, see open issue: https://github.com/kubernetes-sigs/kubebuilder/issues/3721
 var _ webhook.CustomValidator = &OGCAPI{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
