@@ -26,14 +26,15 @@ package v1alpha1
 
 import (
 	"context"
-	smoothoperatormodel "github.com/pdok/smooth-operator/model"
-	smoothoperatorvalidation "github.com/pdok/smooth-operator/pkg/validation"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+
+	smoothoperatormodel "github.com/pdok/smooth-operator/model"
+	smoothoperatorvalidation "github.com/pdok/smooth-operator/pkg/validation"
 )
 
 // log is for logging in this package.

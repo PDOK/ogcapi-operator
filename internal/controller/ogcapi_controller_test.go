@@ -26,6 +26,7 @@ package controller
 
 import (
 	"context"
+	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 	"net/url"
 
 	"github.com/pkg/errors"
@@ -54,6 +55,7 @@ const (
 	testOGCAPIName      = "test-resource"
 	testOGCAPINamespace = "default"
 	testServiceURL      = "https://my.test-resource.test/ogc/path"
+	testServiceURLAlias = "https://my.test-resource.test/ogc/other"
 	testImageName       = "test.test/image:test1"
 	mitLicenseURL       = "https://www.tldrlegal.com/license/mit-license"
 )
@@ -64,6 +66,10 @@ var minimalOGCAPI = pdoknlv1alpha1.OGCAPI{
 		Namespace: "default",
 	},
 	Spec: pdoknlv1alpha1.OGCAPISpec{
+		IngressRouteURLs: smoothoperatormodel.IngressRouteURLs{
+			{URL: smoothoperatormodel.URL{URL: must(url.Parse(testServiceURL))}},
+			{URL: smoothoperatormodel.URL{URL: must(url.Parse(testServiceURLAlias))}},
+		},
 		Service: gokoalaconfig.Config{
 			Version:           "0.0.0",
 			Title:             "test title",

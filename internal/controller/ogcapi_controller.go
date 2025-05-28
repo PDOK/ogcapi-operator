@@ -28,7 +28,6 @@ import (
 	"context"
 	"crypto/sha1" //nolint:gosec  // sha1 is only used for ID generation here, not crypto
 	"fmt"
-	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 	"strconv"
 	"time"
 
@@ -58,6 +57,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	pdoknlv1alpha1 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
+	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 )
 
 const (
