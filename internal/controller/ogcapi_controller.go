@@ -28,6 +28,7 @@ import (
 	"context"
 	"crypto/sha1" //nolint:gosec  // sha1 is only used for ID generation here, not crypto
 	"fmt"
+	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 	"strconv"
 	"time"
 
@@ -461,10 +462,20 @@ func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *pdoknlv1alpha1.OGCAPI, ing
 		"uptime.pdok.nl/url":  uptimeURL,
 		"uptime.pdok.nl/tags": "public-stats,ogcapi",
 	}
-	matchRule, _ := createIngressRuleAndStripPrefixForBaseURL(*ogcAPI.Spec.Service.BaseURL.URL, true, true)
-	ingressRoute.Spec = traefikiov1alpha1.IngressRouteSpec{
-		Routes: []traefikiov1alpha1.Route{
-			{
+
+	ingressRoute.Spec.Routes = []traefikiov1alpha1.Route{}
+
+	// Collect all ingressRouteURLs (aliases)
+	ingressRouteUrls := ogcAPI.Spec.IngressRouteURLs
+	if len(ingressRouteUrls) == 0 {
+		ingressRouteUrls = smoothoperatormodel.IngressRouteURLs{{URL: smoothoperatormodel.URL{URL: ogcAPI.Spec.Service.BaseURL.URL}}}
+	}
+
+	for _, ingressRouteUrl := range ingressRouteUrls {
+		matchRule, _ := createIngressRuleAndStripPrefixForBaseURL(*ingressRouteUrl.URL.URL, true, true)
+		ingressRoute.Spec.Routes = append(
+			ingressRoute.Spec.Routes,
+			traefikiov1alpha1.Route{
 				Kind:   "Rule",
 				Match:  matchRule,
 				Syntax: "v3",
@@ -488,7 +499,7 @@ func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *pdoknlv1alpha1.OGCAPI, ing
 					},
 				},
 			},
-		},
+		)
 	}
 	if err := ensureSetGVK(r.Client, ingressRoute, ingressRoute); err != nil {
 		return err

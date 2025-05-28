@@ -25,7 +25,11 @@ SOFTWARE.
 package v1alpha1
 
 import (
+	"context"
+	smoothoperatormodel "github.com/pdok/smooth-operator/model"
+	smoothoperatorvalidation "github.com/pdok/smooth-operator/pkg/validation"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/validation/field"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -46,31 +50,51 @@ func (r *OGCAPI) SetupWebhookWithManager(mgr ctrl.Manager) error {
 //+kubebuilder:webhook:path=/validate-pdok-nl-v1alpha1-ogcapi,mutating=false,failurePolicy=fail,sideEffects=None,groups=pdok.nl,resources=ogcapis,verbs=create;update,versions=v1alpha1,name=vogcapi.kb.io,admissionReviewVersions=v1
 
 // Concerning deprecation warning, see open issue: https://github.com/kubernetes-sigs/kubebuilder/issues/3721
-var _ webhook.Validator = &OGCAPI{}
+var _ webhook.CustomValidator = &OGCAPI{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (r *OGCAPI) ValidateCreate() (admission.Warnings, error) {
+func (r *OGCAPI) ValidateCreate(_ context.Context, obj runtime.Object) (admission.Warnings, error) {
 	ogcapilog.Info("validate create", "name", r.Name)
+
 	// NOTE: Validation of the 'service' part in the OGCAPI is implicitly performed
 	// by gokoalaconfig.Config.UnmarshalYAML(). No need to explicitly invoke anything.
 	// Please add additional GoKoala specific validations in GoKoala's UnmarshallYAML() method.
+
 	// Any other validations may be added below.
-	return nil, nil
+
+	ogcapi := obj.(*OGCAPI)
+	err := smoothoperatorvalidation.ValidateIngressRouteURLsContainsBaseURL(ogcapi.Spec.IngressRouteURLs, smoothoperatormodel.URL{URL: ogcapi.Spec.Service.BaseURL.URL}, nil)
+
+	return nil, err
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 // the 'old' Object is passed as an argument, so it can be used in the validation
-func (r *OGCAPI) ValidateUpdate(_ runtime.Object) (admission.Warnings, error) {
+func (r *OGCAPI) ValidateUpdate(_ context.Context, oldObj, newObj runtime.Object) (admission.Warnings, error) {
 	ogcapilog.Info("validate update", "name", r.Name)
+
 	// NOTE: Validation of the 'service' part in the OGCAPI is implicitly performed
 	// by gokoalaconfig.Config.UnmarshalYAML(). No need to explicitly invoke anything.
 	// Please add additional GoKoala specific validations in GoKoala's UnmarshallYAML() method.
 	// Any other validations may be added below.
+
+	oldOgcapi := oldObj.(*OGCAPI)
+	newOgcapi := newObj.(*OGCAPI)
+
+	allErrs := field.ErrorList{}
+	if err := smoothoperatorvalidation.ValidateIngressRouteURLsContainsBaseURL(newOgcapi.Spec.IngressRouteURLs, smoothoperatormodel.URL{URL: newOgcapi.Spec.Service.BaseURL.URL}, nil); err != nil {
+		allErrs = append(allErrs, err)
+	}
+	smoothoperatorvalidation.ValidateIngressRouteURLsNotRemoved(oldOgcapi.Spec.IngressRouteURLs, newOgcapi.Spec.IngressRouteURLs, &allErrs, nil)
+	if len(allErrs) > 0 {
+		return nil, allErrs.ToAggregate()
+	}
+
 	return nil, nil
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (r *OGCAPI) ValidateDelete() (admission.Warnings, error) {
+func (r *OGCAPI) ValidateDelete(_ context.Context, _ runtime.Object) (admission.Warnings, error) {
 	ogcapilog.Info("validate delete", "name", r.Name)
 	// noop
 	return nil, nil
