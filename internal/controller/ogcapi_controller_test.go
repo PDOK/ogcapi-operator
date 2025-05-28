@@ -357,7 +357,7 @@ func testMutate[T any](kind string, result *T, expectedFile string, mutate func(
 func testOGCAPIMutates(ogcAPI pdoknlv1alpha1.OGCAPI, name string) {
 	var reconciler OGCAPIReconciler
 
-	outputPath := fmt.Sprintf("test_data/expected/%s/", name)
+	outputPath := fmt.Sprintf("testdata/expected/%s/", name)
 
 	BeforeEach(func() {
 		reconciler = OGCAPIReconciler{
