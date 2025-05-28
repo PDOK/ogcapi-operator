@@ -26,8 +26,9 @@ package controller
 
 import (
 	"context"
-	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 	"net/url"
+
+	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 
 	"github.com/pkg/errors"
 	"golang.org/x/text/language"
