@@ -26,6 +26,7 @@ package v1alpha1
 
 import (
 	gokoalaconfig "github.com/PDOK/gokoala/config"
+	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -41,6 +42,10 @@ type OGCAPISpec struct {
 	//+kubebuilder:pruning:PreserveUnknownFields
 	// Optional strategic merge patch for the pod in the deployment. E.g. to patch the resources or add extra env vars.
 	PodSpecPatch *corev1.PodSpec `json:"podSpecPatch,omitempty"`
+
+	// Optional list of URLs where the service can be reached
+	// By default only the spec.service.baseUrl is used
+	IngressRouteURLs smoothoperatormodel.IngressRouteURLs `json:"ingressRouteUrls,omitempty"`
 }
 
 // OGCAPIStatus defines the observed state of OGCAPI
