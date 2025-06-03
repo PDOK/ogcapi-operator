@@ -83,9 +83,23 @@ func (r *OGCAPI) ValidateUpdate(_ context.Context, oldObj, newObj runtime.Object
 	newOgcapi := newObj.(*OGCAPI)
 
 	allErrs := field.ErrorList{}
-	if err := smoothoperatorvalidation.ValidateIngressRouteURLsContainsBaseURL(newOgcapi.Spec.IngressRouteURLs, smoothoperatormodel.URL{URL: newOgcapi.Spec.Service.BaseURL.URL}, nil); err != nil {
-		allErrs = append(allErrs, err)
+
+	if newOgcapi.Spec.IngressRouteURLs == nil {
+		smoothoperatorvalidation.CheckURLImmutability(
+			smoothoperatormodel.URL{URL: oldOgcapi.Spec.Service.BaseURL.URL},
+			smoothoperatormodel.URL{URL: newOgcapi.Spec.Service.BaseURL.URL},
+			&allErrs,
+			field.NewPath("spec").Child("service").Child("baseUrl"),
+		)
+	} else {
+		if err := smoothoperatorvalidation.ValidateIngressRouteURLsContainsBaseURL(newOgcapi.Spec.IngressRouteURLs, smoothoperatormodel.URL{URL: newOgcapi.Spec.Service.BaseURL.URL}, nil); err != nil {
+			allErrs = append(allErrs, err)
+		}
+		if err := smoothoperatorvalidation.ValidateIngressRouteURLsContainsBaseURL(newOgcapi.Spec.IngressRouteURLs, smoothoperatormodel.URL{URL: oldOgcapi.Spec.Service.BaseURL.URL}, nil); err != nil {
+			allErrs = append(allErrs, err)
+		}
 	}
+
 	smoothoperatorvalidation.ValidateIngressRouteURLsNotRemoved(oldOgcapi.Spec.IngressRouteURLs, newOgcapi.Spec.IngressRouteURLs, &allErrs, nil)
 	if len(allErrs) > 0 {
 		return nil, allErrs.ToAggregate()
