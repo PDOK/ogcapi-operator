@@ -64,9 +64,13 @@ func (r *OGCAPI) ValidateCreate(_ context.Context, obj runtime.Object) (admissio
 	// Any other validations may be added below.
 
 	ogcapi := obj.(*OGCAPI)
-	err := smoothoperatorvalidation.ValidateIngressRouteURLsContainsBaseURL(ogcapi.Spec.IngressRouteURLs, smoothoperatormodel.URL{URL: ogcapi.Spec.Service.BaseURL.URL}, nil)
+	if ogcapi.Spec.IngressRouteURLs != nil {
+		err := smoothoperatorvalidation.ValidateIngressRouteURLsContainsBaseURL(ogcapi.Spec.IngressRouteURLs, smoothoperatormodel.URL{URL: ogcapi.Spec.Service.BaseURL.URL}, nil)
 
-	return nil, err
+		return nil, err
+	}
+
+	return nil, nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
