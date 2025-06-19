@@ -26,6 +26,8 @@ package v1alpha1
 
 import (
 	"context"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
@@ -67,7 +69,12 @@ func (r *OGCAPI) ValidateCreate(_ context.Context, obj runtime.Object) (admissio
 	if ogcapi.Spec.IngressRouteURLs != nil {
 		err := smoothoperatorvalidation.ValidateIngressRouteURLsContainsBaseURL(ogcapi.Spec.IngressRouteURLs, smoothoperatormodel.URL{URL: ogcapi.Spec.Service.BaseURL.URL}, nil)
 
-		return nil, err
+		return nil, apierrors.NewInvalid(
+			schema.GroupKind{
+				Group: ogcapi.GroupVersionKind().Group,
+				Kind:  ogcapi.Kind,
+			},
+			ogcapi.GetName(), field.ErrorList{err})
 	}
 
 	return nil, nil
@@ -106,7 +113,12 @@ func (r *OGCAPI) ValidateUpdate(_ context.Context, oldObj, newObj runtime.Object
 
 	smoothoperatorvalidation.ValidateIngressRouteURLsNotRemoved(oldOgcapi.Spec.IngressRouteURLs, newOgcapi.Spec.IngressRouteURLs, &allErrs, nil)
 	if len(allErrs) > 0 {
-		return nil, allErrs.ToAggregate()
+		return nil, apierrors.NewInvalid(
+			schema.GroupKind{
+				Group: newOgcapi.GroupVersionKind().Group,
+				Kind:  newOgcapi.Kind,
+			},
+			newOgcapi.GetName(), allErrs)
 	}
 
 	return nil, nil
