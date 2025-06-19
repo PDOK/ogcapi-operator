@@ -43,21 +43,6 @@ spec:
               OGCAPISpec defines the desired state of OGCAPI
               ^^ unknown fields are allowed (but ignored and not maintained when marshalling) for backwards compatibility
             properties:
-              ingressRouteUrls:
-                description: |-
-                  Optional list of URLs where the service can be reached
-                  By default only the spec.service.baseUrl is used
-                items:
-                  properties:
-                    url:
-                      pattern: ^https?://.+/.+
-                      type: string
-                  required:
-                  - url
-                  type: object
-                maxItems: 30
-                minItems: 1
-                type: array
               podSpecPatch:
                 description: Optional strategic merge patch for the pod in the deployment.
                   E.g. to patch the resources or add extra env vars.
