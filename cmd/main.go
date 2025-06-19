@@ -78,6 +78,7 @@ func main() {
 	var enableWebhooks bool
 	var certDir string
 	var csp string
+	var slackUrl string
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
@@ -92,6 +93,7 @@ func main() {
 	flag.BoolVar(&enableWebhooks, "enable-webhooks", true, "Enable admission webhooks")
 	flag.StringVar(&certDir, "cert-dir", "", "CertDir contains the webhook server key and certificate. Defaults to <temp-dir>/k8s-webhook-server/serving-certs.")
 	flag.StringVar(&csp, "csp", "", "Content-Security-Policy to serve as a HTTP header")
+	flag.StringVar(&slackUrl, "slack-url", "", "Slack Webhook URL that will be used to send Slack message")
 
 	opts := zap.Options{
 		Development: true,
@@ -154,11 +156,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	slack := &controller.Slack{
+		SlackUrl: slackUrl,
+	}
+
 	if err = (&controller.OGCAPIReconciler{
 		Client:       mgr.GetClient(),
 		Scheme:       mgr.GetScheme(),
 		GokoalaImage: gokoalaImage,
 		CSP:          csp,
+		Slack:        slack,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "OGCAPI")
 		os.Exit(1)

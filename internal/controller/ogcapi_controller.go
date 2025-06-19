@@ -28,7 +28,6 @@ import (
 	"context"
 	"crypto/sha1" //nolint:gosec  // sha1 is only used for ID generation here, not crypto
 	"fmt"
-	"os"
 	"strconv"
 	"time"
 
@@ -59,7 +58,6 @@ import (
 
 	pdoknlv1alpha1 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
 	smoothoperatormodel "github.com/pdok/smooth-operator/model"
-	soslack "github.com/pdok/smooth-operator/pkg/integrations/slack"
 )
 
 const (
@@ -98,6 +96,7 @@ type OGCAPIReconciler struct {
 	Scheme       *runtime.Scheme
 	GokoalaImage string
 	CSP          string
+	Slack        SlackSender
 }
 
 //+kubebuilder:rbac:groups=pdok.nl,resources=ogcapis,verbs=get;list;watch;create;update;patch;delete
@@ -122,10 +121,9 @@ func (r *OGCAPIReconciler) Reconcile(ctx context.Context, req ctrl.Request) (res
 		if apierrors.IsNotFound(err) {
 			lgr.Info("OGCAPI resource not found", "name", req.NamespacedName)
 		} else {
-			msg := "unable to fetch OGCAPI resource"
-			// send Slack message asynchronous
-			go sendSlackWarning(msg, ctx)
-			lgr.Error(err, msg, "error", err)
+			// send a Slack message asynchronously
+			go r.Slack.Send(err.Error(), ctx)
+			lgr.Error(err, "unable to fetch OGCAPI resource", "error", err)
 		}
 		return result, client.IgnoreNotFound(err)
 	}
@@ -142,22 +140,12 @@ func (r *OGCAPIReconciler) Reconcile(ctx context.Context, req ctrl.Request) (res
 	operationResults, err := r.createOrUpdateAllForOGCAPI(ctx, ogcAPI)
 	if err != nil {
 		r.logAndUpdateStatusError(ctx, ogcAPI, err)
+		go r.Slack.Send(err.Error(), ctx)
 		return result, err
 	}
 	r.logAndUpdateStatusFinished(ctx, ogcAPI, operationResults)
 
 	return result, err
-}
-
-func sendSlackWarning(message string, ctx context.Context) {
-	lgr := log.FromContext(ctx)
-	slackRequest := soslack.GetSimpleSlackErrorMessage(message)
-	slackUrl := os.Getenv("SLACK_WEBHOOK_URL")
-
-	err := soslack.SendSlackRequest(slackRequest, slackUrl)
-	if err != nil {
-		lgr.Error(err, "unable to send Slack Error message", "message", message)
-	}
 }
 
 func (r *OGCAPIReconciler) logAndUpdateStatusError(ctx context.Context, ogcAPI *pdoknlv1alpha1.OGCAPI, err error) {
