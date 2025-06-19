@@ -30,6 +30,8 @@ import (
 	"net/url"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
+	smoothoperatormodel "github.com/pdok/smooth-operator/model"
+
 	"github.com/pkg/errors"
 	"golang.org/x/text/language"
 
