@@ -57,7 +57,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	pdoknlv1alpha1 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
-	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 )
 
 const (
