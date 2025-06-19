@@ -29,7 +29,6 @@ SOFTWARE.
 package v1alpha1
 
 import (
-	"github.com/pdok/smooth-operator/model"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -103,13 +102,6 @@ func (in *OGCAPISpec) DeepCopyInto(out *OGCAPISpec) {
 		in, out := &in.PodSpecPatch, &out.PodSpecPatch
 		*out = new(v1.PodSpec)
 		(*in).DeepCopyInto(*out)
-	}
-	if in.IngressRouteURLs != nil {
-		in, out := &in.IngressRouteURLs, &out.IngressRouteURLs
-		*out = make(model.IngressRouteURLs, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
-		}
 	}
 }
 
