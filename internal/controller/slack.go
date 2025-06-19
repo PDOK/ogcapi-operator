@@ -17,8 +17,7 @@ type Slack struct {
 func (s *Slack) Send(message string, ctx context.Context) {
 	const messagePrefix = "ogcapi-operator failed: "
 	lgr := log.FromContext(ctx)
-
-	slackRequest := smoothoperatorslack.GetSimpleSlackErrorMessage(messagePrefix + message)
+	slackRequest := smoothoperatorslack.GetSimpleSlackErrorMessage(message)
 
 	err := smoothoperatorslack.SendSlackRequest(slackRequest, s.SlackUrl)
 	if err != nil {
