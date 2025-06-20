@@ -28,6 +28,7 @@ import (
 	"context"
 	"crypto/sha1" //nolint:gosec  // sha1 is only used for ID generation here, not crypto
 	"fmt"
+	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
 	"strconv"
 	"time"
 
@@ -95,6 +96,7 @@ type OGCAPIReconciler struct {
 	Scheme       *runtime.Scheme
 	GokoalaImage string
 	CSP          string
+	Slack        slack.Sender
 }
 
 //+kubebuilder:rbac:groups=pdok.nl,resources=ogcapis,verbs=get;list;watch;create;update;patch;delete
@@ -119,6 +121,8 @@ func (r *OGCAPIReconciler) Reconcile(ctx context.Context, req ctrl.Request) (res
 		if apierrors.IsNotFound(err) {
 			lgr.Info("OGCAPI resource not found", "name", req.NamespacedName)
 		} else {
+			// send a Slack message asynchronously
+			go r.Slack.Send(err.Error(), ctx)
 			lgr.Error(err, "unable to fetch OGCAPI resource", "error", err)
 		}
 		return result, client.IgnoreNotFound(err)
@@ -136,6 +140,7 @@ func (r *OGCAPIReconciler) Reconcile(ctx context.Context, req ctrl.Request) (res
 	operationResults, err := r.createOrUpdateAllForOGCAPI(ctx, ogcAPI)
 	if err != nil {
 		r.logAndUpdateStatusError(ctx, ogcAPI, err)
+		go r.Slack.Send(err.Error(), ctx)
 		return result, err
 	}
 	r.logAndUpdateStatusFinished(ctx, ogcAPI, operationResults)
