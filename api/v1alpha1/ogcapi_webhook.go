@@ -25,11 +25,13 @@ SOFTWARE.
 package v1alpha1
 
 import (
-	"context"
+	"fmt"
 
+	"golang.org/x/net/context"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -44,6 +46,7 @@ var ogcapilog = logf.Log.WithName("ogcapi-resource")
 // SetupWebhookWithManager will setup the manager to manage the webhooks
 func (r *OGCAPI) SetupWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).
+		WithValidator(&OGCAPICustomValidator{mgr.GetClient()}).
 		For(r).
 		Complete()
 }
@@ -51,19 +54,31 @@ func (r *OGCAPI) SetupWebhookWithManager(mgr ctrl.Manager) error {
 // Note: change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
 //+kubebuilder:webhook:path=/validate-pdok-nl-v1alpha1-ogcapi,mutating=false,failurePolicy=fail,sideEffects=None,groups=pdok.nl,resources=ogcapis,verbs=create;update,versions=v1alpha1,name=vogcapi.kb.io,admissionReviewVersions=v1
 
-var _ webhook.CustomValidator = &OGCAPI{}
+// OGCAPICustomValidator struct is responsible for validating the OGCAPI resource
+// when it is created, updated, or deleted.
+//
+// NOTE: The +kubebuilder:object:generate=false marker prevents controller-gen from generating DeepCopy methods,
+// as this struct is used only for temporary operations and does not need to be deeply copied.
+// +kubebuilder:object:generate=false
+type OGCAPICustomValidator struct {
+	Client client.Client
+}
+
+var _ webhook.CustomValidator = &OGCAPICustomValidator{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (r *OGCAPI) ValidateCreate(_ context.Context, obj runtime.Object) (admission.Warnings, error) {
-	ogcapilog.Info("validate create", "name", r.Name)
+func (v *OGCAPICustomValidator) ValidateCreate(_ context.Context, obj runtime.Object) (admission.Warnings, error) {
+	ogcapi, ok := obj.(*OGCAPI)
+	if !ok {
+		return nil, fmt.Errorf("expected an OGCAPI object but got %T", obj)
+	}
+	ogcapilog.Info("validate create", "name", ogcapi.Name)
 
 	// NOTE: Validation of the 'service' part in the OGCAPI is implicitly performed
 	// by gokoalaconfig.Config.UnmarshalYAML(). No need to explicitly invoke anything.
 	// Please add additional GoKoala specific validations in GoKoala's UnmarshallYAML() method.
 
 	// Any other validations may be added below.
-
-	ogcapi := obj.(*OGCAPI)
 	if ogcapi.Spec.IngressRouteURLs != nil {
 		err := smoothoperatorvalidation.ValidateIngressRouteURLsContainsBaseURL(ogcapi.Spec.IngressRouteURLs, smoothoperatormodel.URL{URL: ogcapi.Spec.Service.BaseURL.URL}, nil)
 
@@ -75,17 +90,21 @@ func (r *OGCAPI) ValidateCreate(_ context.Context, obj runtime.Object) (admissio
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 // the 'old' Object is passed as an argument, so it can be used in the validation
-func (r *OGCAPI) ValidateUpdate(_ context.Context, oldObj, newObj runtime.Object) (admission.Warnings, error) {
-	ogcapilog.Info("validate update", "name", r.Name)
+func (v *OGCAPICustomValidator) ValidateUpdate(_ context.Context, oldObj, newObj runtime.Object) (admission.Warnings, error) {
+	oldOgcapi, ok := oldObj.(*OGCAPI)
+	if !ok {
+		return nil, fmt.Errorf("expected an OGCAPI object but got %T", oldObj)
+	}
+	newOgcapi, ok := newObj.(*OGCAPI)
+	if !ok {
+		return nil, fmt.Errorf("expected an OGCAPI object but got %T", newObj)
+	}
+	ogcapilog.Info("validate update", "name", newOgcapi.Name)
 
 	// NOTE: Validation of the 'service' part in the OGCAPI is implicitly performed
 	// by gokoalaconfig.Config.UnmarshalYAML(). No need to explicitly invoke anything.
 	// Please add additional GoKoala specific validations in GoKoala's UnmarshallYAML() method.
 	// Any other validations may be added below.
-
-	oldOgcapi := oldObj.(*OGCAPI)
-	newOgcapi := newObj.(*OGCAPI)
-
 	allErrs := field.ErrorList{}
 
 	if newOgcapi.Spec.IngressRouteURLs == nil {
@@ -113,8 +132,12 @@ func (r *OGCAPI) ValidateUpdate(_ context.Context, oldObj, newObj runtime.Object
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (r *OGCAPI) ValidateDelete(_ context.Context, _ runtime.Object) (admission.Warnings, error) {
-	ogcapilog.Info("validate delete", "name", r.Name)
+func (v *OGCAPICustomValidator) ValidateDelete(_ context.Context, obj runtime.Object) (admission.Warnings, error) {
+	ogcapi, ok := obj.(*OGCAPI)
+	if !ok {
+		return nil, fmt.Errorf("expected an OGCAPI object but got %T", obj)
+	}
+	ogcapilog.Info("validate delete", "name", ogcapi.Name)
 	// noop
 	return nil, nil
 }
