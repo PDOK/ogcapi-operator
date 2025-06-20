@@ -28,6 +28,7 @@ import (
 	"context"
 	"crypto/sha1" //nolint:gosec  // sha1 is only used for ID generation here, not crypto
 	"fmt"
+	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
 	"strconv"
 	"time"
 
@@ -57,7 +58,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	pdoknlv1alpha1 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
-	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 )
 
 const (
@@ -96,7 +96,7 @@ type OGCAPIReconciler struct {
 	Scheme       *runtime.Scheme
 	GokoalaImage string
 	CSP          string
-	Slack        SlackSender
+	Slack        slack.Sender
 }
 
 //+kubebuilder:rbac:groups=pdok.nl,resources=ogcapis,verbs=get;list;watch;create;update;patch;delete

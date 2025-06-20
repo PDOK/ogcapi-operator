@@ -26,15 +26,11 @@ package controller
 
 import (
 	"context"
-	"fmt"
+	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
 	"k8s.io/apimachinery/pkg/runtime"
 	"net/url"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-
-	"github.com/google/go-cmp/cmp"
-	smoothoperatormodel "github.com/pdok/smooth-operator/model"
-	"sigs.k8s.io/yaml"
 
 	"github.com/pkg/errors"
 	"golang.org/x/text/language"
@@ -73,7 +69,13 @@ type mockSlack struct {
 
 func (m *mockSlack) Send(message string, _ context.Context) {
 	m.Called = true
-	m.Message = message
+	// add a SLACK_URL env to actually send messages
+	m.Message = message + " - FROM UNITTEST :warning: "
+	slackUrl := os.Getenv("SLACK_URL")
+	if slackUrl != "" {
+		slackSender := slack.NewSlack(slackUrl)
+		slackSender.Send(m.Message, context.Background())
+	}
 }
 
 var minimalOGCAPI = pdoknlv1alpha1.OGCAPI{

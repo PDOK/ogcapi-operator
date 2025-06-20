@@ -27,6 +27,7 @@ package main
 import (
 	"crypto/tls"
 	"flag"
+	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
 	"os"
 
 	"github.com/peterbourgon/ff"
@@ -156,16 +157,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	slack := &controller.Slack{
-		SlackUrl: slackUrl,
-	}
+	slackSender := slack.NewSlack(slackUrl)
 
 	if err = (&controller.OGCAPIReconciler{
 		Client:       mgr.GetClient(),
 		Scheme:       mgr.GetScheme(),
 		GokoalaImage: gokoalaImage,
 		CSP:          csp,
-		Slack:        slack,
+		Slack:        slackSender,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "OGCAPI")
 		os.Exit(1)
