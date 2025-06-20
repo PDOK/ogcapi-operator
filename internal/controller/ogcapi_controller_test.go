@@ -70,11 +70,11 @@ type mockSlack struct {
 func (m *mockSlack) Send(message string, _ context.Context) {
 	m.Called = true
 	// add a SLACK_URL env to actually send messages
-	m.Message = message + " - FROM UNITTEST :warning: "
+	m.Message = message
 	slackUrl := os.Getenv("SLACK_URL")
 	if slackUrl != "" {
 		slackSender := slack.NewSlack(slackUrl)
-		slackSender.Send(m.Message, context.Background())
+		slackSender.Send(m.Message+" - FROM UNITTEST :warning: ", context.Background())
 	}
 }
 
