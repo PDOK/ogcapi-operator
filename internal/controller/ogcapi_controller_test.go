@@ -26,7 +26,6 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"os"
 
@@ -191,22 +190,20 @@ var _ = Describe("OGCAPI Controller", func() {
 				typeNamespacedName,
 				ogcAPI)
 
-			if err != nil {
-				Fail(fmt.Sprintf("unexpected error from fakeClient.Get: %v", err))
-			}
+			Expect(err).To(HaveOccurred())
 
-			slack := &mockSlack{}
+			mockSlack := &mockSlack{}
 			controllerReconciler := &OGCAPIReconciler{
 				Client:       fakeClient,
 				Scheme:       k8sClient.Scheme(),
 				GokoalaImage: testImageName,
-				Slack:        slack,
+				Slack:        mockSlack,
 			}
 
 			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
 			Expect(err).To(HaveOccurred())
-			Expect(slack.Called).To(BeTrue())
-			Expect(slack.Message).To(ContainSubstring(err.Error()))
+			Expect(mockSlack.Called).To(BeTrue())
+			Expect(mockSlack.Message).To(ContainSubstring("unable to fetch OGCAPI resource"))
 		})
 
 		It("Should call to send a Slack message after unsuccessful Reconcile - error in creating or updating", func() {
@@ -233,7 +230,7 @@ var _ = Describe("OGCAPI Controller", func() {
 				}})
 			Expect(err).To(HaveOccurred())
 			Expect(mockSlack.Called).To(BeTrue())
-			Expect(mockSlack.Message).To(ContainSubstring(err.Error()))
+			Expect(mockSlack.Message).To(ContainSubstring("unable to fetch OGCAPI resource"))
 		})
 
 		It("Should successfully create and delete its owned resources", func() {
