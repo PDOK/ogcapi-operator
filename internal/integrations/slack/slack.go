@@ -2,6 +2,7 @@ package slack
 
 import (
 	"context"
+
 	goslack "github.com/slack-go/slack"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -9,26 +10,26 @@ import (
 const messagePrefix = "ogcapi-operator failed: "
 
 type Sender interface {
-	Send(message string, ctx context.Context)
+	Send(ctx context.Context, message string)
 }
 
 type Slack struct {
-	slackUrl string
+	slackURL string
 }
 
-func NewSlack(slackUrl string) *Slack {
+func NewSlack(slackURL string) *Slack {
 	return &Slack{
-		slackUrl: slackUrl,
+		slackURL: slackURL,
 	}
 }
 
-func (s *Slack) Send(text string, ctx context.Context) {
+func (s *Slack) Send(ctx context.Context, text string) {
 	lgr := log.FromContext(ctx)
 
 	message := goslack.WebhookMessage{
 		Text: messagePrefix + text,
 	}
-	err := goslack.PostWebhook(s.slackUrl, &message)
+	err := goslack.PostWebhook(s.slackURL, &message)
 
 	if err != nil {
 		lgr.Error(err, "unable to send Slack Error message", "message", message)

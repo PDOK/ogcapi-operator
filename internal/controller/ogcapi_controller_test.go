@@ -26,10 +26,12 @@ package controller
 
 import (
 	"context"
-	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
-	"k8s.io/apimachinery/pkg/runtime"
+	"fmt"
 	"net/url"
 	"os"
+
+	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/pkg/errors"
@@ -65,19 +67,17 @@ const (
 type mockSlack struct {
 	Called  bool
 	Message string
-	Done    chan struct{}
 }
 
-func (m *mockSlack) Send(message string, _ context.Context) {
+func (m *mockSlack) Send(_ context.Context, message string) {
 	m.Called = true
 	// add a SLACK_URL env to actually send messages
 	m.Message = message
-	slackUrl := os.Getenv("SLACK_URL")
-	if slackUrl != "" {
-		slackSender := slack.NewSlack(slackUrl)
-		slackSender.Send(m.Message+" - FROM UNITTEST :warning: ", context.Background())
+	slackURL := os.Getenv("SLACK_URL")
+	if slackURL != "" {
+		slackSender := slack.NewSlack(slackURL)
+		slackSender.Send(context.Background(), m.Message+" - FROM UNITTEST :warning: ")
 	}
-	close(m.Done)
 }
 
 var minimalOGCAPI = pdoknlv1alpha1.OGCAPI{
@@ -188,14 +188,14 @@ var _ = Describe("OGCAPI Controller", func() {
 			fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(testPod).Build()
 			err := fakeClient.Get(
 				context.TODO(),
-				client.ObjectKey{
-					Name:      typeNamespacedName.Name,
-					Namespace: typeNamespacedName.Namespace,
-				},
+				typeNamespacedName,
 				ogcAPI)
-			slack := &mockSlack{
-				Done: make(chan struct{}),
+
+			if err != nil {
+				Fail(fmt.Sprintf("unexpected error from fakeClient.Get: %v", err))
 			}
+
+			slack := &mockSlack{}
 			controllerReconciler := &OGCAPIReconciler{
 				Client:       fakeClient,
 				Scheme:       k8sClient.Scheme(),
@@ -204,7 +204,6 @@ var _ = Describe("OGCAPI Controller", func() {
 			}
 
 			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
-			<-slack.Done
 			Expect(err).To(HaveOccurred())
 			Expect(slack.Called).To(BeTrue())
 			Expect(slack.Message).To(ContainSubstring(err.Error()))
@@ -217,9 +216,7 @@ var _ = Describe("OGCAPI Controller", func() {
 			Expect(pdoknlv1alpha1.AddToScheme(scheme)).To(Succeed())
 
 			fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(&wrongOGCAPI).Build()
-			mockSlack := &mockSlack{
-				Done: make(chan struct{}),
-			}
+			mockSlack := &mockSlack{}
 
 			controllerReconciler := &OGCAPIReconciler{
 				Client:       fakeClient,
@@ -234,7 +231,6 @@ var _ = Describe("OGCAPI Controller", func() {
 					Name:      wrongOGCAPI.Name,
 					Namespace: wrongOGCAPI.Namespace,
 				}})
-			<-mockSlack.Done
 			Expect(err).To(HaveOccurred())
 			Expect(mockSlack.Called).To(BeTrue())
 			Expect(mockSlack.Message).To(ContainSubstring(err.Error()))

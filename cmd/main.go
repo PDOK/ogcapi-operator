@@ -27,8 +27,9 @@ package main
 import (
 	"crypto/tls"
 	"flag"
-	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
 	"os"
+
+	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
 
 	"github.com/peterbourgon/ff"
 
@@ -79,7 +80,7 @@ func main() {
 	var enableWebhooks bool
 	var certDir string
 	var csp string
-	var slackUrl string
+	var slackURL string
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
@@ -94,7 +95,7 @@ func main() {
 	flag.BoolVar(&enableWebhooks, "enable-webhooks", true, "Enable admission webhooks")
 	flag.StringVar(&certDir, "cert-dir", "", "CertDir contains the webhook server key and certificate. Defaults to <temp-dir>/k8s-webhook-server/serving-certs.")
 	flag.StringVar(&csp, "csp", "", "Content-Security-Policy to serve as a HTTP header")
-	flag.StringVar(&slackUrl, "slack-url", "", "Slack Webhook URL that will be used to send Slack message")
+	flag.StringVar(&slackURL, "slack-url", "", "Slack Webhook URL that will be used to send Slack message")
 
 	opts := zap.Options{
 		Development: true,
@@ -157,7 +158,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	slackSender := slack.NewSlack(slackUrl)
+	slackSender := slack.NewSlack(slackURL)
 
 	if err = (&controller.OGCAPIReconciler{
 		Client:       mgr.GetClient(),
