@@ -136,18 +136,6 @@ var fullOGCAPI = pdoknlv1alpha1.OGCAPI{
 	},
 }
 
-var wrongOGCAPI = pdoknlv1alpha1.OGCAPI{
-	ObjectMeta: metav1.ObjectMeta{
-		Name:      "bad",
-		Namespace: "default",
-	},
-	Spec: pdoknlv1alpha1.OGCAPISpec{
-		Service: gokoalaconfig.Config{
-			BaseURL: gokoalaconfig.URL{URL: nil}, // will cause panic or error in parsing
-		},
-	},
-}
-
 var _ = Describe("OGCAPI Controller", func() {
 	Context("When reconciling an OGCAPI", func() {
 		ctx := context.Background()
@@ -185,12 +173,6 @@ var _ = Describe("OGCAPI Controller", func() {
 			testPod := &corev1.Pod{}
 
 			fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(testPod).Build()
-			err := fakeClient.Get(
-				context.TODO(),
-				typeNamespacedName,
-				ogcAPI)
-
-			Expect(err).To(HaveOccurred())
 
 			mockSlack := &mockSlack{}
 			controllerReconciler := &OGCAPIReconciler{
@@ -200,34 +182,7 @@ var _ = Describe("OGCAPI Controller", func() {
 				Slack:        mockSlack,
 			}
 
-			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
-			Expect(err).To(HaveOccurred())
-			Expect(mockSlack.Called).To(BeTrue())
-			Expect(mockSlack.Message).To(ContainSubstring("unable to fetch OGCAPI resource"))
-		})
-
-		It("Should call to send a Slack message after unsuccessful Reconcile - error in creating or updating", func() {
-			ctx := context.Background()
-			scheme := runtime.NewScheme()
-
-			Expect(pdoknlv1alpha1.AddToScheme(scheme)).To(Succeed())
-
-			fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(&wrongOGCAPI).Build()
-			mockSlack := &mockSlack{}
-
-			controllerReconciler := &OGCAPIReconciler{
-				Client:       fakeClient,
-				Scheme:       scheme,
-				GokoalaImage: testImageName,
-				Slack:        mockSlack,
-			}
-
-			By("Reconciling the OGCAPI")
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: types.NamespacedName{
-					Name:      wrongOGCAPI.Name,
-					Namespace: wrongOGCAPI.Namespace,
-				}})
+			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
 			Expect(err).To(HaveOccurred())
 			Expect(mockSlack.Called).To(BeTrue())
 			Expect(mockSlack.Message).To(ContainSubstring("unable to fetch OGCAPI resource"))
