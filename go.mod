@@ -8,6 +8,7 @@ require (
 	github.com/onsi/gomega v1.34.1
 	github.com/peterbourgon/ff v1.7.1
 	github.com/pkg/errors v0.9.1
+	github.com/slack-go/slack v0.17.1
 	github.com/stretchr/testify v1.10.0
 	github.com/traefik/traefik/v3 v3.3.6
 	golang.org/x/text v0.24.0
@@ -66,6 +67,7 @@ require (
 	github.com/google/pprof v0.0.0-20240910150728-a0b0bb1d4134 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.23.0 // indirect
 	github.com/hashicorp/go-version v1.7.0 // indirect
 	github.com/http-wasm/http-wasm-host-go v0.7.0 // indirect
@@ -121,6 +123,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250313205543-e70fdf4c4cb4 // indirect
 	google.golang.org/grpc v1.71.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
+	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

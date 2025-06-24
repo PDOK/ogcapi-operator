@@ -31,6 +31,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
+
 	"k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/meta"
 
@@ -95,6 +97,7 @@ type OGCAPIReconciler struct {
 	Scheme       *runtime.Scheme
 	GokoalaImage string
 	CSP          string
+	Slack        slack.Sender
 }
 
 //+kubebuilder:rbac:groups=pdok.nl,resources=ogcapis,verbs=get;list;watch;create;update;patch;delete
@@ -119,7 +122,9 @@ func (r *OGCAPIReconciler) Reconcile(ctx context.Context, req ctrl.Request) (res
 		if apierrors.IsNotFound(err) {
 			lgr.Info("OGCAPI resource not found", "name", req.NamespacedName)
 		} else {
-			lgr.Error(err, "unable to fetch OGCAPI resource", "error", err)
+			errMsg := "unable to fetch OGCAPI resource"
+			r.Slack.Send(ctx, errMsg)
+			lgr.Error(err, errMsg, "error", err)
 		}
 		return result, client.IgnoreNotFound(err)
 	}
@@ -144,6 +149,7 @@ func (r *OGCAPIReconciler) Reconcile(ctx context.Context, req ctrl.Request) (res
 }
 
 func (r *OGCAPIReconciler) logAndUpdateStatusError(ctx context.Context, ogcAPI *pdoknlv1alpha1.OGCAPI, err error) {
+	r.Slack.Send(ctx, err.Error())
 	r.updateStatus(ctx, ogcAPI, []metav1.Condition{{
 		Type:               reconciledConditionType,
 		Status:             metav1.ConditionFalse,

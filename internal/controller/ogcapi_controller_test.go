@@ -27,6 +27,11 @@ package controller
 import (
 	"context"
 	"net/url"
+	"os"
+
+	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/pkg/errors"
 	"golang.org/x/text/language"
@@ -57,6 +62,22 @@ const (
 	testImageName       = "test.test/image:test1"
 	mitLicenseURL       = "https://www.tldrlegal.com/license/mit-license"
 )
+
+type mockSlack struct {
+	Called  bool
+	Message string
+}
+
+func (m *mockSlack) Send(_ context.Context, message string) {
+	m.Called = true
+	// add a SLACK_URL env to actually send messages
+	m.Message = message
+	slackURL := os.Getenv("SLACK_URL")
+	if slackURL != "" {
+		slackSender := slack.NewSlack(slackURL)
+		slackSender.Send(context.Background(), m.Message+" - FROM UNITTEST :warning: ")
+	}
+}
 
 var minimalOGCAPI = pdoknlv1alpha1.OGCAPI{
 	ObjectMeta: metav1.ObjectMeta{
@@ -144,6 +165,27 @@ var _ = Describe("OGCAPI Controller", func() {
 
 			By("Cleaning up the specific resource instance OGCAPI")
 			Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, resource))).To(Succeed())
+		})
+
+		It("Should call to send a Slack message after unsuccessful Reconcile - failing to get resource", func() {
+			scheme := runtime.NewScheme()
+			_ = corev1.AddToScheme(scheme)
+			testPod := &corev1.Pod{}
+
+			fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(testPod).Build()
+
+			mockSlack := &mockSlack{}
+			controllerReconciler := &OGCAPIReconciler{
+				Client:       fakeClient,
+				Scheme:       k8sClient.Scheme(),
+				GokoalaImage: testImageName,
+				Slack:        mockSlack,
+			}
+
+			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
+			Expect(err).To(HaveOccurred())
+			Expect(mockSlack.Called).To(BeTrue())
+			Expect(mockSlack.Message).To(ContainSubstring("unable to fetch OGCAPI resource"))
 		})
 
 		It("Should successfully create and delete its owned resources", func() {
