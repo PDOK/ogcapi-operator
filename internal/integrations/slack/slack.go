@@ -25,6 +25,9 @@ func NewSlack(slackURL string) *Slack {
 
 func (s *Slack) Send(ctx context.Context, text string) {
 	lgr := log.FromContext(ctx)
+	if s.slackURL == "" {
+		lgr.Info("no Slack URL configured, skipping Slack message")
+	}
 
 	message := goslack.WebhookMessage{
 		Text: messagePrefix + text,
