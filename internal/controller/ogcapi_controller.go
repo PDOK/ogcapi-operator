@@ -29,6 +29,7 @@ import (
 	"crypto/sha1" //nolint:gosec  // sha1 is only used for ID generation here, not crypto
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
@@ -181,7 +182,7 @@ func (r *OGCAPIReconciler) createOrUpdateAllForOGCAPI(ctx context.Context, ogcAP
 	operationResults[getObjectFullName(r.Client, deployment)], err = controllerutil.CreateOrUpdate(ctx, r.Client, deployment, func() error {
 		return r.mutateDeployment(ogcAPI, deployment, configMap.GetName())
 	})
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "the object has been modified; please apply your changes to the latest version and try again") {
 		return operationResults, fmt.Errorf("unable to create/update resource %s: %w", getObjectFullName(c, deployment), err)
 	}
 
