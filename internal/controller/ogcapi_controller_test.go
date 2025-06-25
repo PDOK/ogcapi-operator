@@ -30,6 +30,10 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
 	"github.com/google/go-cmp/cmp"
 	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 	"sigs.k8s.io/yaml"
@@ -60,6 +64,7 @@ const (
 	testOGCAPIName      = "test-resource"
 	testOGCAPINamespace = "default"
 	testServiceURL      = "https://my.test-resource.test/ogc/path"
+	testServiceURLAlias = "https://my.test-resource.test/ogc/other"
 	testImageName       = "test.test/image:test1"
 	mitLicenseURL       = "https://www.tldrlegal.com/license/mit-license"
 )

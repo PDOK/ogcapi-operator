@@ -13,6 +13,7 @@ require (
 	github.com/slack-go/slack v0.17.1
 	github.com/stretchr/testify v1.10.0
 	github.com/traefik/traefik/v3 v3.3.6
+	golang.org/x/net v0.39.0
 	golang.org/x/text v0.24.0
 	golang.org/x/tools v0.30.0
 	k8s.io/api v0.32.3
@@ -74,6 +75,7 @@ require (
 	github.com/google/pprof v0.0.0-20241210010833-40e02aabc2ad // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.1 // indirect
 	github.com/hashicorp/go-version v1.7.0 // indirect
 	github.com/http-wasm/http-wasm-host-go v0.7.0 // indirect
@@ -122,7 +124,6 @@ require (
 	golang.org/x/crypto v0.37.0 // indirect
 	golang.org/x/exp v0.0.0-20241215155358-4a5509556b9e // indirect
 	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/oauth2 v0.28.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
