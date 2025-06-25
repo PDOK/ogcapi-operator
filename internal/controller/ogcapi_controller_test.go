@@ -26,12 +26,13 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"os"
 
-	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"github.com/google/go-cmp/cmp"
+	smoothoperatormodel "github.com/pdok/smooth-operator/model"
+	"sigs.k8s.io/yaml"
 
 	"github.com/pkg/errors"
 	"golang.org/x/text/language"
@@ -107,6 +108,10 @@ var minimalOGCAPI = pdoknlv1alpha1.OGCAPI{
 var fullOGCAPI = pdoknlv1alpha1.OGCAPI{
 	ObjectMeta: *minimalOGCAPI.ObjectMeta.DeepCopy(),
 	Spec: pdoknlv1alpha1.OGCAPISpec{
+		IngressRouteURLs: smoothoperatormodel.IngressRouteURLs{
+			{URL: smoothoperatormodel.URL{URL: must(url.Parse(testServiceURL))}},
+			{URL: smoothoperatormodel.URL{URL: must(url.Parse(testServiceURLAlias))}},
+		},
 		Service: *minimalOGCAPI.Spec.Service.DeepCopy(),
 		PodSpecPatch: &corev1.PodSpec{
 			Volumes: []corev1.Volume{
@@ -137,6 +142,15 @@ var fullOGCAPI = pdoknlv1alpha1.OGCAPI{
 }
 
 var _ = Describe("OGCAPI Controller", func() {
+
+	Context("Testing Mutate functions for Minimal OGCAPI", func() {
+		testOGCAPIMutates(minimalOGCAPI, "minimal")
+	})
+
+	Context("Testing Mutate functions for Full OGCAPI", func() {
+		testOGCAPIMutates(fullOGCAPI, "full")
+	})
+
 	Context("When reconciling an OGCAPI", func() {
 		ctx := context.Background()
 
@@ -348,4 +362,51 @@ func must[T any](t T, err error) T {
 		panic(err)
 	}
 	return t
+}
+
+func testMutate[T any](kind string, result *T, expectedFile string, mutate func(*T) error) {
+	By("Testing mutating the " + kind)
+	err := mutate(result)
+	Expect(err).NotTo(HaveOccurred())
+
+	var expected T
+	data, err := os.ReadFile(expectedFile)
+	Expect(err).NotTo(HaveOccurred())
+	err = yaml.UnmarshalStrict(data, &expected)
+	Expect(err).NotTo(HaveOccurred())
+
+	diff := cmp.Diff(expected, *result)
+	if diff != "" {
+		Fail(diff)
+	}
+
+	By(fmt.Sprintf("Testing mutating the %s twice has the same result", kind))
+	generated := *result
+	err = mutate(result)
+	Expect(err).NotTo(HaveOccurred())
+	diff = cmp.Diff(generated, *result)
+	if diff != "" {
+		Fail(diff)
+	}
+}
+
+func testOGCAPIMutates(ogcAPI pdoknlv1alpha1.OGCAPI, name string) {
+	var reconciler OGCAPIReconciler
+
+	outputPath := fmt.Sprintf("testdata/expected/%s/", name)
+
+	BeforeEach(func() {
+		reconciler = OGCAPIReconciler{
+			Client:       k8sClient,
+			Scheme:       k8sClient.Scheme(),
+			GokoalaImage: testImageName,
+		}
+	})
+
+	It("Should generate a correct IngressRoute", func() {
+		testMutate("IngressRoute", getBareIngressRoute(&ogcAPI), outputPath+"ingressroute.yaml", func(i *traefikiov1alpha1.IngressRoute) error {
+			return reconciler.mutateIngressRoute(&ogcAPI, i)
+		})
+	})
+
 }
