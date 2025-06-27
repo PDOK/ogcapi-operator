@@ -30,12 +30,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
-
-	"k8s.io/apimachinery/pkg/api/equality"
-	"k8s.io/apimachinery/pkg/api/meta"
 
 	yaml "sigs.k8s.io/yaml/goyaml.v3"
 
@@ -61,12 +57,7 @@ import (
 
 	pdoknlv1alpha1 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
 	smoothoperatormodel "github.com/pdok/smooth-operator/model"
-)
-
-const (
-	reconciledConditionType         = "Reconciled"
-	reconciledConditionReasonSucces = "Succes"
-	reconciledConditionReasonError  = "Error"
+	smoothoperatorstatus "github.com/pdok/smooth-operator/pkg/status"
 )
 
 const (
@@ -106,6 +97,7 @@ type OGCAPIReconciler struct {
 //+kubebuilder:rbac:groups=pdok.nl,resources=ogcapis/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=pdok.nl,resources=ogcapis/finalizers,verbs=update
 //+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;delete
+//+kubebuilder:rbac:groups=apps,resources=replicasets,verbs=get;list;watch
 //+kubebuilder:rbac:groups=core,resources=configmaps;services,verbs=get;list;watch;create;update;delete
 //+kubebuilder:rbac:groups=traefik.io,resources=ingressroutes;middlewares,verbs=get;list;watch;create;update;delete
 //+kubebuilder:rbac:groups=autoscaling,resources=horizontalpodautoscalers,verbs=get;list;watch;create;update;delete
@@ -145,21 +137,14 @@ func (r *OGCAPIReconciler) Reconcile(ctx context.Context, req ctrl.Request) (res
 		r.logAndUpdateStatusError(ctx, ogcAPI, err)
 		return result, err
 	}
-	r.logAndUpdateStatusFinished(ctx, ogcAPI, operationResults)
+	smoothoperatorstatus.LogAndUpdateStatusFinished(ctx, r.Client, ogcAPI, operationResults)
 
 	return result, err
 }
 
 func (r *OGCAPIReconciler) logAndUpdateStatusError(ctx context.Context, ogcAPI *pdoknlv1alpha1.OGCAPI, err error) {
 	r.Slack.Send(ctx, err.Error())
-	r.updateStatus(ctx, ogcAPI, []metav1.Condition{{
-		Type:               reconciledConditionType,
-		Status:             metav1.ConditionFalse,
-		Reason:             reconciledConditionReasonError,
-		Message:            err.Error(),
-		ObservedGeneration: ogcAPI.Generation,
-		LastTransitionTime: metav1.NewTime(time.Now()),
-	}}, nil)
+	smoothoperatorstatus.LogAndUpdateStatusError(ctx, r.Client, ogcAPI, err)
 }
 
 func (r *OGCAPIReconciler) createOrUpdateAllForOGCAPI(ctx context.Context, ogcAPI *pdoknlv1alpha1.OGCAPI) (operationResults map[string]controllerutil.OperationResult, err error) {
@@ -667,42 +652,6 @@ func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI metav1.Object, h
 	return ctrl.SetControllerReference(ogcAPI, hpa, r.Scheme)
 }
 
-func (r *OGCAPIReconciler) logAndUpdateStatusFinished(ctx context.Context, ogcAPI *pdoknlv1alpha1.OGCAPI, operationResults map[string]controllerutil.OperationResult) {
-	lgr := log.FromContext(ctx)
-	lgr.Info("operation results", "results", operationResults)
-	r.updateStatus(ctx, ogcAPI, []metav1.Condition{{
-		Type:               reconciledConditionType,
-		Status:             metav1.ConditionTrue,
-		Reason:             reconciledConditionReasonSucces,
-		ObservedGeneration: ogcAPI.Generation,
-		LastTransitionTime: metav1.NewTime(time.Now()),
-	}}, operationResults)
-}
-
-func (r *OGCAPIReconciler) updateStatus(ctx context.Context, ogcAPI *pdoknlv1alpha1.OGCAPI, conditions []metav1.Condition, operationResults map[string]controllerutil.OperationResult) {
-	if err := r.Client.Get(ctx, client.ObjectKeyFromObject(ogcAPI), ogcAPI); err != nil {
-		log.FromContext(ctx).Error(err, "unable to update status")
-		return
-	}
-
-	changed := false
-	for _, condition := range conditions {
-		if meta.SetStatusCondition(&ogcAPI.Status.Conditions, condition) {
-			changed = true
-		}
-	}
-	if !equality.Semantic.DeepEqual(ogcAPI.Status.OperationResults, operationResults) {
-		ogcAPI.Status.OperationResults = operationResults
-		changed = true
-	}
-	if !changed {
-		return
-	}
-	if err := r.Status().Update(ctx, ogcAPI); err != nil {
-		log.FromContext(ctx).Error(err, "unable to update status")
-	}
-}
-
 // SetupWithManager sets up the controller with the Manager.
 func (r *OGCAPIReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
@@ -713,5 +662,6 @@ func (r *OGCAPIReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&traefikiov1alpha1.Middleware{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
 		Owns(&traefikiov1alpha1.IngressRoute{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
 		Owns(&autoscalingv2.HorizontalPodAutoscaler{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
+		Watches(&appsv1.ReplicaSet{}, smoothoperatorstatus.GetReplicaSetEventHandlerForObj(mgr, "OGCAPI")).
 		Complete(r)
 }

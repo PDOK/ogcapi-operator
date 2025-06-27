@@ -29,7 +29,6 @@ import (
 	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 // OGCAPISpec defines the desired state of OGCAPI
@@ -48,25 +47,23 @@ type OGCAPISpec struct {
 	IngressRouteURLs smoothoperatormodel.IngressRouteURLs `json:"ingressRouteUrls,omitempty"`
 }
 
-// OGCAPIStatus defines the observed state of OGCAPI
-type OGCAPIStatus struct {
-	// Each condition contains details for one aspect of the current state of this OGCAPI.
-	// Known .status.conditions.type are: "Reconciled"
-	Conditions []metav1.Condition `json:"conditions,omitempty"`
-	// The result of creating or updating of each derived resource for this OGCAPI.
-	OperationResults map[string]controllerutil.OperationResult `json:"operationResults,omitempty"`
-}
-
 // OGCAPI is the Schema for the ogcapis API
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:categories=pdok
+// +kubebuilder:printcolumn:name="ReadyPods",type=integer,JSONPath=`.status.podSummary[0].ready`
+// +kubebuilder:printcolumn:name="DesiredPods",type=integer,JSONPath=`.status.podSummary[0].total`
+// +kubebuilder:printcolumn:name="ReconcileStatus",type=string,JSONPath=`.status.conditions[?(@.type == "Reconciled")].reason`
 type OGCAPI struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   OGCAPISpec   `json:"spec,omitempty"`
-	Status OGCAPIStatus `json:"status,omitempty"`
+	Spec   OGCAPISpec                         `json:"spec,omitempty"`
+	Status smoothoperatormodel.OperatorStatus `json:"status,omitempty"`
+}
+
+func (ogcapi *OGCAPI) OperatorStatus() *smoothoperatormodel.OperatorStatus {
+	return &ogcapi.Status
 }
 
 // OGCAPIList contains a list of OGCAPI
