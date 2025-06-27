@@ -16,7 +16,17 @@ spec:
     singular: ogcapi
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .status.podSummary[0].ready
+      name: ReadyPods
+      type: integer
+    - jsonPath: .status.podSummary[0].total
+      name: DesiredPods
+      type: integer
+    - jsonPath: .status.conditions[?(@.type == "Reconciled")].reason
+      name: ReconcileStatus
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: OGCAPI is the Schema for the ogcapis API
@@ -3415,11 +3425,11 @@ spec:
             type: object
             x-kubernetes-preserve-unknown-fields: true
           status:
-            description: OGCAPIStatus defines the observed state of OGCAPI
+            description: OperatorStatus defines the observed state of an Atom/WFS/WMS/....
             properties:
               conditions:
                 description: |-
-                  Each condition contains details for one aspect of the current state of this OGCAPI.
+                  Each condition contains details for one aspect of the current state of this Atom.
                   Known .status.conditions.type are: "Reconciled"
                 items:
                   description: "Condition contains details for one aspect of the current
@@ -3495,8 +3505,35 @@ spec:
                     call.
                   type: string
                 description: The result of creating or updating of each derived resource
-                  for this OGCAPI.
+                  for this Atom.
                 type: object
+              podSummary:
+                description: Summary of status of pods that belong to this resource
+                items:
+                  properties:
+                    available:
+                      format: int32
+                      type: integer
+                    generation:
+                      format: int32
+                      type: integer
+                    ready:
+                      format: int32
+                      type: integer
+                    total:
+                      format: int32
+                      type: integer
+                    unavailable:
+                      format: int32
+                      type: integer
+                  required:
+                  - available
+                  - generation
+                  - ready
+                  - total
+                  - unavailable
+                  type: object
+                type: array
             type: object
         type: object
     served: true
