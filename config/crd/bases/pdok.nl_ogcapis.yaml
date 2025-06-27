@@ -3425,11 +3425,11 @@ spec:
             type: object
             x-kubernetes-preserve-unknown-fields: true
           status:
-            description: OperatorStatus defines the observed state of an Atom/WFS/WMS/....
+            description: OperatorStatus defines the observed state of an Atom/WFS/WMS/OGCAPI/...
             properties:
               conditions:
                 description: |-
-                  Each condition contains details for one aspect of the current state of this Atom.
+                  Each condition contains details for one aspect of the current state of this CR.
                   Known .status.conditions.type are: "Reconciled"
                 items:
                   description: "Condition contains details for one aspect of the current
@@ -3505,10 +3505,10 @@ spec:
                     call.
                   type: string
                 description: The result of creating or updating of each derived resource
-                  for this Atom.
+                  for this CR.
                 type: object
               podSummary:
-                description: Summary of status of pods that belong to this resource
+                description: Summary of status of pods that belong to this CR
                 items:
                   properties:
                     available:
