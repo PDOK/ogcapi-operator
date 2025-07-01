@@ -62,7 +62,7 @@ import (
 
 const (
 	controllerName      = "ogcapi-controller"
-	appLabelKey         = "app"
+	appLabelKey         = "pdok.nl/app"
 	gokoalaName         = "gokoala"
 	configName          = "config"
 	configFileName      = "config.yaml"
@@ -243,8 +243,7 @@ func getBareDeployment(ogcAPI metav1.Object) *appsv1.Deployment {
 
 //nolint:funlen
 func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deployment *appsv1.Deployment, configMapName string) error {
-	labels := cloneOrEmptyMap(ogcAPI.GetLabels())
-	labels[appLabelKey] = gokoalaName
+	labels := getLabels(ogcAPI)
 	if err := setImmutableLabels(r.Client, deployment, labels); err != nil {
 		return err
 	}
@@ -368,8 +367,7 @@ func getBareConfigMap(ogcAPI metav1.Object) *corev1.ConfigMap {
 }
 
 func (r *OGCAPIReconciler) mutateConfigMap(ogcAPI *pdoknlv1alpha1.OGCAPI, configMap *corev1.ConfigMap) error {
-	labels := cloneOrEmptyMap(ogcAPI.GetLabels())
-	labels[appLabelKey] = gokoalaName
+	labels := getLabels(ogcAPI)
 	if err := setImmutableLabels(r.Client, configMap, labels); err != nil {
 		return err
 	}
@@ -400,9 +398,7 @@ func getBareService(ogcAPI metav1.Object) *corev1.Service {
 }
 
 func (r *OGCAPIReconciler) mutateService(ogcAPI *pdoknlv1alpha1.OGCAPI, service *corev1.Service) error {
-	labels := cloneOrEmptyMap(ogcAPI.GetLabels())
-	selector := cloneOrEmptyMap(ogcAPI.GetLabels())
-	selector[appLabelKey] = gokoalaName
+	labels := getLabels(ogcAPI)
 	if err := setImmutableLabels(r.Client, service, labels); err != nil {
 		return err
 	}
@@ -424,7 +420,7 @@ func (r *OGCAPIReconciler) mutateService(ogcAPI *pdoknlv1alpha1.OGCAPI, service 
 				TargetPort: intstr.FromInt32(mainPortNr),
 			},
 		},
-		Selector: selector,
+		Selector: labels,
 	}
 	if err := ensureSetGVK(r.Client, service, service); err != nil {
 		return err
@@ -444,7 +440,7 @@ func getBareIngressRoute(ogcAPI metav1.Object) *traefikiov1alpha1.IngressRoute {
 func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *pdoknlv1alpha1.OGCAPI, ingressRoute *traefikiov1alpha1.IngressRoute) error {
 	uptimeURL := ogcAPI.Spec.Service.BaseURL.String() + "/health"
 	name := ingressRoute.GetName()
-	labels := cloneOrEmptyMap(ogcAPI.GetLabels())
+	labels := getLabels(ogcAPI)
 	if err := setImmutableLabels(r.Client, ingressRoute, labels); err != nil {
 		return err
 	}
@@ -510,7 +506,7 @@ func getBareStripPrefixMiddleware(ogcAPI metav1.Object) *traefikiov1alpha1.Middl
 }
 
 func (r *OGCAPIReconciler) mutateStripPrefixMiddleware(ogcAPI *pdoknlv1alpha1.OGCAPI, middleware *traefikiov1alpha1.Middleware) error {
-	labels := cloneOrEmptyMap(ogcAPI.GetLabels())
+	labels := getLabels(ogcAPI)
 	if err := setImmutableLabels(r.Client, middleware, labels); err != nil {
 		return err
 	}
@@ -538,8 +534,8 @@ func getBareHeadersMiddleware(obj metav1.Object) *traefikiov1alpha1.Middleware {
 	}
 }
 
-func (r *OGCAPIReconciler) mutateHeadersMiddleware(obj metav1.Object, middleware *traefikiov1alpha1.Middleware, csp string) error {
-	labels := cloneOrEmptyMap(obj.GetLabels())
+func (r *OGCAPIReconciler) mutateHeadersMiddleware(ogcAPI metav1.Object, middleware *traefikiov1alpha1.Middleware, csp string) error {
+	labels := getLabels(ogcAPI)
 	if err := setImmutableLabels(r.Client, middleware, labels); err != nil {
 		return err
 	}
@@ -576,7 +572,7 @@ func (r *OGCAPIReconciler) mutateHeadersMiddleware(obj metav1.Object, middleware
 	if err := ensureSetGVK(r.Client, middleware, middleware); err != nil {
 		return err
 	}
-	return ctrl.SetControllerReference(obj, middleware, r.Scheme)
+	return ctrl.SetControllerReference(ogcAPI, middleware, r.Scheme)
 }
 
 func getBareHorizontalPodAutoscaler(ogcAPI metav1.Object) *autoscalingv2.HorizontalPodAutoscaler {
@@ -589,7 +585,7 @@ func getBareHorizontalPodAutoscaler(ogcAPI metav1.Object) *autoscalingv2.Horizon
 }
 
 func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI metav1.Object, hpa *autoscalingv2.HorizontalPodAutoscaler) error {
-	labels := cloneOrEmptyMap(ogcAPI.GetLabels())
+	labels := getLabels(ogcAPI)
 	if err := setImmutableLabels(r.Client, hpa, labels); err != nil {
 		return err
 	}
