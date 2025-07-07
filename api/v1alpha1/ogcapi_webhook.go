@@ -124,6 +124,8 @@ func (v *OGCAPICustomValidator) ValidateUpdate(_ context.Context, oldObj, newObj
 	}
 
 	smoothoperatorvalidation.ValidateIngressRouteURLsNotRemoved(oldOgcapi.Spec.IngressRouteURLs, newOgcapi.Spec.IngressRouteURLs, &allErrs, nil)
+
+	smoothoperatorvalidation.ValidateLabelsOnUpdate(oldOgcapi.GetLabels(), newOgcapi.GetLabels(), &allErrs)
 	if len(allErrs) > 0 {
 		return nil, allErrs.ToAggregate()
 	}

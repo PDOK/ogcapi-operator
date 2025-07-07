@@ -33,6 +33,8 @@ import (
 	"regexp"
 	"strings"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	"k8s.io/apimachinery/pkg/api/equality"
@@ -82,6 +84,12 @@ func finalizeIfNecessary(ctx context.Context, c client.Client, obj client.Object
 	controllerutil.RemoveFinalizer(obj, finalizerName)
 	err = c.Update(ctx, obj)
 	return false, err
+}
+
+func getLabels(ogcAPI metav1.Object) map[string]string {
+	labels := cloneOrEmptyMap(ogcAPI.GetLabels())
+	labels[appLabelKey] = gokoalaName
+	return labels
 }
 
 func setImmutableLabels(c client.Client, obj client.Object, labels map[string]string) error {
