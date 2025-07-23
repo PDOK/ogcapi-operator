@@ -183,13 +183,16 @@ spec:
                                   pattern: ^(https?://.+)|(\$\{.+\}.*)
                                   type: string
                                 datasources:
-                                  description: Optional collection specific datasources.
+                                  description: Optional collection-specific datasources.
                                     Mutually exclusive with top-level defined datasources.
                                   properties:
                                     additional:
                                       description: |-
-                                        One or more additional datasources for features in other projections. GoKoala doesn't do
-                                        any on-the-fly reprojection so additional datasources need to be reprojected ahead of time.
+                                        One or more additional datasources for features in other (non-WGS84) coordinate reference systems.
+
+
+                                        No on-the-fly transformation/reprojection is performed, so the features in these additional datasources
+                                        need to be transformed/reprojected ahead of time. For example, using ogr2ogr.
                                       items:
                                         properties:
                                           geopackage:
@@ -203,7 +206,7 @@ spec:
                                                   auth:
                                                     description: |-
                                                       Some kind of credential like a password or key to authenticate with the storage backend, e.g:
-                                                      'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite
+                                                      'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
                                                     type: string
                                                   cache:
                                                     description: Local cache of fetched
@@ -236,7 +239,7 @@ spec:
                                                   connection:
                                                     description: |-
                                                       Reference to the cloud storage (either azure or google at the moment).
-                                                      For example 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'
+                                                      For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
                                                     type: string
                                                   container:
                                                     description: Container/bucket
@@ -244,7 +247,7 @@ spec:
                                                     type: string
                                                   externalFid:
                                                     description: |-
-                                                      External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                      External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                       It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                                     type: string
                                                   fid:
@@ -287,7 +290,7 @@ spec:
                                                   user:
                                                     description: Username of the storage
                                                       account, like devstoreaccount1
-                                                      when using Azurite
+                                                      when using Azurite.
                                                     type: string
                                                 required:
                                                 - auth
@@ -363,7 +366,7 @@ spec:
                                                     type: object
                                                   externalFid:
                                                     description: |-
-                                                      External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                      External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                       It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                                     type: string
                                                   fid:
@@ -402,23 +405,80 @@ spec:
                                                 - file
                                                 type: object
                                             type: object
-                                          postgis:
-                                            description: PostGIS database to get the
-                                              features from (not implemented yet).
+                                          postgres:
+                                            description: Postgres database to get
+                                              the features from.
                                             properties:
+                                              databaseName:
+                                                default: postgres
+                                                description: Name of the PostgreSQL
+                                                  database containing the data.
+                                                type: string
                                               externalFid:
                                                 description: |-
-                                                  External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                  External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                   It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                                 type: string
                                               fid:
                                                 default: fid
                                                 description: Feature id column name
                                                 type: string
+                                              host:
+                                                default: localhost
+                                                description: Hostname of the PostgreSQL
+                                                  server.
+                                                type: string
+                                              pass:
+                                                default: postgres
+                                                description: Password when connecting
+                                                  to the PostgreSQL server.
+                                                type: string
+                                              port:
+                                                default: 5432
+                                                description: Port number of the PostgreSQL
+                                                  server.
+                                                type: integer
+                                              queryTimeout:
+                                                default: 15s
+                                                description: Optional timeout after
+                                                  which queries are canceled
+                                                format: duration
+                                                type: string
+                                              schema:
+                                                default: public
+                                                description: Name of the PostgreSQL
+                                                  schema containing the data.
+                                                type: string
+                                              sslMode:
+                                                default: disable
+                                                description: The SSL mode to use,
+                                                  e.g. 'disable', 'allow', 'prefer',
+                                                  'require', 'verify-ca' or 'verify-full'.
+                                                enum:
+                                                - disable
+                                                - allow
+                                                - prefer
+                                                - require
+                                                - verify-ca
+                                                - verify-full
+                                                type: string
+                                              user:
+                                                default: postgres
+                                                description: Username when connecting
+                                                  to the PostgreSQL server.
+                                                type: string
+                                            required:
+                                            - databaseName
+                                            - host
+                                            - pass
+                                            - port
+                                            - schema
+                                            - sslMode
+                                            - user
                                             type: object
                                           srs:
-                                            description: Projection (SRS/CRS) used
-                                              for the features in this datasource
+                                            description: SRS/CRS used for the features
+                                              in this datasource
                                             pattern: ^EPSG:\d+$
                                             type: string
                                         required:
@@ -427,8 +487,12 @@ spec:
                                       type: array
                                     defaultWGS84:
                                       description: |-
-                                        Features should always be available in WGS84 (according to spec).
-                                        This specifies the datasource to be used for features in the WGS84 projection
+                                        Features should always be available in WGS84 (according to spec). This specifies the
+                                        datasource to be used for features in the WGS84 coordinate reference system.
+
+
+                                        No on-the-fly transformation/reprojection is performed, so the features in this datasource need to be
+                                        either native WGS84 or reprojected/transformed to WGS84 ahead of time. For example, using ogr2ogr.
                                       properties:
                                         geopackage:
                                           description: GeoPackage to get the features
@@ -441,7 +505,7 @@ spec:
                                                 auth:
                                                   description: |-
                                                     Some kind of credential like a password or key to authenticate with the storage backend, e.g:
-                                                    'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite
+                                                    'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
                                                   type: string
                                                 cache:
                                                   description: Local cache of fetched
@@ -472,7 +536,7 @@ spec:
                                                 connection:
                                                   description: |-
                                                     Reference to the cloud storage (either azure or google at the moment).
-                                                    For example 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'
+                                                    For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
                                                   type: string
                                                 container:
                                                   description: Container/bucket on
@@ -480,7 +544,7 @@ spec:
                                                   type: string
                                                 externalFid:
                                                   description: |-
-                                                    External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                    External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                     It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                                   type: string
                                                 fid:
@@ -522,7 +586,7 @@ spec:
                                                 user:
                                                   description: Username of the storage
                                                     account, like devstoreaccount1
-                                                    when using Azurite
+                                                    when using Azurite.
                                                   type: string
                                               required:
                                               - auth
@@ -598,7 +662,7 @@ spec:
                                                   type: object
                                                 externalFid:
                                                   description: |-
-                                                    External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                    External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                     It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                                   type: string
                                                 fid:
@@ -636,23 +700,384 @@ spec:
                                               - file
                                               type: object
                                           type: object
-                                        postgis:
-                                          description: PostGIS database to get the
-                                            features from (not implemented yet).
+                                        postgres:
+                                          description: Postgres database to get the
+                                            features from.
                                           properties:
+                                            databaseName:
+                                              default: postgres
+                                              description: Name of the PostgreSQL
+                                                database containing the data.
+                                              type: string
                                             externalFid:
                                               description: |-
-                                                External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                 It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                               type: string
                                             fid:
                                               default: fid
                                               description: Feature id column name
                                               type: string
+                                            host:
+                                              default: localhost
+                                              description: Hostname of the PostgreSQL
+                                                server.
+                                              type: string
+                                            pass:
+                                              default: postgres
+                                              description: Password when connecting
+                                                to the PostgreSQL server.
+                                              type: string
+                                            port:
+                                              default: 5432
+                                              description: Port number of the PostgreSQL
+                                                server.
+                                              type: integer
+                                            queryTimeout:
+                                              default: 15s
+                                              description: Optional timeout after
+                                                which queries are canceled
+                                              format: duration
+                                              type: string
+                                            schema:
+                                              default: public
+                                              description: Name of the PostgreSQL
+                                                schema containing the data.
+                                              type: string
+                                            sslMode:
+                                              default: disable
+                                              description: The SSL mode to use, e.g.
+                                                'disable', 'allow', 'prefer', 'require',
+                                                'verify-ca' or 'verify-full'.
+                                              enum:
+                                              - disable
+                                              - allow
+                                              - prefer
+                                              - require
+                                              - verify-ca
+                                              - verify-full
+                                              type: string
+                                            user:
+                                              default: postgres
+                                              description: Username when connecting
+                                                to the PostgreSQL server.
+                                              type: string
+                                          required:
+                                          - databaseName
+                                          - host
+                                          - pass
+                                          - port
+                                          - schema
+                                          - sslMode
+                                          - user
                                           type: object
                                       type: object
-                                  required:
-                                  - defaultWGS84
+                                    transformOnTheFly:
+                                      description: |-
+                                        Datasource containing features which will be transformed/reprojected on-the-fly to the specified
+                                        coordinate reference systems. No need to transform/reproject ahead of time.
+
+
+                                        Note: On-the-fly transformation/reprojection may impact performance when using (very) large geometries.
+                                      items:
+                                        properties:
+                                          geopackage:
+                                            description: GeoPackage to get the features
+                                              from.
+                                            properties:
+                                              cloud:
+                                                description: Settings to read a GeoPackage
+                                                  as a Cloud-Backed SQLite database
+                                                properties:
+                                                  auth:
+                                                    description: |-
+                                                      Some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                                      'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
+                                                    type: string
+                                                  cache:
+                                                    description: Local cache of fetched
+                                                      blocks from cloud storage
+                                                    properties:
+                                                      maxSize:
+                                                        default: 1Gb
+                                                        description: Max size of the
+                                                          local cache. Accepts human-readable
+                                                          size such as 100Mb, 4Gb,
+                                                          1Tb, etc. When omitted 1Gb
+                                                          is used.
+                                                        type: string
+                                                      path:
+                                                        description: Optional path
+                                                          to directory for caching
+                                                          cloud-backed GeoPackage
+                                                          blocks, when omitted a temp
+                                                          dir will be used.
+                                                        type: string
+                                                      warmUp:
+                                                        default: false
+                                                        description: When true a warm-up
+                                                          query is executed on startup
+                                                          which aims to fill the local
+                                                          cache. Does increase startup
+                                                          time.
+                                                        type: boolean
+                                                    type: object
+                                                  connection:
+                                                    description: |-
+                                                      Reference to the cloud storage (either azure or google at the moment).
+                                                      For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
+                                                    type: string
+                                                  container:
+                                                    description: Container/bucket
+                                                      on the storage account
+                                                    type: string
+                                                  externalFid:
+                                                    description: |-
+                                                      External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                      It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                    type: string
+                                                  fid:
+                                                    default: fid
+                                                    description: Feature id column
+                                                      name
+                                                    type: string
+                                                  file:
+                                                    description: Filename of the GeoPackage
+                                                    type: string
+                                                  inMemoryCacheSize:
+                                                    default: -2000
+                                                    description: |-
+                                                      ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                    type: integer
+                                                  logHttpRequests:
+                                                    default: false
+                                                    description: ADVANCED SETTING.
+                                                      Only for debug purposes! When
+                                                      true all HTTP requests executed
+                                                      by sqlite to cloud object storage
+                                                      are logged to stdout
+                                                    type: boolean
+                                                  maxBBoxSizeToUseWithRTree:
+                                                    default: 8000
+                                                    description: ADVANCED SETTING.
+                                                      When the number of features
+                                                      in a bbox stay within the given
+                                                      value use an RTree index, otherwise
+                                                      use a BTree index.
+                                                    type: integer
+                                                  queryTimeout:
+                                                    default: 15s
+                                                    description: Optional timeout
+                                                      after which queries are canceled
+                                                    format: duration
+                                                    type: string
+                                                  user:
+                                                    description: Username of the storage
+                                                      account, like devstoreaccount1
+                                                      when using Azurite.
+                                                    type: string
+                                                required:
+                                                - auth
+                                                - connection
+                                                - container
+                                                - file
+                                                - user
+                                                type: object
+                                              local:
+                                                description: Settings to read a GeoPackage
+                                                  from local disk
+                                                properties:
+                                                  download:
+                                                    description: |-
+                                                      Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                                      downloaded to local disk and stored at the location specified in File.
+                                                    properties:
+                                                      from:
+                                                        description: |-
+                                                          Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                          during startup and stored at the location specified in "file".
+                                                        pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                        type: string
+                                                      maxRetries:
+                                                        default: 5
+                                                        description: ADVANCED SETTING.
+                                                          Maximum number of retries
+                                                          when retrying HTTP requests
+                                                          to download (part of) GeoPackage.
+                                                        minimum: 1
+                                                        type: integer
+                                                      parallelism:
+                                                        default: 4
+                                                        description: |-
+                                                          ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                          Setting this to 1 will disable concurrent downloads.
+                                                        minimum: 1
+                                                        type: integer
+                                                      retryDelay:
+                                                        default: 1s
+                                                        description: ADVANCED SETTING.
+                                                          Minimum delay to use when
+                                                          retrying HTTP request to
+                                                          download (part of) GeoPackage.
+                                                        format: duration
+                                                        type: string
+                                                      retryMaxDelay:
+                                                        default: 30s
+                                                        description: ADVANCED SETTING.
+                                                          Maximum overall delay of
+                                                          the exponential backoff
+                                                          while retrying HTTP requests
+                                                          to download (part of) GeoPackage.
+                                                        format: duration
+                                                        type: string
+                                                      timeout:
+                                                        default: 2m
+                                                        description: ADVANCED SETTING.
+                                                          HTTP request timeout when
+                                                          downloading (part of) GeoPackage.
+                                                        format: duration
+                                                        type: string
+                                                      tlsSkipVerify:
+                                                        default: false
+                                                        description: ADVANCED SETTING.
+                                                          When true TLS certs are
+                                                          NOT validated, false otherwise.
+                                                          Only use true for your own
+                                                          self-signed certificates!
+                                                        type: boolean
+                                                    required:
+                                                    - from
+                                                    type: object
+                                                  externalFid:
+                                                    description: |-
+                                                      External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                      It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                    type: string
+                                                  fid:
+                                                    default: fid
+                                                    description: Feature id column
+                                                      name
+                                                    type: string
+                                                  file:
+                                                    description: |-
+                                                      Location of GeoPackage on disk.
+                                                      You can place the GeoPackage here manually (out-of-band) or you can specify Download
+                                                      and let the application download the GeoPackage for you and store it at this location.
+                                                    type: string
+                                                  inMemoryCacheSize:
+                                                    default: -2000
+                                                    description: |-
+                                                      ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                    type: integer
+                                                  maxBBoxSizeToUseWithRTree:
+                                                    default: 8000
+                                                    description: ADVANCED SETTING.
+                                                      When the number of features
+                                                      in a bbox stay within the given
+                                                      value use an RTree index, otherwise
+                                                      use a BTree index.
+                                                    type: integer
+                                                  queryTimeout:
+                                                    default: 15s
+                                                    description: Optional timeout
+                                                      after which queries are canceled
+                                                    format: duration
+                                                    type: string
+                                                required:
+                                                - file
+                                                type: object
+                                            type: object
+                                          postgres:
+                                            description: Postgres database to get
+                                              the features from.
+                                            properties:
+                                              databaseName:
+                                                default: postgres
+                                                description: Name of the PostgreSQL
+                                                  database containing the data.
+                                                type: string
+                                              externalFid:
+                                                description: |-
+                                                  External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                  It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                type: string
+                                              fid:
+                                                default: fid
+                                                description: Feature id column name
+                                                type: string
+                                              host:
+                                                default: localhost
+                                                description: Hostname of the PostgreSQL
+                                                  server.
+                                                type: string
+                                              pass:
+                                                default: postgres
+                                                description: Password when connecting
+                                                  to the PostgreSQL server.
+                                                type: string
+                                              port:
+                                                default: 5432
+                                                description: Port number of the PostgreSQL
+                                                  server.
+                                                type: integer
+                                              queryTimeout:
+                                                default: 15s
+                                                description: Optional timeout after
+                                                  which queries are canceled
+                                                format: duration
+                                                type: string
+                                              schema:
+                                                default: public
+                                                description: Name of the PostgreSQL
+                                                  schema containing the data.
+                                                type: string
+                                              sslMode:
+                                                default: disable
+                                                description: The SSL mode to use,
+                                                  e.g. 'disable', 'allow', 'prefer',
+                                                  'require', 'verify-ca' or 'verify-full'.
+                                                enum:
+                                                - disable
+                                                - allow
+                                                - prefer
+                                                - require
+                                                - verify-ca
+                                                - verify-full
+                                                type: string
+                                              user:
+                                                default: postgres
+                                                description: Username when connecting
+                                                  to the PostgreSQL server.
+                                                type: string
+                                            required:
+                                            - databaseName
+                                            - host
+                                            - pass
+                                            - port
+                                            - schema
+                                            - sslMode
+                                            - user
+                                            type: object
+                                          supportedSrs:
+                                            description: List of supported SRS/CRS
+                                            items:
+                                              properties:
+                                                srs:
+                                                  description: |-
+                                                    Supported coordinated reference systems (CRS/SRS) for on-the-fly reprojection/transformation.
+                                                    Note: no need to add 'OGC:CRS84', since that one is required and included by default.
+                                                  pattern: ^EPSG:\d+$
+                                                  type: string
+                                              required:
+                                              - srs
+                                              type: object
+                                            type: array
+                                        type: object
+                                      type: array
                                   type: object
                                 filters:
                                   description: Filters available for this collection
@@ -674,7 +1099,7 @@ spec:
                                           deriveAllowedValuesFromDatasource:
                                             default: false
                                             description: |-
-                                              Derive list of allowed values for this property filter from the corresponding column in the datastore.
+                                              Derive a list of allowed values for this property filter from the corresponding column in the datastore.
                                               Use with caution since it can increase startup time when used on large tables. Make sure an index in present.
                                             type: boolean
                                           description:
@@ -878,10 +1303,10 @@ spec:
 
 
                                     A) allows one to exclude certain properties, when propertiesExcludeUnknown=true
-                                    B) allows one sort the properties in the given order, when propertiesInSpecificOrder=true
+                                    B) allows one to sort the properties in the given order, when propertiesInSpecificOrder=true
 
 
-                                    When not set all available properties are returned in API responses, in alphabetical order.
+                                    When not set, all available properties are returned in API responses, in alphabetical order.
                                   items:
                                     type: string
                                   type: array
@@ -1020,7 +1445,7 @@ spec:
                             default: true
                             description: |-
                               Whether JSON responses will be validated against the OpenAPI spec
-                              since it has significant performance impact when dealing with large JSON payloads.
+                              since it has a significant performance impact when dealing with large JSON payloads.
                             type: boolean
                         required:
                         - collections
@@ -1048,13 +1473,16 @@ spec:
                                   pattern: ^(https?://.+)|(\$\{.+\}.*)
                                   type: string
                                 datasources:
-                                  description: Optional collection specific datasources.
+                                  description: Optional collection-specific datasources.
                                     Mutually exclusive with top-level defined datasources.
                                   properties:
                                     additional:
                                       description: |-
-                                        One or more additional datasources for features in other projections. GoKoala doesn't do
-                                        any on-the-fly reprojection so additional datasources need to be reprojected ahead of time.
+                                        One or more additional datasources for features in other (non-WGS84) coordinate reference systems.
+
+
+                                        No on-the-fly transformation/reprojection is performed, so the features in these additional datasources
+                                        need to be transformed/reprojected ahead of time. For example, using ogr2ogr.
                                       items:
                                         properties:
                                           geopackage:
@@ -1068,7 +1496,7 @@ spec:
                                                   auth:
                                                     description: |-
                                                       Some kind of credential like a password or key to authenticate with the storage backend, e.g:
-                                                      'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite
+                                                      'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
                                                     type: string
                                                   cache:
                                                     description: Local cache of fetched
@@ -1101,7 +1529,7 @@ spec:
                                                   connection:
                                                     description: |-
                                                       Reference to the cloud storage (either azure or google at the moment).
-                                                      For example 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'
+                                                      For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
                                                     type: string
                                                   container:
                                                     description: Container/bucket
@@ -1109,7 +1537,7 @@ spec:
                                                     type: string
                                                   externalFid:
                                                     description: |-
-                                                      External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                      External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                       It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                                     type: string
                                                   fid:
@@ -1152,7 +1580,7 @@ spec:
                                                   user:
                                                     description: Username of the storage
                                                       account, like devstoreaccount1
-                                                      when using Azurite
+                                                      when using Azurite.
                                                     type: string
                                                 required:
                                                 - auth
@@ -1228,7 +1656,7 @@ spec:
                                                     type: object
                                                   externalFid:
                                                     description: |-
-                                                      External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                      External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                       It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                                     type: string
                                                   fid:
@@ -1267,23 +1695,80 @@ spec:
                                                 - file
                                                 type: object
                                             type: object
-                                          postgis:
-                                            description: PostGIS database to get the
-                                              features from (not implemented yet).
+                                          postgres:
+                                            description: Postgres database to get
+                                              the features from.
                                             properties:
+                                              databaseName:
+                                                default: postgres
+                                                description: Name of the PostgreSQL
+                                                  database containing the data.
+                                                type: string
                                               externalFid:
                                                 description: |-
-                                                  External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                  External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                   It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                                 type: string
                                               fid:
                                                 default: fid
                                                 description: Feature id column name
                                                 type: string
+                                              host:
+                                                default: localhost
+                                                description: Hostname of the PostgreSQL
+                                                  server.
+                                                type: string
+                                              pass:
+                                                default: postgres
+                                                description: Password when connecting
+                                                  to the PostgreSQL server.
+                                                type: string
+                                              port:
+                                                default: 5432
+                                                description: Port number of the PostgreSQL
+                                                  server.
+                                                type: integer
+                                              queryTimeout:
+                                                default: 15s
+                                                description: Optional timeout after
+                                                  which queries are canceled
+                                                format: duration
+                                                type: string
+                                              schema:
+                                                default: public
+                                                description: Name of the PostgreSQL
+                                                  schema containing the data.
+                                                type: string
+                                              sslMode:
+                                                default: disable
+                                                description: The SSL mode to use,
+                                                  e.g. 'disable', 'allow', 'prefer',
+                                                  'require', 'verify-ca' or 'verify-full'.
+                                                enum:
+                                                - disable
+                                                - allow
+                                                - prefer
+                                                - require
+                                                - verify-ca
+                                                - verify-full
+                                                type: string
+                                              user:
+                                                default: postgres
+                                                description: Username when connecting
+                                                  to the PostgreSQL server.
+                                                type: string
+                                            required:
+                                            - databaseName
+                                            - host
+                                            - pass
+                                            - port
+                                            - schema
+                                            - sslMode
+                                            - user
                                             type: object
                                           srs:
-                                            description: Projection (SRS/CRS) used
-                                              for the features in this datasource
+                                            description: SRS/CRS used for the features
+                                              in this datasource
                                             pattern: ^EPSG:\d+$
                                             type: string
                                         required:
@@ -1292,8 +1777,12 @@ spec:
                                       type: array
                                     defaultWGS84:
                                       description: |-
-                                        Features should always be available in WGS84 (according to spec).
-                                        This specifies the datasource to be used for features in the WGS84 projection
+                                        Features should always be available in WGS84 (according to spec). This specifies the
+                                        datasource to be used for features in the WGS84 coordinate reference system.
+
+
+                                        No on-the-fly transformation/reprojection is performed, so the features in this datasource need to be
+                                        either native WGS84 or reprojected/transformed to WGS84 ahead of time. For example, using ogr2ogr.
                                       properties:
                                         geopackage:
                                           description: GeoPackage to get the features
@@ -1306,7 +1795,7 @@ spec:
                                                 auth:
                                                   description: |-
                                                     Some kind of credential like a password or key to authenticate with the storage backend, e.g:
-                                                    'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite
+                                                    'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
                                                   type: string
                                                 cache:
                                                   description: Local cache of fetched
@@ -1337,7 +1826,7 @@ spec:
                                                 connection:
                                                   description: |-
                                                     Reference to the cloud storage (either azure or google at the moment).
-                                                    For example 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'
+                                                    For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
                                                   type: string
                                                 container:
                                                   description: Container/bucket on
@@ -1345,7 +1834,7 @@ spec:
                                                   type: string
                                                 externalFid:
                                                   description: |-
-                                                    External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                    External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                     It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                                   type: string
                                                 fid:
@@ -1387,7 +1876,7 @@ spec:
                                                 user:
                                                   description: Username of the storage
                                                     account, like devstoreaccount1
-                                                    when using Azurite
+                                                    when using Azurite.
                                                   type: string
                                               required:
                                               - auth
@@ -1463,7 +1952,7 @@ spec:
                                                   type: object
                                                 externalFid:
                                                   description: |-
-                                                    External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                    External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                     It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                                   type: string
                                                 fid:
@@ -1501,23 +1990,384 @@ spec:
                                               - file
                                               type: object
                                           type: object
-                                        postgis:
-                                          description: PostGIS database to get the
-                                            features from (not implemented yet).
+                                        postgres:
+                                          description: Postgres database to get the
+                                            features from.
                                           properties:
+                                            databaseName:
+                                              default: postgres
+                                              description: Name of the PostgreSQL
+                                                database containing the data.
+                                              type: string
                                             externalFid:
                                               description: |-
-                                                External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                 It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                               type: string
                                             fid:
                                               default: fid
                                               description: Feature id column name
                                               type: string
+                                            host:
+                                              default: localhost
+                                              description: Hostname of the PostgreSQL
+                                                server.
+                                              type: string
+                                            pass:
+                                              default: postgres
+                                              description: Password when connecting
+                                                to the PostgreSQL server.
+                                              type: string
+                                            port:
+                                              default: 5432
+                                              description: Port number of the PostgreSQL
+                                                server.
+                                              type: integer
+                                            queryTimeout:
+                                              default: 15s
+                                              description: Optional timeout after
+                                                which queries are canceled
+                                              format: duration
+                                              type: string
+                                            schema:
+                                              default: public
+                                              description: Name of the PostgreSQL
+                                                schema containing the data.
+                                              type: string
+                                            sslMode:
+                                              default: disable
+                                              description: The SSL mode to use, e.g.
+                                                'disable', 'allow', 'prefer', 'require',
+                                                'verify-ca' or 'verify-full'.
+                                              enum:
+                                              - disable
+                                              - allow
+                                              - prefer
+                                              - require
+                                              - verify-ca
+                                              - verify-full
+                                              type: string
+                                            user:
+                                              default: postgres
+                                              description: Username when connecting
+                                                to the PostgreSQL server.
+                                              type: string
+                                          required:
+                                          - databaseName
+                                          - host
+                                          - pass
+                                          - port
+                                          - schema
+                                          - sslMode
+                                          - user
                                           type: object
                                       type: object
-                                  required:
-                                  - defaultWGS84
+                                    transformOnTheFly:
+                                      description: |-
+                                        Datasource containing features which will be transformed/reprojected on-the-fly to the specified
+                                        coordinate reference systems. No need to transform/reproject ahead of time.
+
+
+                                        Note: On-the-fly transformation/reprojection may impact performance when using (very) large geometries.
+                                      items:
+                                        properties:
+                                          geopackage:
+                                            description: GeoPackage to get the features
+                                              from.
+                                            properties:
+                                              cloud:
+                                                description: Settings to read a GeoPackage
+                                                  as a Cloud-Backed SQLite database
+                                                properties:
+                                                  auth:
+                                                    description: |-
+                                                      Some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                                      'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
+                                                    type: string
+                                                  cache:
+                                                    description: Local cache of fetched
+                                                      blocks from cloud storage
+                                                    properties:
+                                                      maxSize:
+                                                        default: 1Gb
+                                                        description: Max size of the
+                                                          local cache. Accepts human-readable
+                                                          size such as 100Mb, 4Gb,
+                                                          1Tb, etc. When omitted 1Gb
+                                                          is used.
+                                                        type: string
+                                                      path:
+                                                        description: Optional path
+                                                          to directory for caching
+                                                          cloud-backed GeoPackage
+                                                          blocks, when omitted a temp
+                                                          dir will be used.
+                                                        type: string
+                                                      warmUp:
+                                                        default: false
+                                                        description: When true a warm-up
+                                                          query is executed on startup
+                                                          which aims to fill the local
+                                                          cache. Does increase startup
+                                                          time.
+                                                        type: boolean
+                                                    type: object
+                                                  connection:
+                                                    description: |-
+                                                      Reference to the cloud storage (either azure or google at the moment).
+                                                      For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
+                                                    type: string
+                                                  container:
+                                                    description: Container/bucket
+                                                      on the storage account
+                                                    type: string
+                                                  externalFid:
+                                                    description: |-
+                                                      External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                      It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                    type: string
+                                                  fid:
+                                                    default: fid
+                                                    description: Feature id column
+                                                      name
+                                                    type: string
+                                                  file:
+                                                    description: Filename of the GeoPackage
+                                                    type: string
+                                                  inMemoryCacheSize:
+                                                    default: -2000
+                                                    description: |-
+                                                      ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                    type: integer
+                                                  logHttpRequests:
+                                                    default: false
+                                                    description: ADVANCED SETTING.
+                                                      Only for debug purposes! When
+                                                      true all HTTP requests executed
+                                                      by sqlite to cloud object storage
+                                                      are logged to stdout
+                                                    type: boolean
+                                                  maxBBoxSizeToUseWithRTree:
+                                                    default: 8000
+                                                    description: ADVANCED SETTING.
+                                                      When the number of features
+                                                      in a bbox stay within the given
+                                                      value use an RTree index, otherwise
+                                                      use a BTree index.
+                                                    type: integer
+                                                  queryTimeout:
+                                                    default: 15s
+                                                    description: Optional timeout
+                                                      after which queries are canceled
+                                                    format: duration
+                                                    type: string
+                                                  user:
+                                                    description: Username of the storage
+                                                      account, like devstoreaccount1
+                                                      when using Azurite.
+                                                    type: string
+                                                required:
+                                                - auth
+                                                - connection
+                                                - container
+                                                - file
+                                                - user
+                                                type: object
+                                              local:
+                                                description: Settings to read a GeoPackage
+                                                  from local disk
+                                                properties:
+                                                  download:
+                                                    description: |-
+                                                      Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                                      downloaded to local disk and stored at the location specified in File.
+                                                    properties:
+                                                      from:
+                                                        description: |-
+                                                          Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                          during startup and stored at the location specified in "file".
+                                                        pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                        type: string
+                                                      maxRetries:
+                                                        default: 5
+                                                        description: ADVANCED SETTING.
+                                                          Maximum number of retries
+                                                          when retrying HTTP requests
+                                                          to download (part of) GeoPackage.
+                                                        minimum: 1
+                                                        type: integer
+                                                      parallelism:
+                                                        default: 4
+                                                        description: |-
+                                                          ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                          Setting this to 1 will disable concurrent downloads.
+                                                        minimum: 1
+                                                        type: integer
+                                                      retryDelay:
+                                                        default: 1s
+                                                        description: ADVANCED SETTING.
+                                                          Minimum delay to use when
+                                                          retrying HTTP request to
+                                                          download (part of) GeoPackage.
+                                                        format: duration
+                                                        type: string
+                                                      retryMaxDelay:
+                                                        default: 30s
+                                                        description: ADVANCED SETTING.
+                                                          Maximum overall delay of
+                                                          the exponential backoff
+                                                          while retrying HTTP requests
+                                                          to download (part of) GeoPackage.
+                                                        format: duration
+                                                        type: string
+                                                      timeout:
+                                                        default: 2m
+                                                        description: ADVANCED SETTING.
+                                                          HTTP request timeout when
+                                                          downloading (part of) GeoPackage.
+                                                        format: duration
+                                                        type: string
+                                                      tlsSkipVerify:
+                                                        default: false
+                                                        description: ADVANCED SETTING.
+                                                          When true TLS certs are
+                                                          NOT validated, false otherwise.
+                                                          Only use true for your own
+                                                          self-signed certificates!
+                                                        type: boolean
+                                                    required:
+                                                    - from
+                                                    type: object
+                                                  externalFid:
+                                                    description: |-
+                                                      External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                      It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                    type: string
+                                                  fid:
+                                                    default: fid
+                                                    description: Feature id column
+                                                      name
+                                                    type: string
+                                                  file:
+                                                    description: |-
+                                                      Location of GeoPackage on disk.
+                                                      You can place the GeoPackage here manually (out-of-band) or you can specify Download
+                                                      and let the application download the GeoPackage for you and store it at this location.
+                                                    type: string
+                                                  inMemoryCacheSize:
+                                                    default: -2000
+                                                    description: |-
+                                                      ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                    type: integer
+                                                  maxBBoxSizeToUseWithRTree:
+                                                    default: 8000
+                                                    description: ADVANCED SETTING.
+                                                      When the number of features
+                                                      in a bbox stay within the given
+                                                      value use an RTree index, otherwise
+                                                      use a BTree index.
+                                                    type: integer
+                                                  queryTimeout:
+                                                    default: 15s
+                                                    description: Optional timeout
+                                                      after which queries are canceled
+                                                    format: duration
+                                                    type: string
+                                                required:
+                                                - file
+                                                type: object
+                                            type: object
+                                          postgres:
+                                            description: Postgres database to get
+                                              the features from.
+                                            properties:
+                                              databaseName:
+                                                default: postgres
+                                                description: Name of the PostgreSQL
+                                                  database containing the data.
+                                                type: string
+                                              externalFid:
+                                                description: |-
+                                                  External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                  It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                type: string
+                                              fid:
+                                                default: fid
+                                                description: Feature id column name
+                                                type: string
+                                              host:
+                                                default: localhost
+                                                description: Hostname of the PostgreSQL
+                                                  server.
+                                                type: string
+                                              pass:
+                                                default: postgres
+                                                description: Password when connecting
+                                                  to the PostgreSQL server.
+                                                type: string
+                                              port:
+                                                default: 5432
+                                                description: Port number of the PostgreSQL
+                                                  server.
+                                                type: integer
+                                              queryTimeout:
+                                                default: 15s
+                                                description: Optional timeout after
+                                                  which queries are canceled
+                                                format: duration
+                                                type: string
+                                              schema:
+                                                default: public
+                                                description: Name of the PostgreSQL
+                                                  schema containing the data.
+                                                type: string
+                                              sslMode:
+                                                default: disable
+                                                description: The SSL mode to use,
+                                                  e.g. 'disable', 'allow', 'prefer',
+                                                  'require', 'verify-ca' or 'verify-full'.
+                                                enum:
+                                                - disable
+                                                - allow
+                                                - prefer
+                                                - require
+                                                - verify-ca
+                                                - verify-full
+                                                type: string
+                                              user:
+                                                default: postgres
+                                                description: Username when connecting
+                                                  to the PostgreSQL server.
+                                                type: string
+                                            required:
+                                            - databaseName
+                                            - host
+                                            - pass
+                                            - port
+                                            - schema
+                                            - sslMode
+                                            - user
+                                            type: object
+                                          supportedSrs:
+                                            description: List of supported SRS/CRS
+                                            items:
+                                              properties:
+                                                srs:
+                                                  description: |-
+                                                    Supported coordinated reference systems (CRS/SRS) for on-the-fly reprojection/transformation.
+                                                    Note: no need to add 'OGC:CRS84', since that one is required and included by default.
+                                                  pattern: ^EPSG:\d+$
+                                                  type: string
+                                              required:
+                                              - srs
+                                              type: object
+                                            type: array
+                                        type: object
+                                      type: array
                                   type: object
                                 filters:
                                   description: Filters available for this collection
@@ -1539,7 +2389,7 @@ spec:
                                           deriveAllowedValuesFromDatasource:
                                             default: false
                                             description: |-
-                                              Derive list of allowed values for this property filter from the corresponding column in the datastore.
+                                              Derive a list of allowed values for this property filter from the corresponding column in the datastore.
                                               Use with caution since it can increase startup time when used on large tables. Make sure an index in present.
                                             type: boolean
                                           description:
@@ -1743,10 +2593,10 @@ spec:
 
 
                                     A) allows one to exclude certain properties, when propertiesExcludeUnknown=true
-                                    B) allows one sort the properties in the given order, when propertiesInSpecificOrder=true
+                                    B) allows one to sort the properties in the given order, when propertiesInSpecificOrder=true
 
 
-                                    When not set all available properties are returned in API responses, in alphabetical order.
+                                    When not set, all available properties are returned in API responses, in alphabetical order.
                                   items:
                                     type: string
                                   type: array
@@ -1878,13 +2728,16 @@ spec:
                             type: array
                           datasources:
                             description: |-
-                              One or more datasources to get the features from (geopackages, postgis, etc).
+                              One or more datasources to get the features from (geopackages, postgres, etc).
                               Optional since you can also define datasources at the collection level
                             properties:
                               additional:
                                 description: |-
-                                  One or more additional datasources for features in other projections. GoKoala doesn't do
-                                  any on-the-fly reprojection so additional datasources need to be reprojected ahead of time.
+                                  One or more additional datasources for features in other (non-WGS84) coordinate reference systems.
+
+
+                                  No on-the-fly transformation/reprojection is performed, so the features in these additional datasources
+                                  need to be transformed/reprojected ahead of time. For example, using ogr2ogr.
                                 items:
                                   properties:
                                     geopackage:
@@ -1898,7 +2751,7 @@ spec:
                                             auth:
                                               description: |-
                                                 Some kind of credential like a password or key to authenticate with the storage backend, e.g:
-                                                'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite
+                                                'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
                                               type: string
                                             cache:
                                               description: Local cache of fetched
@@ -1928,7 +2781,7 @@ spec:
                                             connection:
                                               description: |-
                                                 Reference to the cloud storage (either azure or google at the moment).
-                                                For example 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'
+                                                For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
                                               type: string
                                             container:
                                               description: Container/bucket on the
@@ -1936,7 +2789,7 @@ spec:
                                               type: string
                                             externalFid:
                                               description: |-
-                                                External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                 It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                               type: string
                                             fid:
@@ -1977,7 +2830,7 @@ spec:
                                             user:
                                               description: Username of the storage
                                                 account, like devstoreaccount1 when
-                                                using Azurite
+                                                using Azurite.
                                               type: string
                                           required:
                                           - auth
@@ -2051,7 +2904,7 @@ spec:
                                               type: object
                                             externalFid:
                                               description: |-
-                                                External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                 It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                               type: string
                                             fid:
@@ -2088,23 +2941,80 @@ spec:
                                           - file
                                           type: object
                                       type: object
-                                    postgis:
-                                      description: PostGIS database to get the features
-                                        from (not implemented yet).
+                                    postgres:
+                                      description: Postgres database to get the features
+                                        from.
                                       properties:
+                                        databaseName:
+                                          default: postgres
+                                          description: Name of the PostgreSQL database
+                                            containing the data.
+                                          type: string
                                         externalFid:
                                           description: |-
-                                            External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                            External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                             It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                           type: string
                                         fid:
                                           default: fid
                                           description: Feature id column name
                                           type: string
+                                        host:
+                                          default: localhost
+                                          description: Hostname of the PostgreSQL
+                                            server.
+                                          type: string
+                                        pass:
+                                          default: postgres
+                                          description: Password when connecting to
+                                            the PostgreSQL server.
+                                          type: string
+                                        port:
+                                          default: 5432
+                                          description: Port number of the PostgreSQL
+                                            server.
+                                          type: integer
+                                        queryTimeout:
+                                          default: 15s
+                                          description: Optional timeout after which
+                                            queries are canceled
+                                          format: duration
+                                          type: string
+                                        schema:
+                                          default: public
+                                          description: Name of the PostgreSQL schema
+                                            containing the data.
+                                          type: string
+                                        sslMode:
+                                          default: disable
+                                          description: The SSL mode to use, e.g. 'disable',
+                                            'allow', 'prefer', 'require', 'verify-ca'
+                                            or 'verify-full'.
+                                          enum:
+                                          - disable
+                                          - allow
+                                          - prefer
+                                          - require
+                                          - verify-ca
+                                          - verify-full
+                                          type: string
+                                        user:
+                                          default: postgres
+                                          description: Username when connecting to
+                                            the PostgreSQL server.
+                                          type: string
+                                      required:
+                                      - databaseName
+                                      - host
+                                      - pass
+                                      - port
+                                      - schema
+                                      - sslMode
+                                      - user
                                       type: object
                                     srs:
-                                      description: Projection (SRS/CRS) used for the
-                                        features in this datasource
+                                      description: SRS/CRS used for the features in
+                                        this datasource
                                       pattern: ^EPSG:\d+$
                                       type: string
                                   required:
@@ -2113,8 +3023,12 @@ spec:
                                 type: array
                               defaultWGS84:
                                 description: |-
-                                  Features should always be available in WGS84 (according to spec).
-                                  This specifies the datasource to be used for features in the WGS84 projection
+                                  Features should always be available in WGS84 (according to spec). This specifies the
+                                  datasource to be used for features in the WGS84 coordinate reference system.
+
+
+                                  No on-the-fly transformation/reprojection is performed, so the features in this datasource need to be
+                                  either native WGS84 or reprojected/transformed to WGS84 ahead of time. For example, using ogr2ogr.
                                 properties:
                                   geopackage:
                                     description: GeoPackage to get the features from.
@@ -2126,7 +3040,7 @@ spec:
                                           auth:
                                             description: |-
                                               Some kind of credential like a password or key to authenticate with the storage backend, e.g:
-                                              'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite
+                                              'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
                                             type: string
                                           cache:
                                             description: Local cache of fetched blocks
@@ -2156,7 +3070,7 @@ spec:
                                           connection:
                                             description: |-
                                               Reference to the cloud storage (either azure or google at the moment).
-                                              For example 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'
+                                              For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
                                             type: string
                                           container:
                                             description: Container/bucket on the storage
@@ -2164,7 +3078,7 @@ spec:
                                             type: string
                                           externalFid:
                                             description: |-
-                                              External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                              External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                               It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                             type: string
                                           fid:
@@ -2203,7 +3117,7 @@ spec:
                                             type: string
                                           user:
                                             description: Username of the storage account,
-                                              like devstoreaccount1 when using Azurite
+                                              like devstoreaccount1 when using Azurite.
                                             type: string
                                         required:
                                         - auth
@@ -2276,7 +3190,7 @@ spec:
                                             type: object
                                           externalFid:
                                             description: |-
-                                              External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                              External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                               It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                             type: string
                                           fid:
@@ -2313,26 +3227,381 @@ spec:
                                         - file
                                         type: object
                                     type: object
-                                  postgis:
-                                    description: PostGIS database to get the features
-                                      from (not implemented yet).
+                                  postgres:
+                                    description: Postgres database to get the features
+                                      from.
                                     properties:
+                                      databaseName:
+                                        default: postgres
+                                        description: Name of the PostgreSQL database
+                                          containing the data.
+                                        type: string
                                       externalFid:
                                         description: |-
-                                          External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                          External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                           It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                         type: string
                                       fid:
                                         default: fid
                                         description: Feature id column name
                                         type: string
+                                      host:
+                                        default: localhost
+                                        description: Hostname of the PostgreSQL server.
+                                        type: string
+                                      pass:
+                                        default: postgres
+                                        description: Password when connecting to the
+                                          PostgreSQL server.
+                                        type: string
+                                      port:
+                                        default: 5432
+                                        description: Port number of the PostgreSQL
+                                          server.
+                                        type: integer
+                                      queryTimeout:
+                                        default: 15s
+                                        description: Optional timeout after which
+                                          queries are canceled
+                                        format: duration
+                                        type: string
+                                      schema:
+                                        default: public
+                                        description: Name of the PostgreSQL schema
+                                          containing the data.
+                                        type: string
+                                      sslMode:
+                                        default: disable
+                                        description: The SSL mode to use, e.g. 'disable',
+                                          'allow', 'prefer', 'require', 'verify-ca'
+                                          or 'verify-full'.
+                                        enum:
+                                        - disable
+                                        - allow
+                                        - prefer
+                                        - require
+                                        - verify-ca
+                                        - verify-full
+                                        type: string
+                                      user:
+                                        default: postgres
+                                        description: Username when connecting to the
+                                          PostgreSQL server.
+                                        type: string
+                                    required:
+                                    - databaseName
+                                    - host
+                                    - pass
+                                    - port
+                                    - schema
+                                    - sslMode
+                                    - user
                                     type: object
                                 type: object
-                            required:
-                            - defaultWGS84
+                              transformOnTheFly:
+                                description: |-
+                                  Datasource containing features which will be transformed/reprojected on-the-fly to the specified
+                                  coordinate reference systems. No need to transform/reproject ahead of time.
+
+
+                                  Note: On-the-fly transformation/reprojection may impact performance when using (very) large geometries.
+                                items:
+                                  properties:
+                                    geopackage:
+                                      description: GeoPackage to get the features
+                                        from.
+                                      properties:
+                                        cloud:
+                                          description: Settings to read a GeoPackage
+                                            as a Cloud-Backed SQLite database
+                                          properties:
+                                            auth:
+                                              description: |-
+                                                Some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                                'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
+                                              type: string
+                                            cache:
+                                              description: Local cache of fetched
+                                                blocks from cloud storage
+                                              properties:
+                                                maxSize:
+                                                  default: 1Gb
+                                                  description: Max size of the local
+                                                    cache. Accepts human-readable
+                                                    size such as 100Mb, 4Gb, 1Tb,
+                                                    etc. When omitted 1Gb is used.
+                                                  type: string
+                                                path:
+                                                  description: Optional path to directory
+                                                    for caching cloud-backed GeoPackage
+                                                    blocks, when omitted a temp dir
+                                                    will be used.
+                                                  type: string
+                                                warmUp:
+                                                  default: false
+                                                  description: When true a warm-up
+                                                    query is executed on startup which
+                                                    aims to fill the local cache.
+                                                    Does increase startup time.
+                                                  type: boolean
+                                              type: object
+                                            connection:
+                                              description: |-
+                                                Reference to the cloud storage (either azure or google at the moment).
+                                                For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
+                                              type: string
+                                            container:
+                                              description: Container/bucket on the
+                                                storage account
+                                              type: string
+                                            externalFid:
+                                              description: |-
+                                                External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                              type: string
+                                            fid:
+                                              default: fid
+                                              description: Feature id column name
+                                              type: string
+                                            file:
+                                              description: Filename of the GeoPackage
+                                              type: string
+                                            inMemoryCacheSize:
+                                              default: -2000
+                                              description: |-
+                                                ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                              type: integer
+                                            logHttpRequests:
+                                              default: false
+                                              description: ADVANCED SETTING. Only
+                                                for debug purposes! When true all
+                                                HTTP requests executed by sqlite to
+                                                cloud object storage are logged to
+                                                stdout
+                                              type: boolean
+                                            maxBBoxSizeToUseWithRTree:
+                                              default: 8000
+                                              description: ADVANCED SETTING. When
+                                                the number of features in a bbox stay
+                                                within the given value use an RTree
+                                                index, otherwise use a BTree index.
+                                              type: integer
+                                            queryTimeout:
+                                              default: 15s
+                                              description: Optional timeout after
+                                                which queries are canceled
+                                              format: duration
+                                              type: string
+                                            user:
+                                              description: Username of the storage
+                                                account, like devstoreaccount1 when
+                                                using Azurite.
+                                              type: string
+                                          required:
+                                          - auth
+                                          - connection
+                                          - container
+                                          - file
+                                          - user
+                                          type: object
+                                        local:
+                                          description: Settings to read a GeoPackage
+                                            from local disk
+                                          properties:
+                                            download:
+                                              description: |-
+                                                Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                                downloaded to local disk and stored at the location specified in File.
+                                              properties:
+                                                from:
+                                                  description: |-
+                                                    Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                    during startup and stored at the location specified in "file".
+                                                  pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                  type: string
+                                                maxRetries:
+                                                  default: 5
+                                                  description: ADVANCED SETTING. Maximum
+                                                    number of retries when retrying
+                                                    HTTP requests to download (part
+                                                    of) GeoPackage.
+                                                  minimum: 1
+                                                  type: integer
+                                                parallelism:
+                                                  default: 4
+                                                  description: |-
+                                                    ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                    Setting this to 1 will disable concurrent downloads.
+                                                  minimum: 1
+                                                  type: integer
+                                                retryDelay:
+                                                  default: 1s
+                                                  description: ADVANCED SETTING. Minimum
+                                                    delay to use when retrying HTTP
+                                                    request to download (part of)
+                                                    GeoPackage.
+                                                  format: duration
+                                                  type: string
+                                                retryMaxDelay:
+                                                  default: 30s
+                                                  description: ADVANCED SETTING. Maximum
+                                                    overall delay of the exponential
+                                                    backoff while retrying HTTP requests
+                                                    to download (part of) GeoPackage.
+                                                  format: duration
+                                                  type: string
+                                                timeout:
+                                                  default: 2m
+                                                  description: ADVANCED SETTING. HTTP
+                                                    request timeout when downloading
+                                                    (part of) GeoPackage.
+                                                  format: duration
+                                                  type: string
+                                                tlsSkipVerify:
+                                                  default: false
+                                                  description: ADVANCED SETTING. When
+                                                    true TLS certs are NOT validated,
+                                                    false otherwise. Only use true
+                                                    for your own self-signed certificates!
+                                                  type: boolean
+                                              required:
+                                              - from
+                                              type: object
+                                            externalFid:
+                                              description: |-
+                                                External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                              type: string
+                                            fid:
+                                              default: fid
+                                              description: Feature id column name
+                                              type: string
+                                            file:
+                                              description: |-
+                                                Location of GeoPackage on disk.
+                                                You can place the GeoPackage here manually (out-of-band) or you can specify Download
+                                                and let the application download the GeoPackage for you and store it at this location.
+                                              type: string
+                                            inMemoryCacheSize:
+                                              default: -2000
+                                              description: |-
+                                                ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                              type: integer
+                                            maxBBoxSizeToUseWithRTree:
+                                              default: 8000
+                                              description: ADVANCED SETTING. When
+                                                the number of features in a bbox stay
+                                                within the given value use an RTree
+                                                index, otherwise use a BTree index.
+                                              type: integer
+                                            queryTimeout:
+                                              default: 15s
+                                              description: Optional timeout after
+                                                which queries are canceled
+                                              format: duration
+                                              type: string
+                                          required:
+                                          - file
+                                          type: object
+                                      type: object
+                                    postgres:
+                                      description: Postgres database to get the features
+                                        from.
+                                      properties:
+                                        databaseName:
+                                          default: postgres
+                                          description: Name of the PostgreSQL database
+                                            containing the data.
+                                          type: string
+                                        externalFid:
+                                          description: |-
+                                            External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                            It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                          type: string
+                                        fid:
+                                          default: fid
+                                          description: Feature id column name
+                                          type: string
+                                        host:
+                                          default: localhost
+                                          description: Hostname of the PostgreSQL
+                                            server.
+                                          type: string
+                                        pass:
+                                          default: postgres
+                                          description: Password when connecting to
+                                            the PostgreSQL server.
+                                          type: string
+                                        port:
+                                          default: 5432
+                                          description: Port number of the PostgreSQL
+                                            server.
+                                          type: integer
+                                        queryTimeout:
+                                          default: 15s
+                                          description: Optional timeout after which
+                                            queries are canceled
+                                          format: duration
+                                          type: string
+                                        schema:
+                                          default: public
+                                          description: Name of the PostgreSQL schema
+                                            containing the data.
+                                          type: string
+                                        sslMode:
+                                          default: disable
+                                          description: The SSL mode to use, e.g. 'disable',
+                                            'allow', 'prefer', 'require', 'verify-ca'
+                                            or 'verify-full'.
+                                          enum:
+                                          - disable
+                                          - allow
+                                          - prefer
+                                          - require
+                                          - verify-ca
+                                          - verify-full
+                                          type: string
+                                        user:
+                                          default: postgres
+                                          description: Username when connecting to
+                                            the PostgreSQL server.
+                                          type: string
+                                      required:
+                                      - databaseName
+                                      - host
+                                      - pass
+                                      - port
+                                      - schema
+                                      - sslMode
+                                      - user
+                                      type: object
+                                    supportedSrs:
+                                      description: List of supported SRS/CRS
+                                      items:
+                                        properties:
+                                          srs:
+                                            description: |-
+                                              Supported coordinated reference systems (CRS/SRS) for on-the-fly reprojection/transformation.
+                                              Note: no need to add 'OGC:CRS84', since that one is required and included by default.
+                                            pattern: ^EPSG:\d+$
+                                            type: string
+                                        required:
+                                        - srs
+                                        type: object
+                                      type: array
+                                  type: object
+                                type: array
                             type: object
+                          forceUtc:
+                            default: false
+                            description: Force timestamps in features to the UTC timezone.
+                            type: boolean
                           limit:
-                            description: Limits the amount of features to retrieve
+                            description: Limits the number of features to retrieve
                               with a single call
                             properties:
                               default:
@@ -2348,11 +3617,17 @@ spec:
                                 minimum: 100
                                 type: integer
                             type: object
+                          maxDecimals:
+                            description: Maximum number of decimals allowed in geometry
+                              coordinates. When not specified (default value of 0)
+                              no limit is enforced.
+                            minimum: 0
+                            type: integer
                           validateResponses:
                             default: true
                             description: |-
                               Whether GeoJSON/JSON-FG responses will be validated against the OpenAPI spec
-                              since it has significant performance impact when dealing with large JSON payloads.
+                              since it has a significant performance impact when dealing with large JSON payloads.
                             type: boolean
                         required:
                         - collections
@@ -2465,13 +3740,16 @@ spec:
                                   pattern: ^(https?://.+)|(\$\{.+\}.*)
                                   type: string
                                 datasources:
-                                  description: Optional collection specific datasources.
+                                  description: Optional collection-specific datasources.
                                     Mutually exclusive with top-level defined datasources.
                                   properties:
                                     additional:
                                       description: |-
-                                        One or more additional datasources for features in other projections. GoKoala doesn't do
-                                        any on-the-fly reprojection so additional datasources need to be reprojected ahead of time.
+                                        One or more additional datasources for features in other (non-WGS84) coordinate reference systems.
+
+
+                                        No on-the-fly transformation/reprojection is performed, so the features in these additional datasources
+                                        need to be transformed/reprojected ahead of time. For example, using ogr2ogr.
                                       items:
                                         properties:
                                           geopackage:
@@ -2485,7 +3763,7 @@ spec:
                                                   auth:
                                                     description: |-
                                                       Some kind of credential like a password or key to authenticate with the storage backend, e.g:
-                                                      'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite
+                                                      'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
                                                     type: string
                                                   cache:
                                                     description: Local cache of fetched
@@ -2518,7 +3796,7 @@ spec:
                                                   connection:
                                                     description: |-
                                                       Reference to the cloud storage (either azure or google at the moment).
-                                                      For example 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'
+                                                      For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
                                                     type: string
                                                   container:
                                                     description: Container/bucket
@@ -2526,7 +3804,7 @@ spec:
                                                     type: string
                                                   externalFid:
                                                     description: |-
-                                                      External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                      External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                       It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                                     type: string
                                                   fid:
@@ -2569,7 +3847,7 @@ spec:
                                                   user:
                                                     description: Username of the storage
                                                       account, like devstoreaccount1
-                                                      when using Azurite
+                                                      when using Azurite.
                                                     type: string
                                                 required:
                                                 - auth
@@ -2645,7 +3923,7 @@ spec:
                                                     type: object
                                                   externalFid:
                                                     description: |-
-                                                      External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                      External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                       It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                                     type: string
                                                   fid:
@@ -2684,23 +3962,80 @@ spec:
                                                 - file
                                                 type: object
                                             type: object
-                                          postgis:
-                                            description: PostGIS database to get the
-                                              features from (not implemented yet).
+                                          postgres:
+                                            description: Postgres database to get
+                                              the features from.
                                             properties:
+                                              databaseName:
+                                                default: postgres
+                                                description: Name of the PostgreSQL
+                                                  database containing the data.
+                                                type: string
                                               externalFid:
                                                 description: |-
-                                                  External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                  External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                   It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                                 type: string
                                               fid:
                                                 default: fid
                                                 description: Feature id column name
                                                 type: string
+                                              host:
+                                                default: localhost
+                                                description: Hostname of the PostgreSQL
+                                                  server.
+                                                type: string
+                                              pass:
+                                                default: postgres
+                                                description: Password when connecting
+                                                  to the PostgreSQL server.
+                                                type: string
+                                              port:
+                                                default: 5432
+                                                description: Port number of the PostgreSQL
+                                                  server.
+                                                type: integer
+                                              queryTimeout:
+                                                default: 15s
+                                                description: Optional timeout after
+                                                  which queries are canceled
+                                                format: duration
+                                                type: string
+                                              schema:
+                                                default: public
+                                                description: Name of the PostgreSQL
+                                                  schema containing the data.
+                                                type: string
+                                              sslMode:
+                                                default: disable
+                                                description: The SSL mode to use,
+                                                  e.g. 'disable', 'allow', 'prefer',
+                                                  'require', 'verify-ca' or 'verify-full'.
+                                                enum:
+                                                - disable
+                                                - allow
+                                                - prefer
+                                                - require
+                                                - verify-ca
+                                                - verify-full
+                                                type: string
+                                              user:
+                                                default: postgres
+                                                description: Username when connecting
+                                                  to the PostgreSQL server.
+                                                type: string
+                                            required:
+                                            - databaseName
+                                            - host
+                                            - pass
+                                            - port
+                                            - schema
+                                            - sslMode
+                                            - user
                                             type: object
                                           srs:
-                                            description: Projection (SRS/CRS) used
-                                              for the features in this datasource
+                                            description: SRS/CRS used for the features
+                                              in this datasource
                                             pattern: ^EPSG:\d+$
                                             type: string
                                         required:
@@ -2709,8 +4044,12 @@ spec:
                                       type: array
                                     defaultWGS84:
                                       description: |-
-                                        Features should always be available in WGS84 (according to spec).
-                                        This specifies the datasource to be used for features in the WGS84 projection
+                                        Features should always be available in WGS84 (according to spec). This specifies the
+                                        datasource to be used for features in the WGS84 coordinate reference system.
+
+
+                                        No on-the-fly transformation/reprojection is performed, so the features in this datasource need to be
+                                        either native WGS84 or reprojected/transformed to WGS84 ahead of time. For example, using ogr2ogr.
                                       properties:
                                         geopackage:
                                           description: GeoPackage to get the features
@@ -2723,7 +4062,7 @@ spec:
                                                 auth:
                                                   description: |-
                                                     Some kind of credential like a password or key to authenticate with the storage backend, e.g:
-                                                    'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite
+                                                    'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
                                                   type: string
                                                 cache:
                                                   description: Local cache of fetched
@@ -2754,7 +4093,7 @@ spec:
                                                 connection:
                                                   description: |-
                                                     Reference to the cloud storage (either azure or google at the moment).
-                                                    For example 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'
+                                                    For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
                                                   type: string
                                                 container:
                                                   description: Container/bucket on
@@ -2762,7 +4101,7 @@ spec:
                                                   type: string
                                                 externalFid:
                                                   description: |-
-                                                    External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                    External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                     It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                                   type: string
                                                 fid:
@@ -2804,7 +4143,7 @@ spec:
                                                 user:
                                                   description: Username of the storage
                                                     account, like devstoreaccount1
-                                                    when using Azurite
+                                                    when using Azurite.
                                                   type: string
                                               required:
                                               - auth
@@ -2880,7 +4219,7 @@ spec:
                                                   type: object
                                                 externalFid:
                                                   description: |-
-                                                    External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                    External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                     It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                                   type: string
                                                 fid:
@@ -2918,23 +4257,384 @@ spec:
                                               - file
                                               type: object
                                           type: object
-                                        postgis:
-                                          description: PostGIS database to get the
-                                            features from (not implemented yet).
+                                        postgres:
+                                          description: Postgres database to get the
+                                            features from.
                                           properties:
+                                            databaseName:
+                                              default: postgres
+                                              description: Name of the PostgreSQL
+                                                database containing the data.
+                                              type: string
                                             externalFid:
                                               description: |-
-                                                External feature id column name. When specified this ID column will be exposed to clients instead of the regular FID column.
+                                                External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
                                                 It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
                                               type: string
                                             fid:
                                               default: fid
                                               description: Feature id column name
                                               type: string
+                                            host:
+                                              default: localhost
+                                              description: Hostname of the PostgreSQL
+                                                server.
+                                              type: string
+                                            pass:
+                                              default: postgres
+                                              description: Password when connecting
+                                                to the PostgreSQL server.
+                                              type: string
+                                            port:
+                                              default: 5432
+                                              description: Port number of the PostgreSQL
+                                                server.
+                                              type: integer
+                                            queryTimeout:
+                                              default: 15s
+                                              description: Optional timeout after
+                                                which queries are canceled
+                                              format: duration
+                                              type: string
+                                            schema:
+                                              default: public
+                                              description: Name of the PostgreSQL
+                                                schema containing the data.
+                                              type: string
+                                            sslMode:
+                                              default: disable
+                                              description: The SSL mode to use, e.g.
+                                                'disable', 'allow', 'prefer', 'require',
+                                                'verify-ca' or 'verify-full'.
+                                              enum:
+                                              - disable
+                                              - allow
+                                              - prefer
+                                              - require
+                                              - verify-ca
+                                              - verify-full
+                                              type: string
+                                            user:
+                                              default: postgres
+                                              description: Username when connecting
+                                                to the PostgreSQL server.
+                                              type: string
+                                          required:
+                                          - databaseName
+                                          - host
+                                          - pass
+                                          - port
+                                          - schema
+                                          - sslMode
+                                          - user
                                           type: object
                                       type: object
-                                  required:
-                                  - defaultWGS84
+                                    transformOnTheFly:
+                                      description: |-
+                                        Datasource containing features which will be transformed/reprojected on-the-fly to the specified
+                                        coordinate reference systems. No need to transform/reproject ahead of time.
+
+
+                                        Note: On-the-fly transformation/reprojection may impact performance when using (very) large geometries.
+                                      items:
+                                        properties:
+                                          geopackage:
+                                            description: GeoPackage to get the features
+                                              from.
+                                            properties:
+                                              cloud:
+                                                description: Settings to read a GeoPackage
+                                                  as a Cloud-Backed SQLite database
+                                                properties:
+                                                  auth:
+                                                    description: |-
+                                                      Some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                                      'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
+                                                    type: string
+                                                  cache:
+                                                    description: Local cache of fetched
+                                                      blocks from cloud storage
+                                                    properties:
+                                                      maxSize:
+                                                        default: 1Gb
+                                                        description: Max size of the
+                                                          local cache. Accepts human-readable
+                                                          size such as 100Mb, 4Gb,
+                                                          1Tb, etc. When omitted 1Gb
+                                                          is used.
+                                                        type: string
+                                                      path:
+                                                        description: Optional path
+                                                          to directory for caching
+                                                          cloud-backed GeoPackage
+                                                          blocks, when omitted a temp
+                                                          dir will be used.
+                                                        type: string
+                                                      warmUp:
+                                                        default: false
+                                                        description: When true a warm-up
+                                                          query is executed on startup
+                                                          which aims to fill the local
+                                                          cache. Does increase startup
+                                                          time.
+                                                        type: boolean
+                                                    type: object
+                                                  connection:
+                                                    description: |-
+                                                      Reference to the cloud storage (either azure or google at the moment).
+                                                      For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
+                                                    type: string
+                                                  container:
+                                                    description: Container/bucket
+                                                      on the storage account
+                                                    type: string
+                                                  externalFid:
+                                                    description: |-
+                                                      External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                      It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                    type: string
+                                                  fid:
+                                                    default: fid
+                                                    description: Feature id column
+                                                      name
+                                                    type: string
+                                                  file:
+                                                    description: Filename of the GeoPackage
+                                                    type: string
+                                                  inMemoryCacheSize:
+                                                    default: -2000
+                                                    description: |-
+                                                      ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                    type: integer
+                                                  logHttpRequests:
+                                                    default: false
+                                                    description: ADVANCED SETTING.
+                                                      Only for debug purposes! When
+                                                      true all HTTP requests executed
+                                                      by sqlite to cloud object storage
+                                                      are logged to stdout
+                                                    type: boolean
+                                                  maxBBoxSizeToUseWithRTree:
+                                                    default: 8000
+                                                    description: ADVANCED SETTING.
+                                                      When the number of features
+                                                      in a bbox stay within the given
+                                                      value use an RTree index, otherwise
+                                                      use a BTree index.
+                                                    type: integer
+                                                  queryTimeout:
+                                                    default: 15s
+                                                    description: Optional timeout
+                                                      after which queries are canceled
+                                                    format: duration
+                                                    type: string
+                                                  user:
+                                                    description: Username of the storage
+                                                      account, like devstoreaccount1
+                                                      when using Azurite.
+                                                    type: string
+                                                required:
+                                                - auth
+                                                - connection
+                                                - container
+                                                - file
+                                                - user
+                                                type: object
+                                              local:
+                                                description: Settings to read a GeoPackage
+                                                  from local disk
+                                                properties:
+                                                  download:
+                                                    description: |-
+                                                      Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                                      downloaded to local disk and stored at the location specified in File.
+                                                    properties:
+                                                      from:
+                                                        description: |-
+                                                          Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                          during startup and stored at the location specified in "file".
+                                                        pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                        type: string
+                                                      maxRetries:
+                                                        default: 5
+                                                        description: ADVANCED SETTING.
+                                                          Maximum number of retries
+                                                          when retrying HTTP requests
+                                                          to download (part of) GeoPackage.
+                                                        minimum: 1
+                                                        type: integer
+                                                      parallelism:
+                                                        default: 4
+                                                        description: |-
+                                                          ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                          Setting this to 1 will disable concurrent downloads.
+                                                        minimum: 1
+                                                        type: integer
+                                                      retryDelay:
+                                                        default: 1s
+                                                        description: ADVANCED SETTING.
+                                                          Minimum delay to use when
+                                                          retrying HTTP request to
+                                                          download (part of) GeoPackage.
+                                                        format: duration
+                                                        type: string
+                                                      retryMaxDelay:
+                                                        default: 30s
+                                                        description: ADVANCED SETTING.
+                                                          Maximum overall delay of
+                                                          the exponential backoff
+                                                          while retrying HTTP requests
+                                                          to download (part of) GeoPackage.
+                                                        format: duration
+                                                        type: string
+                                                      timeout:
+                                                        default: 2m
+                                                        description: ADVANCED SETTING.
+                                                          HTTP request timeout when
+                                                          downloading (part of) GeoPackage.
+                                                        format: duration
+                                                        type: string
+                                                      tlsSkipVerify:
+                                                        default: false
+                                                        description: ADVANCED SETTING.
+                                                          When true TLS certs are
+                                                          NOT validated, false otherwise.
+                                                          Only use true for your own
+                                                          self-signed certificates!
+                                                        type: boolean
+                                                    required:
+                                                    - from
+                                                    type: object
+                                                  externalFid:
+                                                    description: |-
+                                                      External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                      It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                    type: string
+                                                  fid:
+                                                    default: fid
+                                                    description: Feature id column
+                                                      name
+                                                    type: string
+                                                  file:
+                                                    description: |-
+                                                      Location of GeoPackage on disk.
+                                                      You can place the GeoPackage here manually (out-of-band) or you can specify Download
+                                                      and let the application download the GeoPackage for you and store it at this location.
+                                                    type: string
+                                                  inMemoryCacheSize:
+                                                    default: -2000
+                                                    description: |-
+                                                      ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                    type: integer
+                                                  maxBBoxSizeToUseWithRTree:
+                                                    default: 8000
+                                                    description: ADVANCED SETTING.
+                                                      When the number of features
+                                                      in a bbox stay within the given
+                                                      value use an RTree index, otherwise
+                                                      use a BTree index.
+                                                    type: integer
+                                                  queryTimeout:
+                                                    default: 15s
+                                                    description: Optional timeout
+                                                      after which queries are canceled
+                                                    format: duration
+                                                    type: string
+                                                required:
+                                                - file
+                                                type: object
+                                            type: object
+                                          postgres:
+                                            description: Postgres database to get
+                                              the features from.
+                                            properties:
+                                              databaseName:
+                                                default: postgres
+                                                description: Name of the PostgreSQL
+                                                  database containing the data.
+                                                type: string
+                                              externalFid:
+                                                description: |-
+                                                  External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                  It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                type: string
+                                              fid:
+                                                default: fid
+                                                description: Feature id column name
+                                                type: string
+                                              host:
+                                                default: localhost
+                                                description: Hostname of the PostgreSQL
+                                                  server.
+                                                type: string
+                                              pass:
+                                                default: postgres
+                                                description: Password when connecting
+                                                  to the PostgreSQL server.
+                                                type: string
+                                              port:
+                                                default: 5432
+                                                description: Port number of the PostgreSQL
+                                                  server.
+                                                type: integer
+                                              queryTimeout:
+                                                default: 15s
+                                                description: Optional timeout after
+                                                  which queries are canceled
+                                                format: duration
+                                                type: string
+                                              schema:
+                                                default: public
+                                                description: Name of the PostgreSQL
+                                                  schema containing the data.
+                                                type: string
+                                              sslMode:
+                                                default: disable
+                                                description: The SSL mode to use,
+                                                  e.g. 'disable', 'allow', 'prefer',
+                                                  'require', 'verify-ca' or 'verify-full'.
+                                                enum:
+                                                - disable
+                                                - allow
+                                                - prefer
+                                                - require
+                                                - verify-ca
+                                                - verify-full
+                                                type: string
+                                              user:
+                                                default: postgres
+                                                description: Username when connecting
+                                                  to the PostgreSQL server.
+                                                type: string
+                                            required:
+                                            - databaseName
+                                            - host
+                                            - pass
+                                            - port
+                                            - schema
+                                            - sslMode
+                                            - user
+                                            type: object
+                                          supportedSrs:
+                                            description: List of supported SRS/CRS
+                                            items:
+                                              properties:
+                                                srs:
+                                                  description: |-
+                                                    Supported coordinated reference systems (CRS/SRS) for on-the-fly reprojection/transformation.
+                                                    Note: no need to add 'OGC:CRS84', since that one is required and included by default.
+                                                  pattern: ^EPSG:\d+$
+                                                  type: string
+                                              required:
+                                              - srs
+                                              type: object
+                                            type: array
+                                        type: object
+                                      type: array
                                   type: object
                                 filters:
                                   description: Filters available for this collection
@@ -2956,7 +4656,7 @@ spec:
                                           deriveAllowedValuesFromDatasource:
                                             default: false
                                             description: |-
-                                              Derive list of allowed values for this property filter from the corresponding column in the datastore.
+                                              Derive a list of allowed values for this property filter from the corresponding column in the datastore.
                                               Use with caution since it can increase startup time when used on large tables. Make sure an index in present.
                                             type: boolean
                                           description:
@@ -3160,10 +4860,10 @@ spec:
 
 
                                     A) allows one to exclude certain properties, when propertiesExcludeUnknown=true
-                                    B) allows one sort the properties in the given order, when propertiesInSpecificOrder=true
+                                    B) allows one to sort the properties in the given order, when propertiesInSpecificOrder=true
 
 
-                                    When not set all available properties are returned in API responses, in alphabetical order.
+                                    When not set, all available properties are returned in API responses, in alphabetical order.
                                   items:
                                     type: string
                                   type: array
