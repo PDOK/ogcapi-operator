@@ -11,9 +11,9 @@ metadata:
 spec:
   podSpecPatch:
     volumes:
-      name: images
-      configMap:
-        name: some-suffixed-configmap-name-12345678
+      - name: images
+        configMap:
+          name: some-suffixed-configmap-name-12345678
     containers:
       - name: gokoala
         image: docker.io/pdok/gokoala:my-test-build
