@@ -2,6 +2,9 @@ apiVersion: pdok.nl/v1alpha1
 kind: OGCAPI
 metadata:
   labels:
+    # pdok.nl labels are needed for service-spectator tests to succeed
+    pdok.nl/owner-id: pdok
+    pdok.nl/dataset-id: sample
     app.kubernetes.io/name: ogcapi
     app.kubernetes.io/instance: ogcapi-sample
     app.kubernetes.io/part-of: ogcapi-operator
