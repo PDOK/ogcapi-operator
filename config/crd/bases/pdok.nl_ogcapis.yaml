@@ -449,6 +449,12 @@ spec:
                                                 description: Name of the PostgreSQL
                                                   schema containing the data.
                                                 type: string
+                                              spatialIndexRequired:
+                                                default: true
+                                                description: |-
+                                                  When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                                  when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                                type: boolean
                                               sslMode:
                                                 default: disable
                                                 description: The SSL mode to use,
@@ -744,6 +750,12 @@ spec:
                                               description: Name of the PostgreSQL
                                                 schema containing the data.
                                               type: string
+                                            spatialIndexRequired:
+                                              default: true
+                                              description: |-
+                                                When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                                when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                              type: boolean
                                             sslMode:
                                               default: disable
                                               description: The SSL mode to use, e.g.
@@ -1035,6 +1047,12 @@ spec:
                                                 description: Name of the PostgreSQL
                                                   schema containing the data.
                                                 type: string
+                                              spatialIndexRequired:
+                                                default: true
+                                                description: |-
+                                                  When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                                  when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                                type: boolean
                                               sslMode:
                                                 default: disable
                                                 description: The SSL mode to use,
@@ -1739,6 +1757,12 @@ spec:
                                                 description: Name of the PostgreSQL
                                                   schema containing the data.
                                                 type: string
+                                              spatialIndexRequired:
+                                                default: true
+                                                description: |-
+                                                  When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                                  when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                                type: boolean
                                               sslMode:
                                                 default: disable
                                                 description: The SSL mode to use,
@@ -2034,6 +2058,12 @@ spec:
                                               description: Name of the PostgreSQL
                                                 schema containing the data.
                                               type: string
+                                            spatialIndexRequired:
+                                              default: true
+                                              description: |-
+                                                When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                                when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                              type: boolean
                                             sslMode:
                                               default: disable
                                               description: The SSL mode to use, e.g.
@@ -2325,6 +2355,12 @@ spec:
                                                 description: Name of the PostgreSQL
                                                   schema containing the data.
                                                 type: string
+                                              spatialIndexRequired:
+                                                default: true
+                                                description: |-
+                                                  When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                                  when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                                type: boolean
                                               sslMode:
                                                 default: disable
                                                 description: The SSL mode to use,
@@ -2985,6 +3021,12 @@ spec:
                                           description: Name of the PostgreSQL schema
                                             containing the data.
                                           type: string
+                                        spatialIndexRequired:
+                                          default: true
+                                          description: |-
+                                            When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                            when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                          type: boolean
                                         sslMode:
                                           default: disable
                                           description: The SSL mode to use, e.g. 'disable',
@@ -3270,6 +3312,12 @@ spec:
                                         description: Name of the PostgreSQL schema
                                           containing the data.
                                         type: string
+                                      spatialIndexRequired:
+                                        default: true
+                                        description: |-
+                                          When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                          when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                        type: boolean
                                       sslMode:
                                         default: disable
                                         description: The SSL mode to use, e.g. 'disable',
@@ -3552,6 +3600,12 @@ spec:
                                           description: Name of the PostgreSQL schema
                                             containing the data.
                                           type: string
+                                        spatialIndexRequired:
+                                          default: true
+                                          description: |-
+                                            When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                            when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                          type: boolean
                                         sslMode:
                                           default: disable
                                           description: The SSL mode to use, e.g. 'disable',
@@ -4006,6 +4060,12 @@ spec:
                                                 description: Name of the PostgreSQL
                                                   schema containing the data.
                                                 type: string
+                                              spatialIndexRequired:
+                                                default: true
+                                                description: |-
+                                                  When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                                  when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                                type: boolean
                                               sslMode:
                                                 default: disable
                                                 description: The SSL mode to use,
@@ -4301,6 +4361,12 @@ spec:
                                               description: Name of the PostgreSQL
                                                 schema containing the data.
                                               type: string
+                                            spatialIndexRequired:
+                                              default: true
+                                              description: |-
+                                                When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                                when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                              type: boolean
                                             sslMode:
                                               default: disable
                                               description: The SSL mode to use, e.g.
@@ -4592,6 +4658,12 @@ spec:
                                                 description: Name of the PostgreSQL
                                                   schema containing the data.
                                                 type: string
+                                              spatialIndexRequired:
+                                                default: true
+                                                description: |-
+                                                  When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                                  when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                                type: boolean
                                               sslMode:
                                                 default: disable
                                                 description: The SSL mode to use,
