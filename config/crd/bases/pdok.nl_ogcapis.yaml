@@ -473,14 +473,6 @@ spec:
                                                 description: Username when connecting
                                                   to the PostgreSQL server.
                                                 type: string
-                                            required:
-                                            - databaseName
-                                            - host
-                                            - pass
-                                            - port
-                                            - schema
-                                            - sslMode
-                                            - user
                                             type: object
                                           srs:
                                             description: SRS/CRS used for the features
@@ -774,14 +766,6 @@ spec:
                                               description: Username when connecting
                                                 to the PostgreSQL server.
                                               type: string
-                                          required:
-                                          - databaseName
-                                          - host
-                                          - pass
-                                          - port
-                                          - schema
-                                          - sslMode
-                                          - user
                                           type: object
                                       type: object
                                     transformOnTheFly:
@@ -1071,14 +1055,6 @@ spec:
                                                 description: Username when connecting
                                                   to the PostgreSQL server.
                                                 type: string
-                                            required:
-                                            - databaseName
-                                            - host
-                                            - pass
-                                            - port
-                                            - schema
-                                            - sslMode
-                                            - user
                                             type: object
                                           supportedSrs:
                                             description: List of supported SRS/CRS
@@ -1781,14 +1757,6 @@ spec:
                                                 description: Username when connecting
                                                   to the PostgreSQL server.
                                                 type: string
-                                            required:
-                                            - databaseName
-                                            - host
-                                            - pass
-                                            - port
-                                            - schema
-                                            - sslMode
-                                            - user
                                             type: object
                                           srs:
                                             description: SRS/CRS used for the features
@@ -2082,14 +2050,6 @@ spec:
                                               description: Username when connecting
                                                 to the PostgreSQL server.
                                               type: string
-                                          required:
-                                          - databaseName
-                                          - host
-                                          - pass
-                                          - port
-                                          - schema
-                                          - sslMode
-                                          - user
                                           type: object
                                       type: object
                                     transformOnTheFly:
@@ -2379,14 +2339,6 @@ spec:
                                                 description: Username when connecting
                                                   to the PostgreSQL server.
                                                 type: string
-                                            required:
-                                            - databaseName
-                                            - host
-                                            - pass
-                                            - port
-                                            - schema
-                                            - sslMode
-                                            - user
                                             type: object
                                           supportedSrs:
                                             description: List of supported SRS/CRS
@@ -3045,14 +2997,6 @@ spec:
                                           description: Username when connecting to
                                             the PostgreSQL server.
                                           type: string
-                                      required:
-                                      - databaseName
-                                      - host
-                                      - pass
-                                      - port
-                                      - schema
-                                      - sslMode
-                                      - user
                                       type: object
                                     srs:
                                       description: SRS/CRS used for the features in
@@ -3336,14 +3280,6 @@ spec:
                                         description: Username when connecting to the
                                           PostgreSQL server.
                                         type: string
-                                    required:
-                                    - databaseName
-                                    - host
-                                    - pass
-                                    - port
-                                    - schema
-                                    - sslMode
-                                    - user
                                     type: object
                                 type: object
                               transformOnTheFly:
@@ -3624,14 +3560,6 @@ spec:
                                           description: Username when connecting to
                                             the PostgreSQL server.
                                           type: string
-                                      required:
-                                      - databaseName
-                                      - host
-                                      - pass
-                                      - port
-                                      - schema
-                                      - sslMode
-                                      - user
                                       type: object
                                     supportedSrs:
                                       description: List of supported SRS/CRS
@@ -4084,14 +4012,6 @@ spec:
                                                 description: Username when connecting
                                                   to the PostgreSQL server.
                                                 type: string
-                                            required:
-                                            - databaseName
-                                            - host
-                                            - pass
-                                            - port
-                                            - schema
-                                            - sslMode
-                                            - user
                                             type: object
                                           srs:
                                             description: SRS/CRS used for the features
@@ -4385,14 +4305,6 @@ spec:
                                               description: Username when connecting
                                                 to the PostgreSQL server.
                                               type: string
-                                          required:
-                                          - databaseName
-                                          - host
-                                          - pass
-                                          - port
-                                          - schema
-                                          - sslMode
-                                          - user
                                           type: object
                                       type: object
                                     transformOnTheFly:
@@ -4682,14 +4594,6 @@ spec:
                                                 description: Username when connecting
                                                   to the PostgreSQL server.
                                                 type: string
-                                            required:
-                                            - databaseName
-                                            - host
-                                            - pass
-                                            - port
-                                            - schema
-                                            - sslMode
-                                            - user
                                             type: object
                                           supportedSrs:
                                             description: List of supported SRS/CRS
