@@ -261,11 +261,11 @@ func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deplo
 	deployment.Spec.Strategy = appsv1.DeploymentStrategy{
 		Type: appsv1.RollingUpdateDeploymentStrategyType,
 		RollingUpdate: &appsv1.RollingUpdateDeployment{
-			MaxUnavailable: intOrStrStrPtr("25%"),
-			MaxSurge:       intOrStrStrPtr("25%"),
+			MaxUnavailable: intOrStrStrPtr("1"),
+			MaxSurge:       intOrStrStrPtr("1"),
 		},
 	}
-	deployment.Spec.RevisionHistoryLimit = int32Ptr(3)
+	deployment.Spec.RevisionHistoryLimit = int32Ptr(1)
 
 	// deployment.Spec.Replicas is controlled by the HPA
 	// deployment.Spec.Paused is ignored to allow a manual intervention i.c.e.
