@@ -244,8 +244,8 @@ func int32Ptr(i int32) *int32 {
 	return &i
 }
 
-func intOrStrStrPtr(s string) *intstr.IntOrString {
-	v := intstr.FromString(s)
+func intOrStrIntPtr(i int32) *intstr.IntOrString {
+	v := intstr.FromInt32(i)
 	return &v
 }
 
