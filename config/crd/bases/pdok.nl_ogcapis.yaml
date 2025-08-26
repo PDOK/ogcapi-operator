@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.14.0
+    controller-gen.kubebuilder.io/version: v0.17.0
   name: ogcapis.pdok.nl
 spec:
   group: pdok.nl
@@ -193,8 +193,8 @@ spec:
                                 in the pods of the scaling target
                               type: string
                             name:
-                              $ref: '#/definitions/k8s.io~1api~1core~1v1~0ResourceName'
                               description: name is the name of the resource in question.
+                              type: string
                             target:
                               description: target specifies the target value for the
                                 given metric
@@ -585,8 +585,8 @@ spec:
                             to normal per-pod metrics using the "pods" source.
                           properties:
                             name:
-                              $ref: '#/definitions/k8s.io~1api~1core~1v1~0ResourceName'
                               description: name is the name of the resource in question.
+                              type: string
                             target:
                               description: target specifies the target value for the
                                 given metric
@@ -777,7 +777,6 @@ spec:
                                       description: |-
                                         One or more additional datasources for features in other (non-WGS84) coordinate reference systems.
 
-
                                         No on-the-fly transformation/reprojection is performed, so the features in these additional datasources
                                         need to be transformed/reprojected ahead of time. For example, using ogr2ogr.
                                       items:
@@ -1075,7 +1074,6 @@ spec:
                                         Features should always be available in WGS84 (according to spec). This specifies the
                                         datasource to be used for features in the WGS84 coordinate reference system.
 
-
                                         No on-the-fly transformation/reprojection is performed, so the features in this datasource need to be
                                         either native WGS84 or reprojected/transformed to WGS84 ahead of time. For example, using ogr2ogr.
                                       properties:
@@ -1359,7 +1357,6 @@ spec:
                                       description: |-
                                         Datasource containing features which will be transformed/reprojected on-the-fly to the specified
                                         coordinate reference systems. No need to transform/reproject ahead of time.
-
 
                                         Note: On-the-fly transformation/reprojection may impact performance when using (very) large geometries.
                                       items:
@@ -1882,10 +1879,8 @@ spec:
                                   description: |-
                                     Properties/fields of features in this collection. This setting controls two things:
 
-
                                     A) allows one to exclude certain properties, when propertiesExcludeUnknown=true
                                     B) allows one to sort the properties in the given order, when propertiesInSpecificOrder=true
-
 
                                     When not set, all available properties are returned in API responses, in alphabetical order.
                                   items:
@@ -2061,7 +2056,6 @@ spec:
                                       description: |-
                                         One or more additional datasources for features in other (non-WGS84) coordinate reference systems.
 
-
                                         No on-the-fly transformation/reprojection is performed, so the features in these additional datasources
                                         need to be transformed/reprojected ahead of time. For example, using ogr2ogr.
                                       items:
@@ -2359,7 +2353,6 @@ spec:
                                         Features should always be available in WGS84 (according to spec). This specifies the
                                         datasource to be used for features in the WGS84 coordinate reference system.
 
-
                                         No on-the-fly transformation/reprojection is performed, so the features in this datasource need to be
                                         either native WGS84 or reprojected/transformed to WGS84 ahead of time. For example, using ogr2ogr.
                                       properties:
@@ -2643,7 +2636,6 @@ spec:
                                       description: |-
                                         Datasource containing features which will be transformed/reprojected on-the-fly to the specified
                                         coordinate reference systems. No need to transform/reproject ahead of time.
-
 
                                         Note: On-the-fly transformation/reprojection may impact performance when using (very) large geometries.
                                       items:
@@ -3166,10 +3158,8 @@ spec:
                                   description: |-
                                     Properties/fields of features in this collection. This setting controls two things:
 
-
                                     A) allows one to exclude certain properties, when propertiesExcludeUnknown=true
                                     B) allows one to sort the properties in the given order, when propertiesInSpecificOrder=true
-
 
                                     When not set, all available properties are returned in API responses, in alphabetical order.
                                   items:
@@ -3309,7 +3299,6 @@ spec:
                               additional:
                                 description: |-
                                   One or more additional datasources for features in other (non-WGS84) coordinate reference systems.
-
 
                                   No on-the-fly transformation/reprojection is performed, so the features in these additional datasources
                                   need to be transformed/reprojected ahead of time. For example, using ogr2ogr.
@@ -3599,7 +3588,6 @@ spec:
                                   Features should always be available in WGS84 (according to spec). This specifies the
                                   datasource to be used for features in the WGS84 coordinate reference system.
 
-
                                   No on-the-fly transformation/reprojection is performed, so the features in this datasource need to be
                                   either native WGS84 or reprojected/transformed to WGS84 ahead of time. For example, using ogr2ogr.
                                 properties:
@@ -3873,7 +3861,6 @@ spec:
                                 description: |-
                                   Datasource containing features which will be transformed/reprojected on-the-fly to the specified
                                   coordinate reference systems. No need to transform/reproject ahead of time.
-
 
                                   Note: On-the-fly transformation/reprojection may impact performance when using (very) large geometries.
                                 items:
@@ -4316,7 +4303,6 @@ spec:
                                       description: |-
                                         One or more additional datasources for features in other (non-WGS84) coordinate reference systems.
 
-
                                         No on-the-fly transformation/reprojection is performed, so the features in these additional datasources
                                         need to be transformed/reprojected ahead of time. For example, using ogr2ogr.
                                       items:
@@ -4614,7 +4600,6 @@ spec:
                                         Features should always be available in WGS84 (according to spec). This specifies the
                                         datasource to be used for features in the WGS84 coordinate reference system.
 
-
                                         No on-the-fly transformation/reprojection is performed, so the features in this datasource need to be
                                         either native WGS84 or reprojected/transformed to WGS84 ahead of time. For example, using ogr2ogr.
                                       properties:
@@ -4898,7 +4883,6 @@ spec:
                                       description: |-
                                         Datasource containing features which will be transformed/reprojected on-the-fly to the specified
                                         coordinate reference systems. No need to transform/reproject ahead of time.
-
 
                                         Note: On-the-fly transformation/reprojection may impact performance when using (very) large geometries.
                                       items:
@@ -5421,10 +5405,8 @@ spec:
                                   description: |-
                                     Properties/fields of features in this collection. This setting controls two things:
 
-
                                     A) allows one to exclude certain properties, when propertiesExcludeUnknown=true
                                     B) allows one to sort the properties in the given order, when propertiesInSpecificOrder=true
-
 
                                     When not set, all available properties are returned in API responses, in alphabetical order.
                                   items:
@@ -5695,16 +5677,8 @@ spec:
                   Each condition contains details for one aspect of the current state of this CR.
                   Known .status.conditions.type are: "Reconciled"
                 items:
-                  description: "Condition contains details for one aspect of the current
-                    state of this API Resource.\n---\nThis struct is intended for
-                    direct use as an array at the field path .status.conditions.  For
-                    example,\n\n\n\ttype FooStatus struct{\n\t    // Represents the
-                    observations of a foo's current state.\n\t    // Known .status.conditions.type
-                    are: \"Available\", \"Progressing\", and \"Degraded\"\n\t    //
-                    +patchMergeKey=type\n\t    // +patchStrategy=merge\n\t    // +listType=map\n\t
-                    \   // +listMapKey=type\n\t    Conditions []metav1.Condition `json:\"conditions,omitempty\"
-                    patchStrategy:\"merge\" patchMergeKey:\"type\" protobuf:\"bytes,1,rep,name=conditions\"`\n\n\n\t
-                    \   // other fields\n\t}"
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
                   properties:
                     lastTransitionTime:
                       description: |-
@@ -5745,12 +5719,7 @@ spec:
                       - Unknown
                       type: string
                     type:
-                      description: |-
-                        type of condition in CamelCase or in foo.example.com/CamelCase.
-                        ---
-                        Many .condition.type values are consistent across resources like Available, but because arbitrary conditions can be
-                        useful (see .node.status.conditions), the ability to deconflict is important.
-                        The regex it matches is (dns1123SubdomainFmt/)?(qualifiedNameFmt)
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
                       maxLength: 316
                       pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
                       type: string
