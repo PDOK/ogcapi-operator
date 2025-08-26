@@ -31,7 +31,10 @@ import (
 	"os"
 
 	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
+	policyv1 "k8s.io/api/policy/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	//v2 "k8s.io/client-go/applyconfigurations/autoscaling/v2"
+	v2 "k8s.io/api/autoscaling/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/google/go-cmp/cmp"
@@ -411,6 +414,18 @@ func testOGCAPIMutates(ogcAPI pdoknlv1alpha1.OGCAPI, name string) {
 	It("Should generate a correct IngressRoute", func() {
 		testMutate("IngressRoute", getBareIngressRoute(&ogcAPI), outputPath+"ingressroute.yaml", func(i *traefikiov1alpha1.IngressRoute) error {
 			return reconciler.mutateIngressRoute(&ogcAPI, i)
+		})
+	})
+
+	It("Should generate a correct PodDisruptionBudget", func() {
+		testMutate("PodDisruptionBudget", getBarePodDisruptionBudget(&ogcAPI), outputPath+"poddisruptionbudget.yaml", func(p *policyv1.PodDisruptionBudget) error {
+			return reconciler.mutatePodDisruptionBudget(&ogcAPI, p)
+		})
+	})
+
+	It("Should generate a correct HorizontalPodAutoscaler", func() {
+		testMutate("HorizontalPodAutoscaler", getBareHorizontalPodAutoscaler(&ogcAPI), outputPath+"horizontalpodautoscaler.yaml", func(h *v2.HorizontalPodAutoscaler) error {
+			return reconciler.mutateHorizontalPodAutoscaler(&ogcAPI, h)
 		})
 	})
 

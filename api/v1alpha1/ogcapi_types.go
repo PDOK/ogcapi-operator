@@ -27,9 +27,19 @@ package v1alpha1
 import (
 	gokoalaconfig "github.com/PDOK/gokoala/config"
 	smoothoperatormodel "github.com/pdok/smooth-operator/model"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+// HorizontalPodAutoscalerPatch - copy of autoscalingv2.HorizontalPodAutoscalerSpec without ScaleTargetRef
+// This way we don't have to specify the scaleTargetRef field in the CRD.
+type HorizontalPodAutoscalerPatch struct {
+	MinReplicas *int32                                         `json:"minReplicas,omitempty"`
+	MaxReplicas *int32                                         `json:"maxReplicas,omitempty"`
+	Metrics     []autoscalingv2.MetricSpec                     `json:"metrics,omitempty"`
+	Behavior    *autoscalingv2.HorizontalPodAutoscalerBehavior `json:"behavior,omitempty"`
+}
 
 // OGCAPISpec defines the desired state of OGCAPI
 // +kubebuilder:pruning:PreserveUnknownFields
@@ -41,6 +51,9 @@ type OGCAPISpec struct {
 	//+kubebuilder:pruning:PreserveUnknownFields
 	// Optional strategic merge patch for the pod in the deployment. E.g. to patch the resources or add extra env vars.
 	PodSpecPatch *corev1.PodSpec `json:"podSpecPatch,omitempty"`
+
+	// Optional specification for the HorizontalAutoscaler
+	HorizontalPodAutoscalerPatch *HorizontalPodAutoscalerPatch `json:"horizontalPodAutoscalerPatch,omitempty"`
 
 	// Optional list of URLs where the service can be reached
 	// By default only the spec.service.baseUrl is used
@@ -64,6 +77,10 @@ type OGCAPI struct {
 
 func (ogcapi *OGCAPI) OperatorStatus() *smoothoperatormodel.OperatorStatus {
 	return &ogcapi.Status
+}
+
+func (ogcapi *OGCAPI) HorizontalPodAutoscalerPatch() *HorizontalPodAutoscalerPatch {
+	return ogcapi.Spec.HorizontalPodAutoscalerPatch
 }
 
 // OGCAPIList contains a list of OGCAPI

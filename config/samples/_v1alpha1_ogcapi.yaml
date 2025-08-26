@@ -12,6 +12,9 @@ metadata:
     app.kubernetes.io/created-by: ogcapi-operator
   name: ogcapi-sample
 spec:
+  horizontalPodAutoscalerPatch:
+    maxReplicas: 2
+    minReplicas: 1
   podSpecPatch:
     volumes:
       - name: images
