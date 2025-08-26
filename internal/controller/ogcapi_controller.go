@@ -654,7 +654,6 @@ func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI *pdoknlv1alpha1.
 		},
 	}
 	if ogcAPI.HorizontalPodAutoscalerPatch() != nil {
-		println(ogcAPI.HorizontalPodAutoscalerPatch)
 		patchedSpec, err := smoothoperatorutils.StrategicMergePatch(&hpa.Spec, ogcAPI.HorizontalPodAutoscalerPatch())
 		if err != nil {
 			return err

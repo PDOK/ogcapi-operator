@@ -31,10 +31,9 @@ import (
 	"os"
 
 	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
+	v2 "k8s.io/api/autoscaling/v2"
 	policyv1 "k8s.io/api/policy/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	//v2 "k8s.io/client-go/applyconfigurations/autoscaling/v2"
-	v2 "k8s.io/api/autoscaling/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/google/go-cmp/cmp"
