@@ -31,6 +31,8 @@ import (
 	"os"
 
 	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
+	v2 "k8s.io/api/autoscaling/v2"
+	policyv1 "k8s.io/api/policy/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
@@ -398,6 +400,7 @@ func testMutate[T any](kind string, result *T, expectedFile string, mutate func(
 func testOGCAPIMutates(ogcAPI pdoknlv1alpha1.OGCAPI, name string) {
 	var reconciler OGCAPIReconciler
 
+	inputPath := "testdata/input/"
 	outputPath := fmt.Sprintf("testdata/expected/%s/", name)
 
 	BeforeEach(func() {
@@ -411,6 +414,31 @@ func testOGCAPIMutates(ogcAPI pdoknlv1alpha1.OGCAPI, name string) {
 	It("Should generate a correct IngressRoute", func() {
 		testMutate("IngressRoute", getBareIngressRoute(&ogcAPI), outputPath+"ingressroute.yaml", func(i *traefikiov1alpha1.IngressRoute) error {
 			return reconciler.mutateIngressRoute(&ogcAPI, i)
+		})
+	})
+
+	It("Should generate a correct PodDisruptionBudget", func() {
+		testMutate("PodDisruptionBudget", getBarePodDisruptionBudget(&ogcAPI), outputPath+"poddisruptionbudget.yaml", func(p *policyv1.PodDisruptionBudget) error {
+			return reconciler.mutatePodDisruptionBudget(&ogcAPI, p)
+		})
+	})
+
+	It("Should generate a correct HorizontalPodAutoscaler", func() {
+		testMutate("HorizontalPodAutoscaler", getBareHorizontalPodAutoscaler(&ogcAPI), outputPath+"horizontalpodautoscaler.yaml", func(h *v2.HorizontalPodAutoscaler) error {
+			return reconciler.mutateHorizontalPodAutoscaler(&ogcAPI, h)
+		})
+	})
+
+	It("Should create a correct HorizontalPodAutoscaler based on an HorizontalPodAutoscalerPatch", func() {
+		data, err := os.ReadFile(inputPath + "horizontalpodautoscalerpatch.yaml")
+		if err != nil {
+			panic(err)
+		}
+		Expect(err).NotTo(HaveOccurred())
+		err = yaml.UnmarshalStrict(data, &ogcAPI)
+		Expect(err).NotTo(HaveOccurred())
+		testMutate("HorizontalPodAutoscaler", getBareHorizontalPodAutoscaler(&ogcAPI), outputPath+"horizontalpodautoscalerpatch.yaml", func(h *v2.HorizontalPodAutoscaler) error {
+			return reconciler.mutateHorizontalPodAutoscaler(&ogcAPI, h)
 		})
 	})
 

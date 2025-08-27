@@ -78,11 +78,21 @@ func (v *OGCAPICustomValidator) ValidateCreate(_ context.Context, obj runtime.Ob
 	// by gokoalaconfig.Config.UnmarshalYAML(). No need to explicitly invoke anything.
 	// Please add additional GoKoala specific validations in GoKoala's UnmarshallYAML() method.
 
+	allErrs := field.ErrorList{}
+
 	// Any other validations may be added below.
 	if ogcapi.Spec.IngressRouteURLs != nil {
 		err := smoothoperatorvalidation.ValidateIngressRouteURLsContainsBaseURL(ogcapi.Spec.IngressRouteURLs, smoothoperatormodel.URL{URL: ogcapi.Spec.Service.BaseURL.URL}, nil)
 
 		return nil, err
+	}
+
+	if ogcapi.HorizontalPodAutoscalerPatch() != nil {
+		ValidateHorizontalPodAutoscalerPatch(*ogcapi.HorizontalPodAutoscalerPatch(), &allErrs)
+	}
+
+	if len(allErrs) > 0 {
+		return nil, allErrs.ToAggregate()
 	}
 
 	return nil, nil
@@ -126,6 +136,11 @@ func (v *OGCAPICustomValidator) ValidateUpdate(_ context.Context, oldObj, newObj
 	smoothoperatorvalidation.ValidateIngressRouteURLsNotRemoved(oldOgcapi.Spec.IngressRouteURLs, newOgcapi.Spec.IngressRouteURLs, &allErrs, nil)
 
 	smoothoperatorvalidation.ValidateLabelsOnUpdate(oldOgcapi.GetLabels(), newOgcapi.GetLabels(), &allErrs)
+
+	if newOgcapi.HorizontalPodAutoscalerPatch() != nil {
+		ValidateHorizontalPodAutoscalerPatch(*newOgcapi.HorizontalPodAutoscalerPatch(), &allErrs)
+	}
+
 	if len(allErrs) > 0 {
 		return nil, allErrs.ToAggregate()
 	}
@@ -142,4 +157,23 @@ func (v *OGCAPICustomValidator) ValidateDelete(_ context.Context, obj runtime.Ob
 	ogcapilog.Info("validate delete", "name", ogcapi.Name)
 	// noop
 	return nil, nil
+}
+
+func ValidateHorizontalPodAutoscalerPatch(patch HorizontalPodAutoscalerPatch, allErrs *field.ErrorList) {
+	path := field.NewPath("spec").Child("horizontalPodAutoscaler")
+
+	var minReplicas, maxReplicas int32 = 2, 32
+	if patch.MinReplicas != nil {
+		minReplicas = *patch.MinReplicas
+	}
+	if patch.MaxReplicas != nil {
+		maxReplicas = *patch.MaxReplicas
+	}
+
+	if maxReplicas < minReplicas {
+		replicas := fmt.Sprintf("minReplicas: %d, maxReplicas: %d", minReplicas, maxReplicas)
+
+		*allErrs = append(*allErrs, field.Invalid(path, replicas, "maxReplicas cannot be less than minReplicas"))
+	}
+
 }
