@@ -1,0 +1,10 @@
+apiVersion: pdok.nl/v1alpha1
+kind: OGCAPI
+metadata:
+  labels:
+    pdok.nl/app: gokoala
+  name: test-resource
+spec:
+  horizontalPodAutoscalerPatch:
+    maxReplicas: 5
+    minReplicas: 3
