@@ -1,4 +1,4 @@
-apiVersion: pdok.nl/v1alpha1
+apiVersion: autoscaling/v2
 kind: OGCAPI
 metadata:
   labels:
