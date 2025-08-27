@@ -162,7 +162,6 @@ func (v *OGCAPICustomValidator) ValidateDelete(_ context.Context, obj runtime.Ob
 func ValidateHorizontalPodAutoscalerPatch(patch HorizontalPodAutoscalerPatch, allErrs *field.ErrorList) {
 	path := field.NewPath("spec").Child("horizontalPodAutoscaler")
 
-	// TODO: replace hardcoded defaults with dynamic defaults from cli options or ownerInfo
 	var minReplicas, maxReplicas int32 = 2, 32
 	if patch.MinReplicas != nil {
 		minReplicas = *patch.MinReplicas
