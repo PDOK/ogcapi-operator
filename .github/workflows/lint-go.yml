@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v4
         with:
-          go-version: '1.24'
+          go-version: '1.25'
           cache: false
 
       - uses: actions/checkout@v3
@@ -23,6 +23,6 @@ jobs:
         uses: katexochen/go-tidy-check@v2
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v8
         with:
-          version: latest
+          version: v2.5.0

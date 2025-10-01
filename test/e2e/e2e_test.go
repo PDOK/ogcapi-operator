@@ -29,8 +29,8 @@ import (
 	"os/exec"
 	"time"
 
-	. "github.com/onsi/ginkgo/v2" //nolint:revive // ginkgo bdd
-	. "github.com/onsi/gomega"    //nolint:revive // ginkgo bdd
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 
 	"github.com/PDOK/ogcapi-operator/test/utils"
 )
@@ -75,7 +75,7 @@ var _ = Describe("controller", Ordered, func() {
 			_, err = utils.Run(cmd)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 
-			By("loading the the manager(Operator) image on Kind")
+			By("loading the manager(Operator) image on Kind")
 			err = utils.LoadImageToKindClusterWithName(projectimage)
 			ExpectWithOffset(1, err).NotTo(HaveOccurred())
 

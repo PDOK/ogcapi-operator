@@ -26,12 +26,12 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
 
 	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
-	v2 "k8s.io/api/autoscaling/v2"
 	policyv1 "k8s.io/api/policy/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -40,7 +40,6 @@ import (
 	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 	"sigs.k8s.io/yaml"
 
-	"github.com/pkg/errors"
 	"golang.org/x/text/language"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -52,8 +51,8 @@ import (
 	gokoalaconfig "github.com/PDOK/gokoala/config"
 	corev1 "k8s.io/api/core/v1"
 
-	. "github.com/onsi/ginkgo/v2" //nolint:revive // ginkgo bdd
-	. "github.com/onsi/gomega"    //nolint:revive // gingko bdd
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -424,7 +423,7 @@ func testOGCAPIMutates(ogcAPI pdoknlv1alpha1.OGCAPI, name string) {
 	})
 
 	It("Should generate a correct HorizontalPodAutoscaler", func() {
-		testMutate("HorizontalPodAutoscaler", getBareHorizontalPodAutoscaler(&ogcAPI), outputPath+"horizontalpodautoscaler.yaml", func(h *v2.HorizontalPodAutoscaler) error {
+		testMutate("HorizontalPodAutoscaler", getBareHorizontalPodAutoscaler(&ogcAPI), outputPath+"horizontalpodautoscaler.yaml", func(h *autoscalingv2.HorizontalPodAutoscaler) error {
 			return reconciler.mutateHorizontalPodAutoscaler(&ogcAPI, h)
 		})
 	})
@@ -437,7 +436,7 @@ func testOGCAPIMutates(ogcAPI pdoknlv1alpha1.OGCAPI, name string) {
 		Expect(err).NotTo(HaveOccurred())
 		err = yaml.UnmarshalStrict(data, &ogcAPI)
 		Expect(err).NotTo(HaveOccurred())
-		testMutate("HorizontalPodAutoscaler", getBareHorizontalPodAutoscaler(&ogcAPI), outputPath+"horizontalpodautoscalerpatch.yaml", func(h *v2.HorizontalPodAutoscaler) error {
+		testMutate("HorizontalPodAutoscaler", getBareHorizontalPodAutoscaler(&ogcAPI), outputPath+"horizontalpodautoscalerpatch.yaml", func(h *autoscalingv2.HorizontalPodAutoscaler) error {
 			return reconciler.mutateHorizontalPodAutoscaler(&ogcAPI, h)
 		})
 	})

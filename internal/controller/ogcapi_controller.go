@@ -117,7 +117,7 @@ func (r *OGCAPIReconciler) Reconcile(ctx context.Context, req ctrl.Request) (res
 	lgr := log.FromContext(ctx)
 
 	ogcAPI := &pdoknlv1alpha1.OGCAPI{}
-	err = r.Client.Get(ctx, req.NamespacedName, ogcAPI)
+	err = r.Get(ctx, req.NamespacedName, ogcAPI)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			lgr.Info("OGCAPI resource not found", "name", req.NamespacedName)

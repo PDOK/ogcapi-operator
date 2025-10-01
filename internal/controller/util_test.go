@@ -125,6 +125,7 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 }
 
 func mustURLParse(t *testing.T, in string) url.URL {
+	t.Helper()
 	parsed, err := url.Parse(in)
 	require.NoError(t, err)
 	return *parsed

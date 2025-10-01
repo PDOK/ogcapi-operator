@@ -36,8 +36,8 @@ import (
 	"golang.org/x/tools/go/packages"
 
 	pdoknlv1alpha1 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
-	. "github.com/onsi/ginkgo/v2" //nolint:revive // ginkgo bdd
-	. "github.com/onsi/gomega"    //nolint:revive // ginkgo bdd
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	traefikiov1alpha1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 
 	"k8s.io/client-go/kubernetes/scheme"
