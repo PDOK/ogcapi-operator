@@ -208,6 +208,51 @@ var _ = Describe("OGCAPI Controller", func() {
 			Expect(mockSlack.Message).To(ContainSubstring("unable to fetch OGCAPI resource"))
 		})
 
+		It("Should annotate the deployment with volume-operator annotations", func() {
+			controllerReconciler := &OGCAPIReconciler{
+				Client:       k8sClient,
+				Scheme:       k8sClient.Scheme(),
+				GokoalaImage: testImageName,
+			}
+			By("Updating the CR annotation")
+			// set the required blob prefix to add annotations
+			ogcAPI.VolumeOperatorSpec.BlobPrefix = "test/prefix"
+			err := k8sClient.Update(ctx, ogcAPI)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Reconciling the OGCAPI")
+			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
+			Expect(err).NotTo(HaveOccurred())
+			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
+			Expect(err).NotTo(HaveOccurred())
+
+			deployment := getBareDeployment(ogcAPI)
+			err = k8sClient.Get(ctx, client.ObjectKeyFromObject(deployment), deployment)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(deployment.Annotations["volume-operator.pdok.nl/blob-prefix"]).To(Equal("test/prefix"))
+			Expect(deployment.Spec.Template.Spec.Volumes).To(
+				ContainElement(
+					HaveField(
+						"Name",
+						Equal(gokoalaName+"-clone"),
+					),
+				),
+			)
+			Expect(deployment.Spec.Template.Spec.Containers).To(
+				ContainElement(
+					HaveField(
+						"VolumeMounts",
+						ContainElement(
+							HaveField(
+								"Name",
+								Equal(gokoalaName+"-clone"),
+							),
+						),
+					),
+				),
+			)
+		})
+
 		It("Should successfully create and delete its owned resources", func() {
 			controllerReconciler := &OGCAPIReconciler{
 				Client:       k8sClient,
