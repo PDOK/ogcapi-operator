@@ -7,7 +7,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/onsi/ginkgo/v2 v2.27.2
 	github.com/onsi/gomega v1.38.2
-	github.com/pdok/smooth-operator v1.2.2
+	github.com/pdok/smooth-operator v1.2.3
 	github.com/peterbourgon/ff v1.7.1
 	github.com/slack-go/slack v0.17.3
 	github.com/stretchr/testify v1.11.1
