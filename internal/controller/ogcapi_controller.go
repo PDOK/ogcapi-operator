@@ -58,6 +58,7 @@ import (
 	pdoknlv1alpha1 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
 	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 	smoothoperatorstatus "github.com/pdok/smooth-operator/pkg/status"
+	smoothoperatorutil "github.com/pdok/smooth-operator/pkg/util"
 )
 
 const (
@@ -78,6 +79,8 @@ const (
 	headersName         = "cors-headers"
 	srvDir              = "/srv"
 	priorityAnnotation  = "priority.version-checker.io"
+
+	volumeMountPath = "/data"
 )
 
 var (
@@ -349,10 +352,69 @@ func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deplo
 	podTemplateSpec.Spec.Containers[0].Image = r.GokoalaImage
 	deployment.Spec.Template = podTemplateSpec
 
+	// set annotations for optional volume-operator, volume operator requires blob-prefix to be set
+	if ogcAPI.VolumeOperatorSpec.BlobPrefix != "" {
+		deployment = addVolumePopulatorToDeployment(deployment, ogcAPI)
+	}
+
 	if err := ensureSetGVK(r.Client, deployment, deployment); err != nil {
 		return err
 	}
 	return ctrl.SetControllerReference(ogcAPI, deployment, r.Scheme)
+}
+
+func addVolumePopulatorToDeployment(deployment *appsv1.Deployment, ogcAPI *pdoknlv1alpha1.OGCAPI) *appsv1.Deployment {
+	if ogcAPI.VolumeOperatorSpec.StorageCapacity == "" {
+		ogcAPI.VolumeOperatorSpec.StorageCapacity = "1Gi"
+	}
+
+	hash := smoothoperatorutil.GenerateHashFromStrings([]string{
+		ogcAPI.VolumeOperatorSpec.BlobPrefix,
+		volumeMountPath,
+		ogcAPI.VolumeOperatorSpec.StorageCapacity,
+	})
+	deployment.Annotations = cloneOrEmptyMap(deployment.Annotations)
+	deployment.Annotations["volume-operator.pdok.nl/blob-prefix"] = ogcAPI.VolumeOperatorSpec.BlobPrefix
+	deployment.Annotations["volume-operator.pdok.nl/volume-path"] = volumeMountPath
+	deployment.Annotations["volume-operator.pdok.nl/storage-class"] = ogcAPI.VolumeOperatorSpec.StorageClass
+	deployment.Annotations["volume-operator.pdok.nl/resource-suffix"] = hash
+
+	volume := corev1.Volume{
+		Name: gokoalaName + "-clone",
+		VolumeSource: corev1.VolumeSource{
+			Ephemeral: &corev1.EphemeralVolumeSource{
+				VolumeClaimTemplate: &corev1.PersistentVolumeClaimTemplate{
+					Spec: corev1.PersistentVolumeClaimSpec{
+						AccessModes: []corev1.PersistentVolumeAccessMode{
+							corev1.ReadWriteOnce,
+						},
+						StorageClassName: &ogcAPI.VolumeOperatorSpec.StorageClass,
+						Resources: corev1.VolumeResourceRequirements{
+							Requests: corev1.ResourceList{
+								corev1.ResourceStorage: resource.MustParse(ogcAPI.VolumeOperatorSpec.StorageCapacity),
+							},
+						},
+						DataSource: &corev1.TypedLocalObjectReference{
+							APIGroup: smoothoperatorutil.Pointer("v1"),
+							Kind:     "PersistentVolumeClaim",
+							Name:     hash,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, volume)
+	for i, container := range deployment.Spec.Template.Spec.Containers {
+		if container.Name == gokoalaName {
+			deployment.Spec.Template.Spec.Containers[i].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[i].VolumeMounts, corev1.VolumeMount{
+				Name:      volume.Name,
+				MountPath: volumeMountPath,
+			})
+		}
+	}
+	return deployment
 }
 
 // getBareConfigMap sets the base name for the configmap containing the config for the gokoala Deployment.

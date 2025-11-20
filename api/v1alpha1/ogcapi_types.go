@@ -47,6 +47,25 @@ type OGCAPISpec struct {
 	IngressRouteURLs smoothoperatormodel.IngressRouteURLs `json:"ingressRouteUrls,omitempty"`
 }
 
+type BlobDownloadOptions struct {
+	BlockSize       string `json:"blockSize,omitempty"`
+	BlobConcurrency string `json:"blobConcurrency,omitempty"`
+}
+
+// VolumeOperatorSpec defines the way the volumes are managed
+type VolumeOperatorSpec struct {
+	// The prefix to use for the blob storage container (the location of the data)
+	BlobPrefix string `json:"blobPrefix"`
+
+	// The storage capacity to request for the volumes created by the volume operator, min: 1Gi
+	StorageCapacity string `json:"storageCapacity,omitempty"`
+
+	// The storage class to use for the volumes created by the volume operator, defaults to zrs-managed-premium
+	StorageClass string `json:"storageClass,omitempty"`
+
+	BlobDownloadOptions BlobDownloadOptions `json:"blobDownloadOptions,omitempty"`
+}
+
 // OGCAPI is the Schema for the ogcapis API
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
@@ -58,8 +77,9 @@ type OGCAPI struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   OGCAPISpec                         `json:"spec,omitempty"`
-	Status smoothoperatormodel.OperatorStatus `json:"status,omitempty"`
+	Spec               OGCAPISpec                         `json:"spec,omitempty"`
+	Status             smoothoperatormodel.OperatorStatus `json:"status,omitempty"`
+	VolumeOperatorSpec VolumeOperatorSpec                 `json:"volumeOperatorSpec,omitempty"`
 }
 
 func (ogcapi *OGCAPI) OperatorStatus() *smoothoperatormodel.OperatorStatus {

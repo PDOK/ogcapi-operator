@@ -5211,6 +5211,31 @@ spec:
                   type: object
                 type: array
             type: object
+          volumeOperatorSpec:
+            description: VolumeOperatorSpec defines the way the volumes are managed
+            properties:
+              blobDownloadOptions:
+                properties:
+                  blobConcurrency:
+                    type: string
+                  blockSize:
+                    type: string
+                type: object
+              blobPrefix:
+                description: The prefix to use for the blob storage container (the
+                  location of the data)
+                type: string
+              storageCapacity:
+                description: 'The storage capacity to request for the volumes created
+                  by the volume operator, min: 1Gi'
+                type: string
+              storageClass:
+                description: The storage class to use for the volumes created by the
+                  volume operator, defaults to zrs-managed-premium
+                type: string
+            required:
+            - blobPrefix
+            type: object
         type: object
     served: true
     storage: true
