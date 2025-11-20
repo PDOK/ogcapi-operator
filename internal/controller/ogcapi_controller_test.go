@@ -32,12 +32,9 @@ import (
 	"os"
 
 	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
-	policyv1 "k8s.io/api/policy/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-
 	"github.com/google/go-cmp/cmp"
 	smoothoperatormodel "github.com/pdok/smooth-operator/model"
+	policyv1 "k8s.io/api/policy/v1"
 	"sigs.k8s.io/yaml"
 
 	"golang.org/x/text/language"
@@ -188,15 +185,14 @@ var _ = Describe("OGCAPI Controller", func() {
 		})
 
 		It("Should call to send a Slack message after unsuccessful Reconcile - failing to get resource", func() {
-			scheme := runtime.NewScheme()
-			_ = corev1.AddToScheme(scheme)
-			testPod := &corev1.Pod{}
-
-			fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(testPod).Build()
+			errClient := &ErrorClient{
+				Client: k8sClient,
+				err:    fmt.Errorf("failed to get resource"),
+			}
 
 			mockSlack := &mockSlack{}
 			controllerReconciler := &OGCAPIReconciler{
-				Client:       fakeClient,
+				Client:       errClient,
 				Scheme:       k8sClient.Scheme(),
 				GokoalaImage: testImageName,
 				Slack:        mockSlack,

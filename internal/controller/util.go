@@ -255,3 +255,12 @@ func cloneOrEmptyMap[K comparable, V any](m map[K]V) map[K]V {
 	}
 	return maps.Clone(m)
 }
+
+type ErrorClient struct {
+	client.Client
+	err error
+}
+
+func (e *ErrorClient) Get(ctx context.Context, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
+	return e.err
+}
