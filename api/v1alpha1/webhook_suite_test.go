@@ -34,8 +34,8 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/onsi/ginkgo/v2" //nolint:revive // ginkgo bdd
-	. "github.com/onsi/gomega"    //nolint:revive // ginkgo bdd
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 
 	admissionv1 "k8s.io/api/admission/v1"
 	//+kubebuilder:scaffold:imports
@@ -68,7 +68,7 @@ func TestAPIs(t *testing.T) {
 var _ = BeforeSuite(func() {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
-	ctx, cancel = context.WithCancel(context.TODO())
+	ctx, cancel = context.WithCancel(context.TODO()) //nolint:fatcontext
 
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{

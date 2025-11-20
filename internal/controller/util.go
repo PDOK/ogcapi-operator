@@ -27,6 +27,7 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"maps"
 	"net/url"
@@ -46,7 +47,6 @@ import (
 	"sigs.k8s.io/kustomize/api/hasher"
 	kyaml "sigs.k8s.io/kustomize/kyaml/yaml"
 
-	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 )
 
@@ -106,23 +106,23 @@ func setImmutableLabels(c client.Client, obj client.Object, labels map[string]st
 func strategicMergePatch[T, P any](obj *T, patch *P) (*T, error) {
 	objJSON, err := json.Marshal(obj)
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to marshal the object")
+		return nil, fmt.Errorf("failed to marshal the object: %w", err)
 	}
 
 	patchJSON, err := json.Marshal(patch)
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to marshal the patch")
+		return nil, fmt.Errorf("failed to marshal the patch: %w", err)
 	}
 
 	newJSON, err := strategicpatch.StrategicMergePatch(objJSON, patchJSON, obj) // TODO obj can be used as dataStruct?
 	if err != nil {
-		return nil, errors.Wrap(err, "Error while strategic merge patching")
+		return nil, fmt.Errorf("error while strategic merge patching: %w", err)
 	}
 
 	var newObj T
 	err = json.Unmarshal(newJSON, &newObj)
 	if err != nil {
-		return nil, errors.Wrap(err, "Error unmarshalling after strategic merge patching")
+		return nil, fmt.Errorf("error unmarshalling after strategic merge patching: %w", err)
 	}
 	return &newObj, nil
 }

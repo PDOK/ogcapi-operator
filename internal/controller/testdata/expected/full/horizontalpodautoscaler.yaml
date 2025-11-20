@@ -1,0 +1,48 @@
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  labels:
+    pdok.nl/app: gokoala
+  name: test-resource-gokoala
+  namespace: default
+  ownerReferences:
+    - apiVersion: pdok.nl/v1alpha1
+      kind: OGCAPI
+      name: test-resource
+      uid: ""
+      blockOwnerDeletion: true
+      controller: true
+spec:
+  behavior:
+    scaleDown:
+      policies:
+        - periodSeconds: 300
+          type: Pods
+          value: 1
+      stabilizationWindowSeconds: 900
+    scaleUp:
+      policies:
+        - periodSeconds: 60
+          type: Pods
+          value: 1
+      stabilizationWindowSeconds: 0
+  maxReplicas: 4
+  metrics:
+    - resource:
+        name: cpu
+        target:
+          averageUtilization: 80
+          type: Utilization
+      type: Resource
+    - resource:
+        name: memory
+        target:
+          averageUtilization: 75
+          type: Utilization
+      type: Resource
+  minReplicas: 2
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: test-resource-gokoala

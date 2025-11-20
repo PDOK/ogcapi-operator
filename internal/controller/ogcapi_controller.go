@@ -58,7 +58,9 @@ import (
 	pdoknlv1alpha1 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
 	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 	smoothoperatorstatus "github.com/pdok/smooth-operator/pkg/status"
+
 	smoothoperatorutil "github.com/pdok/smooth-operator/pkg/util"
+	policyv1 "k8s.io/api/policy/v1"
 )
 
 const (
@@ -104,6 +106,9 @@ type OGCAPIReconciler struct {
 //+kubebuilder:rbac:groups=core,resources=configmaps;services,verbs=get;list;watch;create;update;delete
 //+kubebuilder:rbac:groups=traefik.io,resources=ingressroutes;middlewares,verbs=get;list;watch;create;update;delete
 //+kubebuilder:rbac:groups=autoscaling,resources=horizontalpodautoscalers,verbs=get;list;watch;create;update;delete
+// +kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets,verbs=create;update;delete;list;watch
+// +kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets/status,verbs=get;update
+// +kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -114,7 +119,7 @@ func (r *OGCAPIReconciler) Reconcile(ctx context.Context, req ctrl.Request) (res
 	lgr := log.FromContext(ctx)
 
 	ogcAPI := &pdoknlv1alpha1.OGCAPI{}
-	err = r.Client.Get(ctx, req.NamespacedName, ogcAPI)
+	err = r.Get(ctx, req.NamespacedName, ogcAPI)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			lgr.Info("OGCAPI resource not found", "name", req.NamespacedName)
@@ -646,7 +651,7 @@ func getBareHorizontalPodAutoscaler(ogcAPI metav1.Object) *autoscalingv2.Horizon
 	}
 }
 
-func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI metav1.Object, hpa *autoscalingv2.HorizontalPodAutoscaler) error {
+func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI *pdoknlv1alpha1.OGCAPI, hpa *autoscalingv2.HorizontalPodAutoscaler) error {
 	labels := getLabels(ogcAPI)
 	if err := setImmutableLabels(r.Client, hpa, labels); err != nil {
 		return err
@@ -704,6 +709,13 @@ func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI metav1.Object, h
 			},
 		},
 	}
+	if ogcAPI.HorizontalPodAutoscalerPatch() != nil {
+		patchedSpec, err := smoothoperatorutil.StrategicMergePatch(&hpa.Spec, ogcAPI.HorizontalPodAutoscalerPatch())
+		if err != nil {
+			return err
+		}
+		hpa.Spec = *patchedSpec
+	}
 	if err := ensureSetGVK(r.Client, hpa, hpa); err != nil {
 		return err
 	}
@@ -722,4 +734,33 @@ func (r *OGCAPIReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&autoscalingv2.HorizontalPodAutoscaler{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
 		Watches(&appsv1.ReplicaSet{}, smoothoperatorstatus.GetReplicaSetEventHandlerForObj(mgr, "OGCAPI")).
 		Complete(r)
+}
+
+func getBarePodDisruptionBudget(obj metav1.Object) *policyv1.PodDisruptionBudget {
+	return &policyv1.PodDisruptionBudget{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      obj.GetName() + "-" + controllerName,
+			Namespace: obj.GetNamespace(),
+		},
+	}
+}
+
+func (r *OGCAPIReconciler) mutatePodDisruptionBudget(ogcAPI *pdoknlv1alpha1.OGCAPI, podDisruptionBudget *policyv1.PodDisruptionBudget) error {
+	labels := getLabels(ogcAPI)
+	if err := smoothoperatorutil.SetImmutableLabels(r.Client, podDisruptionBudget, labels); err != nil {
+		return err
+	}
+
+	matchLabels := smoothoperatorutil.CloneOrEmptyMap(labels)
+	podDisruptionBudget.Spec = policyv1.PodDisruptionBudgetSpec{
+		MaxUnavailable: &intstr.IntOrString{Type: intstr.Int, IntVal: 1},
+		Selector: &metav1.LabelSelector{
+			MatchLabels: matchLabels,
+		},
+	}
+
+	if err := smoothoperatorutil.EnsureSetGVK(r.Client, podDisruptionBudget, podDisruptionBudget); err != nil {
+		return err
+	}
+	return ctrl.SetControllerReference(ogcAPI, podDisruptionBudget, r.Scheme)
 }
