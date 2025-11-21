@@ -30,6 +30,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
 	"github.com/google/go-cmp/cmp"
@@ -154,6 +155,95 @@ var _ = Describe("OGCAPI Controller", func() {
 		testOGCAPIMutates(fullOGCAPI, "full")
 	})
 
+	Context("When reconciling an OGCAPI with Volume Populator properties", func() {
+		ctx := context.Background()
+
+		typeNamespacedName := types.NamespacedName{
+			Name:      testOGCAPIName + "-clone",
+			Namespace: testOGCAPINamespace,
+		}
+
+		cloningOgcAPI := &pdoknlv1alpha1.OGCAPI{
+			ObjectMeta: *minimalOGCAPI.ObjectMeta.DeepCopy(),
+			Spec: pdoknlv1alpha1.OGCAPISpec{
+				Service: *minimalOGCAPI.Spec.Service.DeepCopy(),
+			},
+			VolumeOperatorSpec: pdoknlv1alpha1.VolumeOperatorSpec{
+				BlobPrefix: "test/prefix",
+			},
+		}
+
+		BeforeEach(func() {
+			By("Creating the custom resource for the Kind OGCAPI")
+			resource := cloningOgcAPI.DeepCopy()
+			resource.Name = typeNamespacedName.Name
+			resource.Namespace = typeNamespacedName.Namespace
+			Expect(k8sClient.Create(ctx, resource)).To(Succeed())
+			Expect(k8sClient.Get(ctx, typeNamespacedName, resource)).To(Succeed())
+		})
+
+		AfterEach(func() {
+			resource := &pdoknlv1alpha1.OGCAPI{}
+			resource.Name = typeNamespacedName.Name
+			resource.Namespace = typeNamespacedName.Namespace
+			err := k8sClient.Get(ctx, typeNamespacedName, resource)
+			Expect(client.IgnoreNotFound(err)).NotTo(HaveOccurred())
+
+			By("Cleaning up the specific resource instance OGCAPI")
+			Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, resource))).To(Succeed())
+		})
+
+		It("Should annotate the deployment with volume-operator annotations", func() {
+			controllerReconciler := &OGCAPIReconciler{
+				Client:       k8sClient,
+				Scheme:       k8sClient.Scheme(),
+				GokoalaImage: testImageName,
+			}
+
+			By("Reconciling the OGCAPI")
+			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Reconciling the OGCAPI again, to skip the finalizer flow")
+			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
+			Expect(err).NotTo(HaveOccurred())
+
+			deployment := getBareDeployment(cloningOgcAPI)
+
+			Eventually(func() {
+				err = k8sClient.Get(ctx, client.ObjectKeyFromObject(deployment), deployment)
+				Expect(err).NotTo(HaveOccurred())
+				By("Checking the annotations")
+				Expect(deployment.Annotations["volume-operator.pdok.nl/blob-prefix"]).To(Equal("test/prefix"))
+
+				By("Checking the volumes")
+				Expect(deployment.Spec.Template.Spec.Volumes).To(
+					ContainElement(
+						HaveField(
+							"Name",
+							Equal(gokoalaName+"-clone"),
+						),
+					),
+				)
+
+				By("Checking the volume mounts")
+				Expect(deployment.Spec.Template.Spec.Containers).To(
+					ContainElement(
+						HaveField(
+							"VolumeMounts",
+							ContainElement(
+								HaveField(
+									"Name",
+									Equal(gokoalaName+"-clone"),
+								),
+							),
+						),
+					),
+				)
+			}).WithTimeout(10 * time.Second).WithPolling(500 * time.Millisecond)
+		})
+	})
+
 	Context("When reconciling an OGCAPI", func() {
 		ctx := context.Background()
 
@@ -202,51 +292,6 @@ var _ = Describe("OGCAPI Controller", func() {
 			Expect(err).To(HaveOccurred())
 			Expect(mockSlack.Called).To(BeTrue())
 			Expect(mockSlack.Message).To(ContainSubstring("unable to fetch OGCAPI resource"))
-		})
-
-		It("Should annotate the deployment with volume-operator annotations", func() {
-			controllerReconciler := &OGCAPIReconciler{
-				Client:       k8sClient,
-				Scheme:       k8sClient.Scheme(),
-				GokoalaImage: testImageName,
-			}
-			By("Updating the CR annotation")
-			// set the required blob prefix to add annotations
-			ogcAPI.VolumeOperatorSpec.BlobPrefix = "test/prefix"
-			err := k8sClient.Update(ctx, ogcAPI)
-			Expect(err).NotTo(HaveOccurred())
-
-			By("Reconciling the OGCAPI")
-			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
-			Expect(err).NotTo(HaveOccurred())
-			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
-			Expect(err).NotTo(HaveOccurred())
-
-			deployment := getBareDeployment(ogcAPI)
-			err = k8sClient.Get(ctx, client.ObjectKeyFromObject(deployment), deployment)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(deployment.Annotations["volume-operator.pdok.nl/blob-prefix"]).To(Equal("test/prefix"))
-			Expect(deployment.Spec.Template.Spec.Volumes).To(
-				ContainElement(
-					HaveField(
-						"Name",
-						Equal(gokoalaName+"-clone"),
-					),
-				),
-			)
-			Expect(deployment.Spec.Template.Spec.Containers).To(
-				ContainElement(
-					HaveField(
-						"VolumeMounts",
-						ContainElement(
-							HaveField(
-								"Name",
-								Equal(gokoalaName+"-clone"),
-							),
-						),
-					),
-				),
-			)
 		})
 
 		It("Should successfully create and delete its owned resources", func() {
