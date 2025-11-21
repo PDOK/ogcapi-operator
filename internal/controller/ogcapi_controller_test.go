@@ -164,7 +164,10 @@ var _ = Describe("OGCAPI Controller", func() {
 		}
 
 		cloningOgcAPI := &pdoknlv1alpha1.OGCAPI{
-			ObjectMeta: *minimalOGCAPI.ObjectMeta.DeepCopy(),
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      typeNamespacedName.Name,
+				Namespace: typeNamespacedName.Namespace,
+			},
 			Spec: pdoknlv1alpha1.OGCAPISpec{
 				Service: *minimalOGCAPI.Spec.Service.DeepCopy(),
 			},
@@ -175,22 +178,16 @@ var _ = Describe("OGCAPI Controller", func() {
 
 		BeforeEach(func() {
 			By("Creating the custom resource for the Kind OGCAPI")
-			resource := cloningOgcAPI.DeepCopy()
-			resource.Name = typeNamespacedName.Name
-			resource.Namespace = typeNamespacedName.Namespace
-			Expect(k8sClient.Create(ctx, resource)).To(Succeed())
-			Expect(k8sClient.Get(ctx, typeNamespacedName, resource)).To(Succeed())
+			Expect(k8sClient.Create(ctx, cloningOgcAPI)).To(Succeed())
+			Expect(k8sClient.Get(ctx, typeNamespacedName, cloningOgcAPI)).To(Succeed())
 		})
 
 		AfterEach(func() {
-			resource := &pdoknlv1alpha1.OGCAPI{}
-			resource.Name = typeNamespacedName.Name
-			resource.Namespace = typeNamespacedName.Namespace
-			err := k8sClient.Get(ctx, typeNamespacedName, resource)
+			err := k8sClient.Get(ctx, typeNamespacedName, cloningOgcAPI)
 			Expect(client.IgnoreNotFound(err)).NotTo(HaveOccurred())
 
 			By("Cleaning up the specific resource instance OGCAPI")
-			Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, resource))).To(Succeed())
+			Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, cloningOgcAPI))).To(Succeed())
 		})
 
 		It("Should annotate the deployment with volume-operator annotations", func() {
@@ -210,37 +207,46 @@ var _ = Describe("OGCAPI Controller", func() {
 
 			deployment := getBareDeployment(cloningOgcAPI)
 
-			Eventually(func() {
+			Eventually(func() bool {
 				err = k8sClient.Get(ctx, client.ObjectKeyFromObject(deployment), deployment)
-				Expect(err).NotTo(HaveOccurred())
+				if err != nil {
+					return false
+				}
+
 				By("Checking the annotations")
-				Expect(deployment.Annotations["volume-operator.pdok.nl/blob-prefix"]).To(Equal("test/prefix"))
+				if deployment.Annotations["volume-operator.pdok.nl/blob-prefix"] != "test/prefix" {
+					return false
+				}
 
 				By("Checking the volumes")
-				Expect(deployment.Spec.Template.Spec.Volumes).To(
-					ContainElement(
-						HaveField(
-							"Name",
-							Equal(gokoalaName+"-clone"),
-						),
+				contains, err := ContainElement(
+					HaveField(
+						"Name",
+						Equal(gokoalaName+"-clone"),
 					),
-				)
+				).Match(deployment.Spec.Template.Spec.Volumes)
+				if !contains || err != nil {
+					return false
+				}
 
 				By("Checking the volume mounts")
-				Expect(deployment.Spec.Template.Spec.Containers).To(
-					ContainElement(
-						HaveField(
-							"VolumeMounts",
-							ContainElement(
-								HaveField(
-									"Name",
-									Equal(gokoalaName+"-clone"),
-								),
+				contains, err = ContainElement(
+					HaveField(
+						"VolumeMounts",
+						ContainElement(
+							HaveField(
+								"Name",
+								Equal(gokoalaName+"-clone"),
 							),
 						),
 					),
-				)
-			}).WithTimeout(10 * time.Second).WithPolling(500 * time.Millisecond)
+				).Match(deployment.Spec.Template.Spec.Containers)
+				if !contains || err != nil {
+					return false
+				}
+
+				return true
+			}).WithTimeout(30 * time.Second).WithPolling(500 * time.Millisecond).Should(BeTrue())
 		})
 	})
 
@@ -277,7 +283,7 @@ var _ = Describe("OGCAPI Controller", func() {
 		It("Should call to send a Slack message after unsuccessful Reconcile - failing to get resource", func() {
 			errClient := &ErrorClient{
 				Client: k8sClient,
-				err:    fmt.Errorf("failed to get resource"),
+				err:    errors.New("failed to get resource"),
 			}
 
 			mockSlack := &mockSlack{}
