@@ -369,10 +369,6 @@ func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deplo
 }
 
 func addVolumePopulatorToDeployment(deployment *appsv1.Deployment, ogcAPI *pdoknlv1alpha1.OGCAPI) *appsv1.Deployment {
-	if ogcAPI.VolumeOperatorSpec.StorageCapacity == "" {
-		ogcAPI.VolumeOperatorSpec.StorageCapacity = "1Gi"
-	}
-
 	hash := smoothoperatorutil.GenerateHashFromStrings([]string{
 		ogcAPI.VolumeOperatorSpec.BlobPrefix,
 		volumeMountPath,

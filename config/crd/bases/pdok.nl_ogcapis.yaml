@@ -5813,8 +5813,10 @@ spec:
               blobDownloadOptions:
                 properties:
                   blobConcurrency:
+                    default: 5
                     type: string
                   blockSize:
+                    default: 4194304
                     type: string
                 type: object
               blobPrefix:
@@ -5822,10 +5824,12 @@ spec:
                   location of the data)
                 type: string
               storageCapacity:
+                default: 1Gi
                 description: 'The storage capacity to request for the volumes created
                   by the volume operator, min: 1Gi'
                 type: string
               storageClass:
+                default: zrs-managed-premium
                 description: The storage class to use for the volumes created by the
                   volume operator, defaults to zrs-managed-premium
                 type: string
