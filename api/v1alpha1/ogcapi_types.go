@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+// +kubebuilder:object:generate=true
+// +groupName=volume.pdok.nl
 package v1alpha1
 
 import (
@@ -60,6 +62,35 @@ type OGCAPISpec struct {
 	IngressRouteURLs smoothoperatormodel.IngressRouteURLs `json:"ingressRouteUrls,omitempty"`
 }
 
+// +kubebuilder:object:generate=true
+type BlobDownloadOptions struct {
+	// +optional
+	// +kubebuilder:default=4194304
+	BlockSize int `json:"blockSize,omitempty"`
+
+	// +optional
+	// +kubebuilder:default=5
+	BlobConcurrency int `json:"blobConcurrency,omitempty"`
+}
+
+// VolumeOperatorSpec defines the way the volumes are managed
+type VolumeOperatorSpec struct {
+	// The prefix to use for the blob storage container (the location of the data)
+	// +kubebuilder:validation:Required
+	BlobPrefix string `json:"blobPrefix"`
+
+	// The storage capacity to request for the volumes created by the volume operator, min: 1Gi
+	// +kubebuilder:default:="1Gi"
+	StorageCapacity string `json:"storageCapacity,omitempty"`
+
+	// The storage class to use for the volumes created by the volume operator, defaults to zrs-managed-premium
+	// +kubebuilder:default:="zrs-managed-premium"
+	StorageClass string `json:"storageClass,omitempty"`
+
+	// +kubebuilder:validation:Optional
+	BlobDownloadOptions BlobDownloadOptions `json:"blobDownloadOptions,omitempty"`
+}
+
 // OGCAPI is the Schema for the ogcapis API
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
@@ -73,6 +104,9 @@ type OGCAPI struct {
 
 	Spec   OGCAPISpec                         `json:"spec,omitempty"`
 	Status smoothoperatormodel.OperatorStatus `json:"status,omitempty"`
+
+	// +optional
+	VolumeOperatorSpec VolumeOperatorSpec `json:"volumeOperatorSpec,omitempty"`
 }
 
 func (ogcapi *OGCAPI) OperatorStatus() *smoothoperatormodel.OperatorStatus {

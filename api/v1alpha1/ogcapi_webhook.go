@@ -44,10 +44,10 @@ import (
 var ogcapilog = logf.Log.WithName("ogcapi-resource")
 
 // SetupWebhookWithManager will setup the manager to manage the webhooks
-func (r *OGCAPI) SetupWebhookWithManager(mgr ctrl.Manager) error {
+func (ogcapi *OGCAPI) SetupWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).
 		WithValidator(&OGCAPICustomValidator{mgr.GetClient()}).
-		For(r).
+		For(ogcapi).
 		Complete()
 }
 

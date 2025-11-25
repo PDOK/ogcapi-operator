@@ -58,8 +58,8 @@ import (
 	pdoknlv1alpha1 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
 	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 	smoothoperatorstatus "github.com/pdok/smooth-operator/pkg/status"
-	smoothoperatorutils "github.com/pdok/smooth-operator/pkg/util"
 
+	smoothoperatorutil "github.com/pdok/smooth-operator/pkg/util"
 	policyv1 "k8s.io/api/policy/v1"
 )
 
@@ -81,6 +81,8 @@ const (
 	headersName         = "cors-headers"
 	srvDir              = "/srv"
 	priorityAnnotation  = "priority.version-checker.io"
+
+	volumeMountPath = "/data"
 )
 
 var (
@@ -218,11 +220,11 @@ func (r *OGCAPIReconciler) createOrUpdateAllForOGCAPI(ctx context.Context, ogcAP
 	}
 
 	podDisruptionBudget := getBarePodDisruptionBudget(ogcAPI)
-	operationResults[smoothoperatorutils.GetObjectFullName(r.Client, podDisruptionBudget)], err = controllerutil.CreateOrUpdate(ctx, r.Client, podDisruptionBudget, func() error {
+	operationResults[smoothoperatorutil.GetObjectFullName(r.Client, podDisruptionBudget)], err = controllerutil.CreateOrUpdate(ctx, r.Client, podDisruptionBudget, func() error {
 		return r.mutatePodDisruptionBudget(ogcAPI, podDisruptionBudget)
 	})
 	if err != nil {
-		return operationResults, fmt.Errorf("unable to create/update resource %s: %w", smoothoperatorutils.GetObjectFullName(c, podDisruptionBudget), err)
+		return operationResults, fmt.Errorf("unable to create/update resource %s: %w", smoothoperatorutil.GetObjectFullName(c, podDisruptionBudget), err)
 	}
 
 	return operationResults, nil
@@ -363,10 +365,65 @@ func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deplo
 	podTemplateSpec.Spec.Containers[0].Image = r.GokoalaImage
 	deployment.Spec.Template = podTemplateSpec
 
+	// set annotations for optional volume-operator, volume operator requires blob-prefix to be set
+	if ogcAPI.VolumeOperatorSpec.BlobPrefix != "" {
+		deployment = addVolumePopulatorToDeployment(deployment, ogcAPI)
+	}
+
 	if err := ensureSetGVK(r.Client, deployment, deployment); err != nil {
 		return err
 	}
 	return ctrl.SetControllerReference(ogcAPI, deployment, r.Scheme)
+}
+
+func addVolumePopulatorToDeployment(deployment *appsv1.Deployment, ogcAPI *pdoknlv1alpha1.OGCAPI) *appsv1.Deployment {
+	hash := smoothoperatorutil.GenerateHashFromStrings([]string{
+		ogcAPI.VolumeOperatorSpec.BlobPrefix,
+		volumeMountPath,
+		ogcAPI.VolumeOperatorSpec.StorageCapacity,
+	})
+	deployment.Annotations = cloneOrEmptyMap(deployment.Annotations)
+	deployment.Annotations["volume-operator.pdok.nl/blob-prefix"] = ogcAPI.VolumeOperatorSpec.BlobPrefix
+	deployment.Annotations["volume-operator.pdok.nl/volume-path"] = volumeMountPath
+	deployment.Annotations["volume-operator.pdok.nl/storage-class"] = ogcAPI.VolumeOperatorSpec.StorageClass
+	deployment.Annotations["volume-operator.pdok.nl/resource-suffix"] = hash
+
+	volume := corev1.Volume{
+		Name: gokoalaName + "-clone",
+		VolumeSource: corev1.VolumeSource{
+			Ephemeral: &corev1.EphemeralVolumeSource{
+				VolumeClaimTemplate: &corev1.PersistentVolumeClaimTemplate{
+					Spec: corev1.PersistentVolumeClaimSpec{
+						AccessModes: []corev1.PersistentVolumeAccessMode{
+							corev1.ReadWriteOnce,
+						},
+						StorageClassName: &ogcAPI.VolumeOperatorSpec.StorageClass,
+						Resources: corev1.VolumeResourceRequirements{
+							Requests: corev1.ResourceList{
+								corev1.ResourceStorage: resource.MustParse(ogcAPI.VolumeOperatorSpec.StorageCapacity),
+							},
+						},
+						DataSource: &corev1.TypedLocalObjectReference{
+							APIGroup: smoothoperatorutil.Pointer("v1"),
+							Kind:     "PersistentVolumeClaim",
+							Name:     hash,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, volume)
+	for i, container := range deployment.Spec.Template.Spec.Containers {
+		if container.Name == gokoalaName {
+			deployment.Spec.Template.Spec.Containers[i].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[i].VolumeMounts, corev1.VolumeMount{
+				Name:      volume.Name,
+				MountPath: volumeMountPath,
+			})
+		}
+	}
+	return deployment
 }
 
 // getBareConfigMap sets the base name for the configmap containing the config for the gokoala Deployment.
@@ -657,7 +714,7 @@ func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI *pdoknlv1alpha1.
 		},
 	}
 	if ogcAPI.HorizontalPodAutoscalerPatch() != nil {
-		patchedSpec, err := smoothoperatorutils.StrategicMergePatch(&hpa.Spec, ogcAPI.HorizontalPodAutoscalerPatch())
+		patchedSpec, err := smoothoperatorutil.StrategicMergePatch(&hpa.Spec, ogcAPI.HorizontalPodAutoscalerPatch())
 		if err != nil {
 			return err
 		}
@@ -694,11 +751,11 @@ func getBarePodDisruptionBudget(obj metav1.Object) *policyv1.PodDisruptionBudget
 
 func (r *OGCAPIReconciler) mutatePodDisruptionBudget(ogcAPI *pdoknlv1alpha1.OGCAPI, podDisruptionBudget *policyv1.PodDisruptionBudget) error {
 	labels := getLabels(ogcAPI)
-	if err := smoothoperatorutils.SetImmutableLabels(r.Client, podDisruptionBudget, labels); err != nil {
+	if err := smoothoperatorutil.SetImmutableLabels(r.Client, podDisruptionBudget, labels); err != nil {
 		return err
 	}
 
-	matchLabels := smoothoperatorutils.CloneOrEmptyMap(labels)
+	matchLabels := smoothoperatorutil.CloneOrEmptyMap(labels)
 	podDisruptionBudget.Spec = policyv1.PodDisruptionBudgetSpec{
 		MaxUnavailable: &intstr.IntOrString{Type: intstr.Int, IntVal: 1},
 		Selector: &metav1.LabelSelector{
@@ -706,7 +763,7 @@ func (r *OGCAPIReconciler) mutatePodDisruptionBudget(ogcAPI *pdoknlv1alpha1.OGCA
 		},
 	}
 
-	if err := smoothoperatorutils.EnsureSetGVK(r.Client, podDisruptionBudget, podDisruptionBudget); err != nil {
+	if err := smoothoperatorutil.EnsureSetGVK(r.Client, podDisruptionBudget, podDisruptionBudget); err != nil {
 		return err
 	}
 	return ctrl.SetControllerReference(ogcAPI, podDisruptionBudget, r.Scheme)

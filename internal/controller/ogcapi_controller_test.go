@@ -30,14 +30,12 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
-	policyv1 "k8s.io/api/policy/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-
 	"github.com/google/go-cmp/cmp"
 	smoothoperatormodel "github.com/pdok/smooth-operator/model"
+	policyv1 "k8s.io/api/policy/v1"
 	"sigs.k8s.io/yaml"
 
 	"golang.org/x/text/language"
@@ -157,6 +155,101 @@ var _ = Describe("OGCAPI Controller", func() {
 		testOGCAPIMutates(fullOGCAPI, "full")
 	})
 
+	Context("When reconciling an OGCAPI with Volume Populator properties", func() {
+		ctx := context.Background()
+
+		typeNamespacedName := types.NamespacedName{
+			Name:      testOGCAPIName + "-clone",
+			Namespace: testOGCAPINamespace,
+		}
+
+		cloningOgcAPI := &pdoknlv1alpha1.OGCAPI{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      typeNamespacedName.Name,
+				Namespace: typeNamespacedName.Namespace,
+			},
+			Spec: pdoknlv1alpha1.OGCAPISpec{
+				Service: *minimalOGCAPI.Spec.Service.DeepCopy(),
+			},
+			VolumeOperatorSpec: pdoknlv1alpha1.VolumeOperatorSpec{
+				BlobPrefix: "test/prefix",
+			},
+		}
+
+		BeforeEach(func() {
+			By("Creating the custom resource for the Kind OGCAPI")
+			Expect(k8sClient.Create(ctx, cloningOgcAPI)).To(Succeed())
+			Expect(k8sClient.Get(ctx, typeNamespacedName, cloningOgcAPI)).To(Succeed())
+		})
+
+		AfterEach(func() {
+			err := k8sClient.Get(ctx, typeNamespacedName, cloningOgcAPI)
+			Expect(client.IgnoreNotFound(err)).NotTo(HaveOccurred())
+
+			By("Cleaning up the specific resource instance OGCAPI")
+			Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, cloningOgcAPI))).To(Succeed())
+		})
+
+		It("Should annotate the deployment with volume-operator annotations", func() {
+			controllerReconciler := &OGCAPIReconciler{
+				Client:       k8sClient,
+				Scheme:       k8sClient.Scheme(),
+				GokoalaImage: testImageName,
+			}
+
+			By("Reconciling the OGCAPI")
+			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Reconciling the OGCAPI again, to skip the finalizer flow")
+			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
+			Expect(err).NotTo(HaveOccurred())
+
+			deployment := getBareDeployment(cloningOgcAPI)
+
+			Eventually(func() bool {
+				err = k8sClient.Get(ctx, client.ObjectKeyFromObject(deployment), deployment)
+				if err != nil {
+					return false
+				}
+
+				By("Checking the annotations")
+				if deployment.Annotations["volume-operator.pdok.nl/blob-prefix"] != "test/prefix" {
+					return false
+				}
+
+				By("Checking the volumes")
+				contains, err := ContainElement(
+					HaveField(
+						"Name",
+						Equal(gokoalaName+"-clone"),
+					),
+				).Match(deployment.Spec.Template.Spec.Volumes)
+				if !contains || err != nil {
+					return false
+				}
+
+				By("Checking the volume mounts")
+				contains, err = ContainElement(
+					HaveField(
+						"VolumeMounts",
+						ContainElement(
+							HaveField(
+								"Name",
+								Equal(gokoalaName+"-clone"),
+							),
+						),
+					),
+				).Match(deployment.Spec.Template.Spec.Containers)
+				if !contains || err != nil {
+					return false
+				}
+
+				return true
+			}).WithTimeout(30 * time.Second).WithPolling(500 * time.Millisecond).Should(BeTrue())
+		})
+	})
+
 	Context("When reconciling an OGCAPI", func() {
 		ctx := context.Background()
 
@@ -188,15 +281,14 @@ var _ = Describe("OGCAPI Controller", func() {
 		})
 
 		It("Should call to send a Slack message after unsuccessful Reconcile - failing to get resource", func() {
-			scheme := runtime.NewScheme()
-			_ = corev1.AddToScheme(scheme)
-			testPod := &corev1.Pod{}
-
-			fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(testPod).Build()
+			errClient := &ErrorClient{
+				Client: k8sClient,
+				err:    errors.New("failed to get resource"),
+			}
 
 			mockSlack := &mockSlack{}
 			controllerReconciler := &OGCAPIReconciler{
-				Client:       fakeClient,
+				Client:       errClient,
 				Scheme:       k8sClient.Scheme(),
 				GokoalaImage: testImageName,
 				Slack:        mockSlack,
