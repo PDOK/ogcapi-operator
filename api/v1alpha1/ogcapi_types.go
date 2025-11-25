@@ -66,11 +66,11 @@ type OGCAPISpec struct {
 type BlobDownloadOptions struct {
 	// +optional
 	// +kubebuilder:default=4194304
-	BlockSize string `json:"blockSize,omitempty"`
+	BlockSize int `json:"blockSize,omitempty"`
 
 	// +optional
 	// +kubebuilder:default=5
-	BlobConcurrency string `json:"blobConcurrency,omitempty"`
+	BlobConcurrency int `json:"blobConcurrency,omitempty"`
 }
 
 // VolumeOperatorSpec defines the way the volumes are managed

@@ -5814,10 +5814,10 @@ spec:
                 properties:
                   blobConcurrency:
                     default: 5
-                    type: string
+                    type: integer
                   blockSize:
                     default: 4194304
-                    type: string
+                    type: integer
                 type: object
               blobPrefix:
                 description: The prefix to use for the blob storage container (the
