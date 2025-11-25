@@ -102,9 +102,11 @@ type OGCAPI struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec               OGCAPISpec                         `json:"spec,omitempty"`
-	Status             smoothoperatormodel.OperatorStatus `json:"status,omitempty"`
-	VolumeOperatorSpec VolumeOperatorSpec                 `json:"volumeOperatorSpec,omitempty"`
+	Spec   OGCAPISpec                         `json:"spec,omitempty"`
+	Status smoothoperatormodel.OperatorStatus `json:"status,omitempty"`
+
+	// +optional
+	VolumeOperatorSpec VolumeOperatorSpec `json:"volumeOperatorSpec,omitempty"`
 }
 
 func (ogcapi *OGCAPI) OperatorStatus() *smoothoperatormodel.OperatorStatus {

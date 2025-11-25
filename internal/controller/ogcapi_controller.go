@@ -219,6 +219,14 @@ func (r *OGCAPIReconciler) createOrUpdateAllForOGCAPI(ctx context.Context, ogcAP
 		return operationResults, fmt.Errorf("unable to create/update resource %s: %w", getObjectFullName(c, hpa), err)
 	}
 
+	podDisruptionBudget := getBarePodDisruptionBudget(ogcAPI)
+	operationResults[smoothoperatorutil.GetObjectFullName(r.Client, podDisruptionBudget)], err = controllerutil.CreateOrUpdate(ctx, r.Client, podDisruptionBudget, func() error {
+		return r.mutatePodDisruptionBudget(ogcAPI, podDisruptionBudget)
+	})
+	if err != nil {
+		return operationResults, fmt.Errorf("unable to create/update resource %s: %w", smoothoperatorutil.GetObjectFullName(c, podDisruptionBudget), err)
+	}
+
 	return operationResults, nil
 }
 
