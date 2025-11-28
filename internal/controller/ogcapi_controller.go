@@ -216,8 +216,8 @@ func (r *OGCAPIReconciler) createOrUpdateAllForOGCAPI(ctx context.Context, ogcAP
 	operationResults[getObjectFullName(r.Client, hpa)], err = controllerutil.CreateOrUpdate(ctx, r.Client, hpa, func() error {
 		return r.mutateHorizontalPodAutoscaler(ogcAPI, hpa)
 	})
-	if err != nil {
-		return operationResults, fmt.Errorf("unable to create/update resource %s: %w", getObjectFullName(c, hpa), err)
+	if err != nil && !strings.Contains(err.Error(), "the object has been modified; please apply your changes to the latest version and try again") {
+		return operationResults, fmt.Errorf("unable to create/update resource %s: %w", getObjectFullName(c, deployment), err)
 	}
 
 	podDisruptionBudget := getBarePodDisruptionBudget(ogcAPI)
