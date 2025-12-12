@@ -1938,6 +1938,73 @@ spec:
                                     When true properties are returned according to the ordering specified under 'properties'. When false
                                     properties are returned in alphabetical order.
                                   type: boolean
+                                relations:
+                                  description: Relations define relationships between
+                                    features across collections
+                                  items:
+                                    properties:
+                                      collection:
+                                        description: Name of the related collection
+                                        type: string
+                                      columns:
+                                        description: Column mappings between collections
+                                        properties:
+                                          source:
+                                            description: Column name in the current/source
+                                              collection
+                                            pattern: ^[a-zA-Z0-9_]+$
+                                            type: string
+                                          target:
+                                            description: Column name in the target
+                                              collection
+                                            pattern: ^[a-zA-Z0-9_]+$
+                                            type: string
+                                        required:
+                                        - source
+                                        - target
+                                        type: object
+                                      junction:
+                                        description: Junction defines a junction/mapping
+                                          table between collections in case this is
+                                          a many-to-many relationship
+                                        properties:
+                                          columns:
+                                            description: Column mappings for the junction
+                                              table
+                                            properties:
+                                              source:
+                                                description: Column name in the current/source
+                                                  collection
+                                                pattern: ^[a-zA-Z0-9_]+$
+                                                type: string
+                                              target:
+                                                description: Column name in the target
+                                                  collection
+                                                pattern: ^[a-zA-Z0-9_]+$
+                                                type: string
+                                            required:
+                                            - source
+                                            - target
+                                            type: object
+                                          name:
+                                            description: Name of the junction table
+                                            pattern: ^[a-zA-Z0-9_]+$
+                                            type: string
+                                        required:
+                                        - columns
+                                        - name
+                                        type: object
+                                      prefix:
+                                        description: Optional prefix (infix actually)
+                                          with a functional name for the relation.
+                                          To distinguish multiple relations to the
+                                          same collection/table.
+                                        type: string
+                                    required:
+                                    - collection
+                                    - columns
+                                    type: object
+                                  type: array
                                 supportedSrs:
                                   description: |-
                                     Specifies in what projections (SRS/CRS) the tiles are offered
@@ -3217,6 +3284,73 @@ spec:
                                     When true properties are returned according to the ordering specified under 'properties'. When false
                                     properties are returned in alphabetical order.
                                   type: boolean
+                                relations:
+                                  description: Relations define relationships between
+                                    features across collections
+                                  items:
+                                    properties:
+                                      collection:
+                                        description: Name of the related collection
+                                        type: string
+                                      columns:
+                                        description: Column mappings between collections
+                                        properties:
+                                          source:
+                                            description: Column name in the current/source
+                                              collection
+                                            pattern: ^[a-zA-Z0-9_]+$
+                                            type: string
+                                          target:
+                                            description: Column name in the target
+                                              collection
+                                            pattern: ^[a-zA-Z0-9_]+$
+                                            type: string
+                                        required:
+                                        - source
+                                        - target
+                                        type: object
+                                      junction:
+                                        description: Junction defines a junction/mapping
+                                          table between collections in case this is
+                                          a many-to-many relationship
+                                        properties:
+                                          columns:
+                                            description: Column mappings for the junction
+                                              table
+                                            properties:
+                                              source:
+                                                description: Column name in the current/source
+                                                  collection
+                                                pattern: ^[a-zA-Z0-9_]+$
+                                                type: string
+                                              target:
+                                                description: Column name in the target
+                                                  collection
+                                                pattern: ^[a-zA-Z0-9_]+$
+                                                type: string
+                                            required:
+                                            - source
+                                            - target
+                                            type: object
+                                          name:
+                                            description: Name of the junction table
+                                            pattern: ^[a-zA-Z0-9_]+$
+                                            type: string
+                                        required:
+                                        - columns
+                                        - name
+                                        type: object
+                                      prefix:
+                                        description: Optional prefix (infix actually)
+                                          with a functional name for the relation.
+                                          To distinguish multiple relations to the
+                                          same collection/table.
+                                        type: string
+                                    required:
+                                    - collection
+                                    - columns
+                                    type: object
+                                  type: array
                                 supportedSrs:
                                   description: |-
                                     Specifies in what projections (SRS/CRS) the tiles are offered
@@ -5464,6 +5598,73 @@ spec:
                                     When true properties are returned according to the ordering specified under 'properties'. When false
                                     properties are returned in alphabetical order.
                                   type: boolean
+                                relations:
+                                  description: Relations define relationships between
+                                    features across collections
+                                  items:
+                                    properties:
+                                      collection:
+                                        description: Name of the related collection
+                                        type: string
+                                      columns:
+                                        description: Column mappings between collections
+                                        properties:
+                                          source:
+                                            description: Column name in the current/source
+                                              collection
+                                            pattern: ^[a-zA-Z0-9_]+$
+                                            type: string
+                                          target:
+                                            description: Column name in the target
+                                              collection
+                                            pattern: ^[a-zA-Z0-9_]+$
+                                            type: string
+                                        required:
+                                        - source
+                                        - target
+                                        type: object
+                                      junction:
+                                        description: Junction defines a junction/mapping
+                                          table between collections in case this is
+                                          a many-to-many relationship
+                                        properties:
+                                          columns:
+                                            description: Column mappings for the junction
+                                              table
+                                            properties:
+                                              source:
+                                                description: Column name in the current/source
+                                                  collection
+                                                pattern: ^[a-zA-Z0-9_]+$
+                                                type: string
+                                              target:
+                                                description: Column name in the target
+                                                  collection
+                                                pattern: ^[a-zA-Z0-9_]+$
+                                                type: string
+                                            required:
+                                            - source
+                                            - target
+                                            type: object
+                                          name:
+                                            description: Name of the junction table
+                                            pattern: ^[a-zA-Z0-9_]+$
+                                            type: string
+                                        required:
+                                        - columns
+                                        - name
+                                        type: object
+                                      prefix:
+                                        description: Optional prefix (infix actually)
+                                          with a functional name for the relation.
+                                          To distinguish multiple relations to the
+                                          same collection/table.
+                                        type: string
+                                    required:
+                                    - collection
+                                    - columns
+                                    type: object
+                                  type: array
                                 supportedSrs:
                                   description: |-
                                     Specifies in what projections (SRS/CRS) the tiles are offered
