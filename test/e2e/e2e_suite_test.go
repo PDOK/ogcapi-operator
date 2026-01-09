@@ -20,15 +20,20 @@ limitations under the License.
 package e2e
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/PDOK/ogcapi-operator/test/utils"
+
+	"golang.org/x/tools/go/packages"
 )
 
 var (
@@ -81,6 +86,12 @@ var _ = BeforeSuite(func() {
 			_, _ = fmt.Fprintf(GinkgoWriter, "WARNING: CertManager is already installed. Skipping installation...\n")
 		}
 	}
+
+	// Install traefik CRDs
+	traefikPath, _ := getTraefikCRDPath()
+	cmd = exec.Command("kubectl", "apply", "-f", traefikPath)
+	_, traefikErr := utils.Run(cmd)
+	Expect(traefikErr).To(BeNil(), "Failed to apply the traefik CRD")
 })
 
 var _ = AfterSuite(func() {
@@ -90,3 +101,24 @@ var _ = AfterSuite(func() {
 		utils.UninstallCertManager()
 	}
 })
+
+func getTraefikCRDPath() (string, error) {
+	traefikModule, err := getModule("github.com/traefik/traefik/v3")
+	if err != nil {
+		return "", err
+	}
+	if traefikModule.Dir == "" {
+		return "", errors.New("cannot find path for traefik module")
+	}
+	return filepath.Join(traefikModule.Dir, "integration", "fixtures", "k8s", "01-traefik-crd.yml"), nil
+}
+
+func getModule(name string) (module *packages.Module, err error) {
+	out, err := exec.Command("go", "list", "-json", "-m", name).Output()
+	if err != nil {
+		return
+	}
+	module = &packages.Module{}
+	err = json.Unmarshal(out, module)
+	return
+}
