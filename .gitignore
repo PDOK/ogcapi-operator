@@ -1,4 +1,3 @@
-
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -13,7 +12,6 @@ Dockerfile.cross
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-cover.out.tmp
 
 # Go workspace file
 go.work
@@ -27,4 +25,3 @@ go.work
 *.swp
 *.swo
 *~
-/go.work.sum
