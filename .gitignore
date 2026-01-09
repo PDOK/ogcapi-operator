@@ -30,3 +30,4 @@ go.work
 
 # Kubeconfig might contain secrets
 *.kubeconfig
+kind-config.yaml
