@@ -43,8 +43,7 @@ func SetupOGCAPIWebhookWithManager(mgr ctrl.Manager) error {
 // TODO(user): EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
-// NOTE: The 'path' attribute must follow a specific pattern and should not be modified directly here.
-// Modifying the path for an invalid path can cause API server errors; failing to locate the webhook.
+// NOTE: If you want to customise the 'path', use the flags '--defaulting-path' or '--validation-path'.
 // +kubebuilder:webhook:path=/validate-pdok-nl-v1alpha1-ogcapi,mutating=false,failurePolicy=fail,sideEffects=None,groups=pdok.nl,resources=ogcapis,verbs=create;update,versions=v1alpha1,name=vogcapi-v1alpha1.kb.io,admissionReviewVersions=v1
 
 // OGCAPICustomValidator struct is responsible for validating the OGCAPI resource
@@ -59,7 +58,7 @@ type OGCAPICustomValidator struct {
 var _ webhook.CustomValidator = &OGCAPICustomValidator{}
 
 // ValidateCreate implements webhook.CustomValidator so a webhook will be registered for the type OGCAPI.
-func (v *OGCAPICustomValidator) ValidateCreate(ctx context.Context, obj runtime.Object) (admission.Warnings, error) {
+func (v *OGCAPICustomValidator) ValidateCreate(_ context.Context, obj runtime.Object) (admission.Warnings, error) {
 	ogcapi, ok := obj.(*pdoknlv1alpha1.OGCAPI)
 	if !ok {
 		return nil, fmt.Errorf("expected a OGCAPI object but got %T", obj)
@@ -72,7 +71,7 @@ func (v *OGCAPICustomValidator) ValidateCreate(ctx context.Context, obj runtime.
 }
 
 // ValidateUpdate implements webhook.CustomValidator so a webhook will be registered for the type OGCAPI.
-func (v *OGCAPICustomValidator) ValidateUpdate(ctx context.Context, oldObj, newObj runtime.Object) (admission.Warnings, error) {
+func (v *OGCAPICustomValidator) ValidateUpdate(_ context.Context, oldObj, newObj runtime.Object) (admission.Warnings, error) {
 	ogcapi, ok := newObj.(*pdoknlv1alpha1.OGCAPI)
 	if !ok {
 		return nil, fmt.Errorf("expected a OGCAPI object for the newObj but got %T", newObj)
