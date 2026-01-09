@@ -1745,7 +1745,6 @@ spec:
                                     variables in the DisplayNameTemplate.
                                   items:
                                     type: string
-                                  minItems: 1
                                   type: array
                                 filters:
                                   description: Filters available for this collection
@@ -3146,7 +3145,6 @@ spec:
                                     variables in the DisplayNameTemplate.
                                   items:
                                     type: string
-                                  minItems: 1
                                   type: array
                                 filters:
                                   description: Filters available for this collection
@@ -5430,7 +5428,6 @@ spec:
                                     variables in the DisplayNameTemplate.
                                   items:
                                     type: string
-                                  minItems: 1
                                   type: array
                                 filters:
                                   description: Filters available for this collection
@@ -7852,7 +7849,6 @@ spec:
                                     variables in the DisplayNameTemplate.
                                   items:
                                     type: string
-                                  minItems: 1
                                   type: array
                                 filters:
                                   description: Filters available for this collection
