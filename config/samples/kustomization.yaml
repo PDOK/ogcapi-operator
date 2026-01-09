@@ -1,4 +1,4 @@
 ## Append samples of your project ##
 resources:
-- v1alpha1_ogcapi.yaml
-# +kubebuilder:scaffold:manifestskustomizesamples
+- _v1alpha1_ogcapi.yaml
+#+kubebuilder:scaffold:manifestskustomizesamples
