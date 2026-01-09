@@ -809,6 +809,44 @@ spec:
                                     the given collection of 3D Tiles.
                                   pattern: ^(https?://.+)|(\$\{.+\}.*)
                                   type: string
+                                collectionRefs:
+                                  description: Links to the individual OGC API (feature)
+                                    collections that are searchable in this collection.
+                                  items:
+                                    properties:
+                                      api:
+                                        description: |-
+                                          Base URL/Href to the OGC Features API.
+
+                                          Only required when the given collection is hosted on a different server than the search API
+                                          (in a separate deployment).Otherwise, the base URL of this server is used.
+                                        pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                        type: string
+                                      collection:
+                                        description: |-
+                                          Collection ID in the OGC Features API. This can be a collection on this
+                                          server (listed under ogcApi>Features>Collections) or a remote collection on another server.
+                                        type: string
+                                      geometryType:
+                                        description: |-
+                                          Geometry type of the features in the related collection.
+                                          A collection in an OGC Features API has a single geometry type.
+                                          But a searchable collection has no geometry type distinction and thus
+                                          could be assembled of multiple OGC Feature API collections (with the same feature type).
+                                        enum:
+                                        - point
+                                        - multipoint
+                                        - linestring
+                                        - multilinestring
+                                        - polygon
+                                        - multipolygon
+                                        type: string
+                                    required:
+                                    - collection
+                                    - geometryType
+                                    type: object
+                                  minItems: 1
+                                  type: array
                                 datasources:
                                   description: Optional collection-specific datasources.
                                     Mutually exclusive with top-level defined datasources.
@@ -1697,6 +1735,19 @@ spec:
                                         type: object
                                       type: array
                                   type: object
+                                displayNameTemplate:
+                                  description: Template that indicates how a search
+                                    record is displayed. Uses Go text/template syntax
+                                    to reference fields.
+                                  type: string
+                                fields:
+                                  description: Fields that make up the display name
+                                    and/or suggestions. These fields can be used as
+                                    variables in the DisplayNameTemplate.
+                                  items:
+                                    type: string
+                                  minItems: 1
+                                  type: array
                                 filters:
                                   description: Filters available for this collection
                                   properties:
@@ -2075,6 +2126,11 @@ spec:
                                   description: Optional template to the vector tiles
                                     on the tileserver. Defaults to {tms}/{z}/{x}/{y}.pbf.
                                   type: string
+                                version:
+                                  default: 1
+                                  description: Version of the collection exposed through
+                                    the API.
+                                  type: integer
                                 web:
                                   description: Configuration specifically related
                                     to HTML/Web representation
@@ -2116,6 +2172,7 @@ spec:
                                       type: boolean
                                   type: object
                               required:
+                              - collectionRefs
                               - id
                               type: object
                             type: array
@@ -2155,6 +2212,44 @@ spec:
                                     the given collection of 3D Tiles.
                                   pattern: ^(https?://.+)|(\$\{.+\}.*)
                                   type: string
+                                collectionRefs:
+                                  description: Links to the individual OGC API (feature)
+                                    collections that are searchable in this collection.
+                                  items:
+                                    properties:
+                                      api:
+                                        description: |-
+                                          Base URL/Href to the OGC Features API.
+
+                                          Only required when the given collection is hosted on a different server than the search API
+                                          (in a separate deployment).Otherwise, the base URL of this server is used.
+                                        pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                        type: string
+                                      collection:
+                                        description: |-
+                                          Collection ID in the OGC Features API. This can be a collection on this
+                                          server (listed under ogcApi>Features>Collections) or a remote collection on another server.
+                                        type: string
+                                      geometryType:
+                                        description: |-
+                                          Geometry type of the features in the related collection.
+                                          A collection in an OGC Features API has a single geometry type.
+                                          But a searchable collection has no geometry type distinction and thus
+                                          could be assembled of multiple OGC Feature API collections (with the same feature type).
+                                        enum:
+                                        - point
+                                        - multipoint
+                                        - linestring
+                                        - multilinestring
+                                        - polygon
+                                        - multipolygon
+                                        type: string
+                                    required:
+                                    - collection
+                                    - geometryType
+                                    type: object
+                                  minItems: 1
+                                  type: array
                                 datasources:
                                   description: Optional collection-specific datasources.
                                     Mutually exclusive with top-level defined datasources.
@@ -3043,6 +3138,19 @@ spec:
                                         type: object
                                       type: array
                                   type: object
+                                displayNameTemplate:
+                                  description: Template that indicates how a search
+                                    record is displayed. Uses Go text/template syntax
+                                    to reference fields.
+                                  type: string
+                                fields:
+                                  description: Fields that make up the display name
+                                    and/or suggestions. These fields can be used as
+                                    variables in the DisplayNameTemplate.
+                                  items:
+                                    type: string
+                                  minItems: 1
+                                  type: array
                                 filters:
                                   description: Filters available for this collection
                                   properties:
@@ -3421,6 +3529,11 @@ spec:
                                   description: Optional template to the vector tiles
                                     on the tileserver. Defaults to {tms}/{z}/{x}/{y}.pbf.
                                   type: string
+                                version:
+                                  default: 1
+                                  description: Version of the collection exposed through
+                                    the API.
+                                  type: integer
                                 web:
                                   description: Configuration specifically related
                                     to HTML/Web representation
@@ -3462,6 +3575,7 @@ spec:
                                       type: boolean
                                   type: object
                               required:
+                              - collectionRefs
                               - id
                               type: object
                             type: array
@@ -4362,106 +4476,21 @@ spec:
                         required:
                         - collections
                         type: object
-                      processes:
-                        description: Enable when this API should offer OGC API Processes.
+                      featuresSearch:
+                        description: Enable when this API should offer search/geocoding
+                          capabilities based on OGC API Features.
                         properties:
-                          processesServer:
-                            description: Reference to an external service implementing
-                              the process API. GoKoala acts only as a proxy for OGC
-                              API Processes.
-                            pattern: ^(https?://.+)|(\$\{.+\}.*)
+                          basemap:
+                            default: OSM
+                            description: Basemap to use in embedded viewer on the
+                              HTML pages.
+                            enum:
+                            - OSM
+                            - BRT
                             type: string
-                          supportsCallback:
-                            description: Enable to advertise callback operations on
-                              the conformance page
-                            type: boolean
-                          supportsDismiss:
-                            description: Enable to advertise dismiss operations on
-                              the conformance page
-                            type: boolean
-                        required:
-                        - processesServer
-                        - supportsCallback
-                        - supportsDismiss
-                        type: object
-                      styles:
-                        description: Enable when this API should offer OGC API Styles.
-                        properties:
-                          default:
-                            description: ID of the style to use a default
-                            type: string
-                          stylesDir:
-                            description: Location on disk where the styles are hosted
-                            type: string
-                          supportedStyles:
-                            description: Styles exposed though this API
-                            items:
-                              properties:
-                                description:
-                                  description: Explains what is visualized by this
-                                    style
-                                  type: string
-                                formats:
-                                  description: This style is offered in the following
-                                    formats
-                                  items:
-                                    properties:
-                                      format:
-                                        default: mapbox
-                                        description: Name of the format
-                                        type: string
-                                    type: object
-                                  type: array
-                                id:
-                                  description: Unique ID of this style
-                                  pattern: ^[a-z0-9"]([a-z0-9_-]*[a-z0-9"]+|)$
-                                  type: string
-                                keywords:
-                                  description: Keywords to make this style better
-                                    discoverable
-                                  items:
-                                    type: string
-                                  type: array
-                                lastUpdated:
-                                  description: Moment in time when the style was last
-                                    updated
-                                  format: date-time
-                                  type: string
-                                legend:
-                                  description: |-
-                                    Reference to a PNG image to offer as legend to end users.
-                                    The full path is constructed by appending Resources + Legend.
-                                  type: string
-                                thumbnail:
-                                  description: |-
-                                    Reference to a PNG image to use a thumbnail on the style metadata page.
-                                    The full path is constructed by appending Resources + Thumbnail.
-                                  type: string
-                                title:
-                                  description: Human-friendly name of this style
-                                  type: string
-                                version:
-                                  description: Optional version of this style
-                                  type: string
-                              required:
-                              - formats
-                              - id
-                              - title
-                              type: object
-                            type: array
-                        required:
-                        - default
-                        - stylesDir
-                        - supportedStyles
-                        type: object
-                      tiles:
-                        description: Enable when this API should offer OGC API Tiles.
-                          This also requires OGC API Styles.
-                        properties:
                           collections:
-                            description: Tiles per collection. When no collections
-                              are specified tiles should be hosted at the root of
-                              the API (/tiles endpoint).
+                            description: Collections to be served as features through
+                              this API
                             items:
                               properties:
                                 3dViewerUrl:
@@ -4469,6 +4498,44 @@ spec:
                                     the given collection of 3D Tiles.
                                   pattern: ^(https?://.+)|(\$\{.+\}.*)
                                   type: string
+                                collectionRefs:
+                                  description: Links to the individual OGC API (feature)
+                                    collections that are searchable in this collection.
+                                  items:
+                                    properties:
+                                      api:
+                                        description: |-
+                                          Base URL/Href to the OGC Features API.
+
+                                          Only required when the given collection is hosted on a different server than the search API
+                                          (in a separate deployment).Otherwise, the base URL of this server is used.
+                                        pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                        type: string
+                                      collection:
+                                        description: |-
+                                          Collection ID in the OGC Features API. This can be a collection on this
+                                          server (listed under ogcApi>Features>Collections) or a remote collection on another server.
+                                        type: string
+                                      geometryType:
+                                        description: |-
+                                          Geometry type of the features in the related collection.
+                                          A collection in an OGC Features API has a single geometry type.
+                                          But a searchable collection has no geometry type distinction and thus
+                                          could be assembled of multiple OGC Feature API collections (with the same feature type).
+                                        enum:
+                                        - point
+                                        - multipoint
+                                        - linestring
+                                        - multilinestring
+                                        - polygon
+                                        - multipolygon
+                                        type: string
+                                    required:
+                                    - collection
+                                    - geometryType
+                                    type: object
+                                  minItems: 1
+                                  type: array
                                 datasources:
                                   description: Optional collection-specific datasources.
                                     Mutually exclusive with top-level defined datasources.
@@ -5357,6 +5424,19 @@ spec:
                                         type: object
                                       type: array
                                   type: object
+                                displayNameTemplate:
+                                  description: Template that indicates how a search
+                                    record is displayed. Uses Go text/template syntax
+                                    to reference fields.
+                                  type: string
+                                fields:
+                                  description: Fields that make up the display name
+                                    and/or suggestions. These fields can be used as
+                                    variables in the DisplayNameTemplate.
+                                  items:
+                                    type: string
+                                  minItems: 1
+                                  type: array
                                 filters:
                                   description: Filters available for this collection
                                   properties:
@@ -5735,6 +5815,11 @@ spec:
                                   description: Optional template to the vector tiles
                                     on the tileserver. Defaults to {tms}/{z}/{x}/{y}.pbf.
                                   type: string
+                                version:
+                                  default: 1
+                                  description: Version of the collection exposed through
+                                    the API.
+                                  type: integer
                                 web:
                                   description: Configuration specifically related
                                     to HTML/Web representation
@@ -5776,6 +5861,2431 @@ spec:
                                       type: boolean
                                   type: object
                               required:
+                              - collectionRefs
+                              - id
+                              type: object
+                            type: array
+                          datasources:
+                            description: |-
+                              One or more datasources to get the features from (geopackages, postgres, etc).
+                              Optional since you can also define datasources at the collection level
+                            properties:
+                              additional:
+                                description: |-
+                                  One or more additional datasources for features in other (non-WGS84) coordinate reference systems.
+
+                                  No on-the-fly transformation/reprojection is performed, so the features in these additional datasources
+                                  need to be transformed/reprojected ahead of time. For example, using ogr2ogr.
+                                items:
+                                  properties:
+                                    geopackage:
+                                      description: GeoPackage to get the features
+                                        from.
+                                      properties:
+                                        cloud:
+                                          description: Settings to read a GeoPackage
+                                            as a Cloud-Backed SQLite database
+                                          properties:
+                                            auth:
+                                              description: |-
+                                                Some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                                'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
+                                              type: string
+                                            cache:
+                                              description: Local cache of fetched
+                                                blocks from cloud storage
+                                              properties:
+                                                maxSize:
+                                                  default: 1Gb
+                                                  description: Max size of the local
+                                                    cache. Accepts human-readable
+                                                    size such as 100Mb, 4Gb, 1Tb,
+                                                    etc. When omitted 1Gb is used.
+                                                  type: string
+                                                path:
+                                                  description: Optional path to directory
+                                                    for caching cloud-backed GeoPackage
+                                                    blocks, when omitted a temp dir
+                                                    will be used.
+                                                  type: string
+                                                warmUp:
+                                                  default: false
+                                                  description: When true a warm-up
+                                                    query is executed on startup which
+                                                    aims to fill the local cache.
+                                                    Does increase startup time.
+                                                  type: boolean
+                                              type: object
+                                            connection:
+                                              description: |-
+                                                Reference to the cloud storage (either azure or google at the moment).
+                                                For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
+                                              type: string
+                                            container:
+                                              description: Container/bucket on the
+                                                storage account
+                                              type: string
+                                            externalFid:
+                                              description: |-
+                                                External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                              type: string
+                                            fid:
+                                              default: fid
+                                              description: Feature id column name
+                                              type: string
+                                            file:
+                                              description: Filename of the GeoPackage
+                                              type: string
+                                            inMemoryCacheSize:
+                                              default: -2000
+                                              description: |-
+                                                ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                              type: integer
+                                            logHttpRequests:
+                                              default: false
+                                              description: ADVANCED SETTING. Only
+                                                for debug purposes! When true all
+                                                HTTP requests executed by sqlite to
+                                                cloud object storage are logged to
+                                                stdout
+                                              type: boolean
+                                            maxBBoxSizeToUseWithRTree:
+                                              default: 8000
+                                              description: ADVANCED SETTING. When
+                                                the number of features in a bbox stay
+                                                within the given value use an RTree
+                                                index, otherwise use a BTree index.
+                                              type: integer
+                                            queryTimeout:
+                                              default: 15s
+                                              description: Optional timeout after
+                                                which queries are canceled
+                                              format: duration
+                                              type: string
+                                            user:
+                                              description: Username of the storage
+                                                account, like devstoreaccount1 when
+                                                using Azurite.
+                                              type: string
+                                          required:
+                                          - auth
+                                          - connection
+                                          - container
+                                          - file
+                                          - user
+                                          type: object
+                                        local:
+                                          description: Settings to read a GeoPackage
+                                            from local disk
+                                          properties:
+                                            download:
+                                              description: |-
+                                                Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                                downloaded to local disk and stored at the location specified in File.
+                                              properties:
+                                                from:
+                                                  description: |-
+                                                    Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                    during startup and stored at the location specified in "file".
+                                                  pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                  type: string
+                                                maxRetries:
+                                                  default: 5
+                                                  description: ADVANCED SETTING. Maximum
+                                                    number of retries when retrying
+                                                    HTTP requests to download (part
+                                                    of) GeoPackage.
+                                                  minimum: 1
+                                                  type: integer
+                                                parallelism:
+                                                  default: 4
+                                                  description: |-
+                                                    ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                    Setting this to 1 will disable concurrent downloads.
+                                                  minimum: 1
+                                                  type: integer
+                                                retryDelay:
+                                                  default: 1s
+                                                  description: ADVANCED SETTING. Minimum
+                                                    delay to use when retrying HTTP
+                                                    request to download (part of)
+                                                    GeoPackage.
+                                                  format: duration
+                                                  type: string
+                                                retryMaxDelay:
+                                                  default: 30s
+                                                  description: ADVANCED SETTING. Maximum
+                                                    overall delay of the exponential
+                                                    backoff while retrying HTTP requests
+                                                    to download (part of) GeoPackage.
+                                                  format: duration
+                                                  type: string
+                                                timeout:
+                                                  default: 2m
+                                                  description: ADVANCED SETTING. HTTP
+                                                    request timeout when downloading
+                                                    (part of) GeoPackage.
+                                                  format: duration
+                                                  type: string
+                                                tlsSkipVerify:
+                                                  default: false
+                                                  description: ADVANCED SETTING. When
+                                                    true TLS certs are NOT validated,
+                                                    false otherwise. Only use true
+                                                    for your own self-signed certificates!
+                                                  type: boolean
+                                              required:
+                                              - from
+                                              type: object
+                                            externalFid:
+                                              description: |-
+                                                External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                              type: string
+                                            fid:
+                                              default: fid
+                                              description: Feature id column name
+                                              type: string
+                                            file:
+                                              description: |-
+                                                Location of GeoPackage on disk.
+                                                You can place the GeoPackage here manually (out-of-band) or you can specify Download
+                                                and let the application download the GeoPackage for you and store it at this location.
+                                              type: string
+                                            inMemoryCacheSize:
+                                              default: -2000
+                                              description: |-
+                                                ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                              type: integer
+                                            maxBBoxSizeToUseWithRTree:
+                                              default: 8000
+                                              description: ADVANCED SETTING. When
+                                                the number of features in a bbox stay
+                                                within the given value use an RTree
+                                                index, otherwise use a BTree index.
+                                              type: integer
+                                            queryTimeout:
+                                              default: 15s
+                                              description: Optional timeout after
+                                                which queries are canceled
+                                              format: duration
+                                              type: string
+                                          required:
+                                          - file
+                                          type: object
+                                      type: object
+                                    postgres:
+                                      description: Postgres database to get the features
+                                        from.
+                                      properties:
+                                        databaseName:
+                                          default: postgres
+                                          description: Name of the PostgreSQL database
+                                            containing the data.
+                                          type: string
+                                        externalFid:
+                                          description: |-
+                                            External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                            It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                          type: string
+                                        fid:
+                                          default: fid
+                                          description: Feature id column name
+                                          type: string
+                                        host:
+                                          default: localhost
+                                          description: Hostname of the PostgreSQL
+                                            server.
+                                          type: string
+                                        pass:
+                                          default: postgres
+                                          description: Password when connecting to
+                                            the PostgreSQL server.
+                                          type: string
+                                        port:
+                                          default: 5432
+                                          description: Port number of the PostgreSQL
+                                            server.
+                                          type: integer
+                                        queryTimeout:
+                                          default: 15s
+                                          description: Optional timeout after which
+                                            queries are canceled
+                                          format: duration
+                                          type: string
+                                        schema:
+                                          default: public
+                                          description: Name of the PostgreSQL schema
+                                            containing the data.
+                                          type: string
+                                        spatialIndexRequired:
+                                          default: true
+                                          description: |-
+                                            When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                            when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                          type: boolean
+                                        sslMode:
+                                          default: disable
+                                          description: The SSL mode to use, e.g. 'disable',
+                                            'allow', 'prefer', 'require', 'verify-ca'
+                                            or 'verify-full'.
+                                          enum:
+                                          - disable
+                                          - allow
+                                          - prefer
+                                          - require
+                                          - verify-ca
+                                          - verify-full
+                                          type: string
+                                        user:
+                                          default: postgres
+                                          description: Username when connecting to
+                                            the PostgreSQL server.
+                                          type: string
+                                      type: object
+                                    srs:
+                                      description: SRS/CRS used for the features in
+                                        this datasource
+                                      pattern: ^EPSG:\d+$
+                                      type: string
+                                  required:
+                                  - srs
+                                  type: object
+                                type: array
+                              defaultWGS84:
+                                description: |-
+                                  Features should always be available in WGS84 (according to spec). This specifies the
+                                  datasource to be used for features in the WGS84 coordinate reference system.
+
+                                  No on-the-fly transformation/reprojection is performed, so the features in this datasource need to be
+                                  either native WGS84 or reprojected/transformed to WGS84 ahead of time. For example, using ogr2ogr.
+                                properties:
+                                  geopackage:
+                                    description: GeoPackage to get the features from.
+                                    properties:
+                                      cloud:
+                                        description: Settings to read a GeoPackage
+                                          as a Cloud-Backed SQLite database
+                                        properties:
+                                          auth:
+                                            description: |-
+                                              Some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                              'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
+                                            type: string
+                                          cache:
+                                            description: Local cache of fetched blocks
+                                              from cloud storage
+                                            properties:
+                                              maxSize:
+                                                default: 1Gb
+                                                description: Max size of the local
+                                                  cache. Accepts human-readable size
+                                                  such as 100Mb, 4Gb, 1Tb, etc. When
+                                                  omitted 1Gb is used.
+                                                type: string
+                                              path:
+                                                description: Optional path to directory
+                                                  for caching cloud-backed GeoPackage
+                                                  blocks, when omitted a temp dir
+                                                  will be used.
+                                                type: string
+                                              warmUp:
+                                                default: false
+                                                description: When true a warm-up query
+                                                  is executed on startup which aims
+                                                  to fill the local cache. Does increase
+                                                  startup time.
+                                                type: boolean
+                                            type: object
+                                          connection:
+                                            description: |-
+                                              Reference to the cloud storage (either azure or google at the moment).
+                                              For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
+                                            type: string
+                                          container:
+                                            description: Container/bucket on the storage
+                                              account
+                                            type: string
+                                          externalFid:
+                                            description: |-
+                                              External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                              It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                            type: string
+                                          fid:
+                                            default: fid
+                                            description: Feature id column name
+                                            type: string
+                                          file:
+                                            description: Filename of the GeoPackage
+                                            type: string
+                                          inMemoryCacheSize:
+                                            default: -2000
+                                            description: |-
+                                              ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                              See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                              Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                            type: integer
+                                          logHttpRequests:
+                                            default: false
+                                            description: ADVANCED SETTING. Only for
+                                              debug purposes! When true all HTTP requests
+                                              executed by sqlite to cloud object storage
+                                              are logged to stdout
+                                            type: boolean
+                                          maxBBoxSizeToUseWithRTree:
+                                            default: 8000
+                                            description: ADVANCED SETTING. When the
+                                              number of features in a bbox stay within
+                                              the given value use an RTree index,
+                                              otherwise use a BTree index.
+                                            type: integer
+                                          queryTimeout:
+                                            default: 15s
+                                            description: Optional timeout after which
+                                              queries are canceled
+                                            format: duration
+                                            type: string
+                                          user:
+                                            description: Username of the storage account,
+                                              like devstoreaccount1 when using Azurite.
+                                            type: string
+                                        required:
+                                        - auth
+                                        - connection
+                                        - container
+                                        - file
+                                        - user
+                                        type: object
+                                      local:
+                                        description: Settings to read a GeoPackage
+                                          from local disk
+                                        properties:
+                                          download:
+                                            description: |-
+                                              Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                              downloaded to local disk and stored at the location specified in File.
+                                            properties:
+                                              from:
+                                                description: |-
+                                                  Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                  during startup and stored at the location specified in "file".
+                                                pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                type: string
+                                              maxRetries:
+                                                default: 5
+                                                description: ADVANCED SETTING. Maximum
+                                                  number of retries when retrying
+                                                  HTTP requests to download (part
+                                                  of) GeoPackage.
+                                                minimum: 1
+                                                type: integer
+                                              parallelism:
+                                                default: 4
+                                                description: |-
+                                                  ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                  Setting this to 1 will disable concurrent downloads.
+                                                minimum: 1
+                                                type: integer
+                                              retryDelay:
+                                                default: 1s
+                                                description: ADVANCED SETTING. Minimum
+                                                  delay to use when retrying HTTP
+                                                  request to download (part of) GeoPackage.
+                                                format: duration
+                                                type: string
+                                              retryMaxDelay:
+                                                default: 30s
+                                                description: ADVANCED SETTING. Maximum
+                                                  overall delay of the exponential
+                                                  backoff while retrying HTTP requests
+                                                  to download (part of) GeoPackage.
+                                                format: duration
+                                                type: string
+                                              timeout:
+                                                default: 2m
+                                                description: ADVANCED SETTING. HTTP
+                                                  request timeout when downloading
+                                                  (part of) GeoPackage.
+                                                format: duration
+                                                type: string
+                                              tlsSkipVerify:
+                                                default: false
+                                                description: ADVANCED SETTING. When
+                                                  true TLS certs are NOT validated,
+                                                  false otherwise. Only use true for
+                                                  your own self-signed certificates!
+                                                type: boolean
+                                            required:
+                                            - from
+                                            type: object
+                                          externalFid:
+                                            description: |-
+                                              External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                              It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                            type: string
+                                          fid:
+                                            default: fid
+                                            description: Feature id column name
+                                            type: string
+                                          file:
+                                            description: |-
+                                              Location of GeoPackage on disk.
+                                              You can place the GeoPackage here manually (out-of-band) or you can specify Download
+                                              and let the application download the GeoPackage for you and store it at this location.
+                                            type: string
+                                          inMemoryCacheSize:
+                                            default: -2000
+                                            description: |-
+                                              ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                              See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                              Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                            type: integer
+                                          maxBBoxSizeToUseWithRTree:
+                                            default: 8000
+                                            description: ADVANCED SETTING. When the
+                                              number of features in a bbox stay within
+                                              the given value use an RTree index,
+                                              otherwise use a BTree index.
+                                            type: integer
+                                          queryTimeout:
+                                            default: 15s
+                                            description: Optional timeout after which
+                                              queries are canceled
+                                            format: duration
+                                            type: string
+                                        required:
+                                        - file
+                                        type: object
+                                    type: object
+                                  postgres:
+                                    description: Postgres database to get the features
+                                      from.
+                                    properties:
+                                      databaseName:
+                                        default: postgres
+                                        description: Name of the PostgreSQL database
+                                          containing the data.
+                                        type: string
+                                      externalFid:
+                                        description: |-
+                                          External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                          It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                        type: string
+                                      fid:
+                                        default: fid
+                                        description: Feature id column name
+                                        type: string
+                                      host:
+                                        default: localhost
+                                        description: Hostname of the PostgreSQL server.
+                                        type: string
+                                      pass:
+                                        default: postgres
+                                        description: Password when connecting to the
+                                          PostgreSQL server.
+                                        type: string
+                                      port:
+                                        default: 5432
+                                        description: Port number of the PostgreSQL
+                                          server.
+                                        type: integer
+                                      queryTimeout:
+                                        default: 15s
+                                        description: Optional timeout after which
+                                          queries are canceled
+                                        format: duration
+                                        type: string
+                                      schema:
+                                        default: public
+                                        description: Name of the PostgreSQL schema
+                                          containing the data.
+                                        type: string
+                                      spatialIndexRequired:
+                                        default: true
+                                        description: |-
+                                          When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                          when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                        type: boolean
+                                      sslMode:
+                                        default: disable
+                                        description: The SSL mode to use, e.g. 'disable',
+                                          'allow', 'prefer', 'require', 'verify-ca'
+                                          or 'verify-full'.
+                                        enum:
+                                        - disable
+                                        - allow
+                                        - prefer
+                                        - require
+                                        - verify-ca
+                                        - verify-full
+                                        type: string
+                                      user:
+                                        default: postgres
+                                        description: Username when connecting to the
+                                          PostgreSQL server.
+                                        type: string
+                                    type: object
+                                type: object
+                              transformOnTheFly:
+                                description: |-
+                                  Datasource containing features which will be transformed/reprojected on-the-fly to the specified
+                                  coordinate reference systems. No need to transform/reproject ahead of time.
+
+                                  Note: On-the-fly transformation/reprojection may impact performance when using (very) large geometries.
+                                items:
+                                  properties:
+                                    geopackage:
+                                      description: GeoPackage to get the features
+                                        from.
+                                      properties:
+                                        cloud:
+                                          description: Settings to read a GeoPackage
+                                            as a Cloud-Backed SQLite database
+                                          properties:
+                                            auth:
+                                              description: |-
+                                                Some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                                'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
+                                              type: string
+                                            cache:
+                                              description: Local cache of fetched
+                                                blocks from cloud storage
+                                              properties:
+                                                maxSize:
+                                                  default: 1Gb
+                                                  description: Max size of the local
+                                                    cache. Accepts human-readable
+                                                    size such as 100Mb, 4Gb, 1Tb,
+                                                    etc. When omitted 1Gb is used.
+                                                  type: string
+                                                path:
+                                                  description: Optional path to directory
+                                                    for caching cloud-backed GeoPackage
+                                                    blocks, when omitted a temp dir
+                                                    will be used.
+                                                  type: string
+                                                warmUp:
+                                                  default: false
+                                                  description: When true a warm-up
+                                                    query is executed on startup which
+                                                    aims to fill the local cache.
+                                                    Does increase startup time.
+                                                  type: boolean
+                                              type: object
+                                            connection:
+                                              description: |-
+                                                Reference to the cloud storage (either azure or google at the moment).
+                                                For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
+                                              type: string
+                                            container:
+                                              description: Container/bucket on the
+                                                storage account
+                                              type: string
+                                            externalFid:
+                                              description: |-
+                                                External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                              type: string
+                                            fid:
+                                              default: fid
+                                              description: Feature id column name
+                                              type: string
+                                            file:
+                                              description: Filename of the GeoPackage
+                                              type: string
+                                            inMemoryCacheSize:
+                                              default: -2000
+                                              description: |-
+                                                ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                              type: integer
+                                            logHttpRequests:
+                                              default: false
+                                              description: ADVANCED SETTING. Only
+                                                for debug purposes! When true all
+                                                HTTP requests executed by sqlite to
+                                                cloud object storage are logged to
+                                                stdout
+                                              type: boolean
+                                            maxBBoxSizeToUseWithRTree:
+                                              default: 8000
+                                              description: ADVANCED SETTING. When
+                                                the number of features in a bbox stay
+                                                within the given value use an RTree
+                                                index, otherwise use a BTree index.
+                                              type: integer
+                                            queryTimeout:
+                                              default: 15s
+                                              description: Optional timeout after
+                                                which queries are canceled
+                                              format: duration
+                                              type: string
+                                            user:
+                                              description: Username of the storage
+                                                account, like devstoreaccount1 when
+                                                using Azurite.
+                                              type: string
+                                          required:
+                                          - auth
+                                          - connection
+                                          - container
+                                          - file
+                                          - user
+                                          type: object
+                                        local:
+                                          description: Settings to read a GeoPackage
+                                            from local disk
+                                          properties:
+                                            download:
+                                              description: |-
+                                                Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                                downloaded to local disk and stored at the location specified in File.
+                                              properties:
+                                                from:
+                                                  description: |-
+                                                    Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                    during startup and stored at the location specified in "file".
+                                                  pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                  type: string
+                                                maxRetries:
+                                                  default: 5
+                                                  description: ADVANCED SETTING. Maximum
+                                                    number of retries when retrying
+                                                    HTTP requests to download (part
+                                                    of) GeoPackage.
+                                                  minimum: 1
+                                                  type: integer
+                                                parallelism:
+                                                  default: 4
+                                                  description: |-
+                                                    ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                    Setting this to 1 will disable concurrent downloads.
+                                                  minimum: 1
+                                                  type: integer
+                                                retryDelay:
+                                                  default: 1s
+                                                  description: ADVANCED SETTING. Minimum
+                                                    delay to use when retrying HTTP
+                                                    request to download (part of)
+                                                    GeoPackage.
+                                                  format: duration
+                                                  type: string
+                                                retryMaxDelay:
+                                                  default: 30s
+                                                  description: ADVANCED SETTING. Maximum
+                                                    overall delay of the exponential
+                                                    backoff while retrying HTTP requests
+                                                    to download (part of) GeoPackage.
+                                                  format: duration
+                                                  type: string
+                                                timeout:
+                                                  default: 2m
+                                                  description: ADVANCED SETTING. HTTP
+                                                    request timeout when downloading
+                                                    (part of) GeoPackage.
+                                                  format: duration
+                                                  type: string
+                                                tlsSkipVerify:
+                                                  default: false
+                                                  description: ADVANCED SETTING. When
+                                                    true TLS certs are NOT validated,
+                                                    false otherwise. Only use true
+                                                    for your own self-signed certificates!
+                                                  type: boolean
+                                              required:
+                                              - from
+                                              type: object
+                                            externalFid:
+                                              description: |-
+                                                External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                              type: string
+                                            fid:
+                                              default: fid
+                                              description: Feature id column name
+                                              type: string
+                                            file:
+                                              description: |-
+                                                Location of GeoPackage on disk.
+                                                You can place the GeoPackage here manually (out-of-band) or you can specify Download
+                                                and let the application download the GeoPackage for you and store it at this location.
+                                              type: string
+                                            inMemoryCacheSize:
+                                              default: -2000
+                                              description: |-
+                                                ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                              type: integer
+                                            maxBBoxSizeToUseWithRTree:
+                                              default: 8000
+                                              description: ADVANCED SETTING. When
+                                                the number of features in a bbox stay
+                                                within the given value use an RTree
+                                                index, otherwise use a BTree index.
+                                              type: integer
+                                            queryTimeout:
+                                              default: 15s
+                                              description: Optional timeout after
+                                                which queries are canceled
+                                              format: duration
+                                              type: string
+                                          required:
+                                          - file
+                                          type: object
+                                      type: object
+                                    postgres:
+                                      description: Postgres database to get the features
+                                        from.
+                                      properties:
+                                        databaseName:
+                                          default: postgres
+                                          description: Name of the PostgreSQL database
+                                            containing the data.
+                                          type: string
+                                        externalFid:
+                                          description: |-
+                                            External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                            It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                          type: string
+                                        fid:
+                                          default: fid
+                                          description: Feature id column name
+                                          type: string
+                                        host:
+                                          default: localhost
+                                          description: Hostname of the PostgreSQL
+                                            server.
+                                          type: string
+                                        pass:
+                                          default: postgres
+                                          description: Password when connecting to
+                                            the PostgreSQL server.
+                                          type: string
+                                        port:
+                                          default: 5432
+                                          description: Port number of the PostgreSQL
+                                            server.
+                                          type: integer
+                                        queryTimeout:
+                                          default: 15s
+                                          description: Optional timeout after which
+                                            queries are canceled
+                                          format: duration
+                                          type: string
+                                        schema:
+                                          default: public
+                                          description: Name of the PostgreSQL schema
+                                            containing the data.
+                                          type: string
+                                        spatialIndexRequired:
+                                          default: true
+                                          description: |-
+                                            When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                            when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                          type: boolean
+                                        sslMode:
+                                          default: disable
+                                          description: The SSL mode to use, e.g. 'disable',
+                                            'allow', 'prefer', 'require', 'verify-ca'
+                                            or 'verify-full'.
+                                          enum:
+                                          - disable
+                                          - allow
+                                          - prefer
+                                          - require
+                                          - verify-ca
+                                          - verify-full
+                                          type: string
+                                        user:
+                                          default: postgres
+                                          description: Username when connecting to
+                                            the PostgreSQL server.
+                                          type: string
+                                      type: object
+                                    supportedSrs:
+                                      description: List of supported SRS/CRS
+                                      items:
+                                        properties:
+                                          srs:
+                                            description: |-
+                                              Supported coordinated reference systems (CRS/SRS) for on-the-fly reprojection/transformation.
+                                              Note: no need to add 'OGC:CRS84', since that one is required and included by default.
+                                            pattern: ^EPSG:\d+$
+                                            type: string
+                                        required:
+                                        - srs
+                                        type: object
+                                      type: array
+                                  type: object
+                                type: array
+                            type: object
+                          forceUtc:
+                            default: false
+                            description: Force timestamps in features to the UTC timezone.
+                            type: boolean
+                          limit:
+                            description: Limits the number of features to retrieve
+                              with a single call
+                            properties:
+                              default:
+                                default: 10
+                                description: Number of features to return by default.
+                                minimum: 2
+                                type: integer
+                              max:
+                                default: 1000
+                                description: Max number of features to return. Should
+                                  be larger than 100 since the HTML interface always
+                                  offers a 100 limit option.
+                                minimum: 100
+                                type: integer
+                            type: object
+                          maxDecimals:
+                            description: Maximum number of decimals allowed in geometry
+                              coordinates. When not specified (default value of 0)
+                              no limit is enforced.
+                            minimum: 0
+                            type: integer
+                          searchSettings:
+                            description: Settings related to the search API/index.
+                            properties:
+                              exactMatchMultiplier:
+                                default: "3.0"
+                                description: ADVANCED SETTING. Multiply the exact
+                                  match rank to boost it above the wildcard matches.
+                                pattern: ^-?\d+(\.\d+)?$
+                                type: string
+                              indexName:
+                                default: search_index
+                                description: Name of the search index in the data
+                                  store.
+                                type: string
+                              preRankLimitMultiplier:
+                                default: 10
+                                description: ADVANCED SETTING. The number of results
+                                  which are pre-ranked when the rank threshold is
+                                  hit.
+                                type: integer
+                              preRankWordCountCutoff:
+                                default: 3
+                                description: ADVANCED SETTING. Pre-ranking is based
+                                  on word count. Results with a word count above this
+                                  cutoff are not eligible for pre-ranking.
+                                type: integer
+                              primarySuggestMultiplier:
+                                default: "1.01"
+                                description: ADVANCED SETTING. The primary suggest
+                                  is equal to the display name. With this multiplier
+                                  you can boost it above other suggests.
+                                pattern: ^-?\d+(\.\d+)?$
+                                type: string
+                              rankNormalization:
+                                default: 1
+                                description: |-
+                                  ADVANCED SETTING. Normalization specifies whether and how a document's length should impact its rank.
+                                  Possible values are 0, 1, 2, 4, 8, 16 and 32. For more information see https://www.postgresql.org/docs/current/textsearch-controls.html
+                                type: integer
+                              rankThreshold:
+                                default: 40000
+                                description: ADVANCED SETTING. The threshold above
+                                  which results are pre-ranked instead ranked exactly.
+                                type: integer
+                              synonymsExactMatch:
+                                default: false
+                                description: ADVANCED SETTING. When true synonyms
+                                  are taken into account during exact match calculation.
+                                type: boolean
+                            required:
+                            - indexName
+                            type: object
+                          validateResponses:
+                            default: true
+                            description: |-
+                              Whether GeoJSON/JSON-FG responses will be validated against the OpenAPI spec
+                              since it has a significant performance impact when dealing with large JSON payloads.
+                            type: boolean
+                        required:
+                        - collections
+                        - searchSettings
+                        type: object
+                      processes:
+                        description: Enable when this API should offer OGC API Processes.
+                        properties:
+                          processesServer:
+                            description: Reference to an external service implementing
+                              the process API. GoKoala acts only as a proxy for OGC
+                              API Processes.
+                            pattern: ^(https?://.+)|(\$\{.+\}.*)
+                            type: string
+                          supportsCallback:
+                            description: Enable to advertise callback operations on
+                              the conformance page
+                            type: boolean
+                          supportsDismiss:
+                            description: Enable to advertise dismiss operations on
+                              the conformance page
+                            type: boolean
+                        required:
+                        - processesServer
+                        - supportsCallback
+                        - supportsDismiss
+                        type: object
+                      styles:
+                        description: Enable when this API should offer OGC API Styles.
+                        properties:
+                          default:
+                            description: ID of the style to use a default
+                            type: string
+                          stylesDir:
+                            description: Location on disk where the styles are hosted
+                            type: string
+                          supportedStyles:
+                            description: Styles exposed though this API
+                            items:
+                              properties:
+                                description:
+                                  description: Explains what is visualized by this
+                                    style
+                                  type: string
+                                formats:
+                                  description: This style is offered in the following
+                                    formats
+                                  items:
+                                    properties:
+                                      format:
+                                        default: mapbox
+                                        description: Name of the format
+                                        type: string
+                                    type: object
+                                  type: array
+                                id:
+                                  description: Unique ID of this style
+                                  pattern: ^[a-z0-9"]([a-z0-9_-]*[a-z0-9"]+|)$
+                                  type: string
+                                keywords:
+                                  description: Keywords to make this style better
+                                    discoverable
+                                  items:
+                                    type: string
+                                  type: array
+                                lastUpdated:
+                                  description: Moment in time when the style was last
+                                    updated
+                                  format: date-time
+                                  type: string
+                                legend:
+                                  description: |-
+                                    Reference to a PNG image to offer as legend to end users.
+                                    The full path is constructed by appending Resources + Legend.
+                                  type: string
+                                thumbnail:
+                                  description: |-
+                                    Reference to a PNG image to use a thumbnail on the style metadata page.
+                                    The full path is constructed by appending Resources + Thumbnail.
+                                  type: string
+                                title:
+                                  description: Human-friendly name of this style
+                                  type: string
+                                version:
+                                  description: Optional version of this style
+                                  type: string
+                              required:
+                              - formats
+                              - id
+                              - title
+                              type: object
+                            type: array
+                        required:
+                        - default
+                        - stylesDir
+                        - supportedStyles
+                        type: object
+                      tiles:
+                        description: Enable when this API should offer OGC API Tiles.
+                          This also requires OGC API Styles.
+                        properties:
+                          collections:
+                            description: Tiles per collection. When no collections
+                              are specified tiles should be hosted at the root of
+                              the API (/tiles endpoint).
+                            items:
+                              properties:
+                                3dViewerUrl:
+                                  description: Optional URL to 3D viewer to visualize
+                                    the given collection of 3D Tiles.
+                                  pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                  type: string
+                                collectionRefs:
+                                  description: Links to the individual OGC API (feature)
+                                    collections that are searchable in this collection.
+                                  items:
+                                    properties:
+                                      api:
+                                        description: |-
+                                          Base URL/Href to the OGC Features API.
+
+                                          Only required when the given collection is hosted on a different server than the search API
+                                          (in a separate deployment).Otherwise, the base URL of this server is used.
+                                        pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                        type: string
+                                      collection:
+                                        description: |-
+                                          Collection ID in the OGC Features API. This can be a collection on this
+                                          server (listed under ogcApi>Features>Collections) or a remote collection on another server.
+                                        type: string
+                                      geometryType:
+                                        description: |-
+                                          Geometry type of the features in the related collection.
+                                          A collection in an OGC Features API has a single geometry type.
+                                          But a searchable collection has no geometry type distinction and thus
+                                          could be assembled of multiple OGC Feature API collections (with the same feature type).
+                                        enum:
+                                        - point
+                                        - multipoint
+                                        - linestring
+                                        - multilinestring
+                                        - polygon
+                                        - multipolygon
+                                        type: string
+                                    required:
+                                    - collection
+                                    - geometryType
+                                    type: object
+                                  minItems: 1
+                                  type: array
+                                datasources:
+                                  description: Optional collection-specific datasources.
+                                    Mutually exclusive with top-level defined datasources.
+                                  properties:
+                                    additional:
+                                      description: |-
+                                        One or more additional datasources for features in other (non-WGS84) coordinate reference systems.
+
+                                        No on-the-fly transformation/reprojection is performed, so the features in these additional datasources
+                                        need to be transformed/reprojected ahead of time. For example, using ogr2ogr.
+                                      items:
+                                        properties:
+                                          geopackage:
+                                            description: GeoPackage to get the features
+                                              from.
+                                            properties:
+                                              cloud:
+                                                description: Settings to read a GeoPackage
+                                                  as a Cloud-Backed SQLite database
+                                                properties:
+                                                  auth:
+                                                    description: |-
+                                                      Some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                                      'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
+                                                    type: string
+                                                  cache:
+                                                    description: Local cache of fetched
+                                                      blocks from cloud storage
+                                                    properties:
+                                                      maxSize:
+                                                        default: 1Gb
+                                                        description: Max size of the
+                                                          local cache. Accepts human-readable
+                                                          size such as 100Mb, 4Gb,
+                                                          1Tb, etc. When omitted 1Gb
+                                                          is used.
+                                                        type: string
+                                                      path:
+                                                        description: Optional path
+                                                          to directory for caching
+                                                          cloud-backed GeoPackage
+                                                          blocks, when omitted a temp
+                                                          dir will be used.
+                                                        type: string
+                                                      warmUp:
+                                                        default: false
+                                                        description: When true a warm-up
+                                                          query is executed on startup
+                                                          which aims to fill the local
+                                                          cache. Does increase startup
+                                                          time.
+                                                        type: boolean
+                                                    type: object
+                                                  connection:
+                                                    description: |-
+                                                      Reference to the cloud storage (either azure or google at the moment).
+                                                      For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
+                                                    type: string
+                                                  container:
+                                                    description: Container/bucket
+                                                      on the storage account
+                                                    type: string
+                                                  externalFid:
+                                                    description: |-
+                                                      External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                      It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                    type: string
+                                                  fid:
+                                                    default: fid
+                                                    description: Feature id column
+                                                      name
+                                                    type: string
+                                                  file:
+                                                    description: Filename of the GeoPackage
+                                                    type: string
+                                                  inMemoryCacheSize:
+                                                    default: -2000
+                                                    description: |-
+                                                      ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                    type: integer
+                                                  logHttpRequests:
+                                                    default: false
+                                                    description: ADVANCED SETTING.
+                                                      Only for debug purposes! When
+                                                      true all HTTP requests executed
+                                                      by sqlite to cloud object storage
+                                                      are logged to stdout
+                                                    type: boolean
+                                                  maxBBoxSizeToUseWithRTree:
+                                                    default: 8000
+                                                    description: ADVANCED SETTING.
+                                                      When the number of features
+                                                      in a bbox stay within the given
+                                                      value use an RTree index, otherwise
+                                                      use a BTree index.
+                                                    type: integer
+                                                  queryTimeout:
+                                                    default: 15s
+                                                    description: Optional timeout
+                                                      after which queries are canceled
+                                                    format: duration
+                                                    type: string
+                                                  user:
+                                                    description: Username of the storage
+                                                      account, like devstoreaccount1
+                                                      when using Azurite.
+                                                    type: string
+                                                required:
+                                                - auth
+                                                - connection
+                                                - container
+                                                - file
+                                                - user
+                                                type: object
+                                              local:
+                                                description: Settings to read a GeoPackage
+                                                  from local disk
+                                                properties:
+                                                  download:
+                                                    description: |-
+                                                      Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                                      downloaded to local disk and stored at the location specified in File.
+                                                    properties:
+                                                      from:
+                                                        description: |-
+                                                          Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                          during startup and stored at the location specified in "file".
+                                                        pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                        type: string
+                                                      maxRetries:
+                                                        default: 5
+                                                        description: ADVANCED SETTING.
+                                                          Maximum number of retries
+                                                          when retrying HTTP requests
+                                                          to download (part of) GeoPackage.
+                                                        minimum: 1
+                                                        type: integer
+                                                      parallelism:
+                                                        default: 4
+                                                        description: |-
+                                                          ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                          Setting this to 1 will disable concurrent downloads.
+                                                        minimum: 1
+                                                        type: integer
+                                                      retryDelay:
+                                                        default: 1s
+                                                        description: ADVANCED SETTING.
+                                                          Minimum delay to use when
+                                                          retrying HTTP request to
+                                                          download (part of) GeoPackage.
+                                                        format: duration
+                                                        type: string
+                                                      retryMaxDelay:
+                                                        default: 30s
+                                                        description: ADVANCED SETTING.
+                                                          Maximum overall delay of
+                                                          the exponential backoff
+                                                          while retrying HTTP requests
+                                                          to download (part of) GeoPackage.
+                                                        format: duration
+                                                        type: string
+                                                      timeout:
+                                                        default: 2m
+                                                        description: ADVANCED SETTING.
+                                                          HTTP request timeout when
+                                                          downloading (part of) GeoPackage.
+                                                        format: duration
+                                                        type: string
+                                                      tlsSkipVerify:
+                                                        default: false
+                                                        description: ADVANCED SETTING.
+                                                          When true TLS certs are
+                                                          NOT validated, false otherwise.
+                                                          Only use true for your own
+                                                          self-signed certificates!
+                                                        type: boolean
+                                                    required:
+                                                    - from
+                                                    type: object
+                                                  externalFid:
+                                                    description: |-
+                                                      External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                      It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                    type: string
+                                                  fid:
+                                                    default: fid
+                                                    description: Feature id column
+                                                      name
+                                                    type: string
+                                                  file:
+                                                    description: |-
+                                                      Location of GeoPackage on disk.
+                                                      You can place the GeoPackage here manually (out-of-band) or you can specify Download
+                                                      and let the application download the GeoPackage for you and store it at this location.
+                                                    type: string
+                                                  inMemoryCacheSize:
+                                                    default: -2000
+                                                    description: |-
+                                                      ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                    type: integer
+                                                  maxBBoxSizeToUseWithRTree:
+                                                    default: 8000
+                                                    description: ADVANCED SETTING.
+                                                      When the number of features
+                                                      in a bbox stay within the given
+                                                      value use an RTree index, otherwise
+                                                      use a BTree index.
+                                                    type: integer
+                                                  queryTimeout:
+                                                    default: 15s
+                                                    description: Optional timeout
+                                                      after which queries are canceled
+                                                    format: duration
+                                                    type: string
+                                                required:
+                                                - file
+                                                type: object
+                                            type: object
+                                          postgres:
+                                            description: Postgres database to get
+                                              the features from.
+                                            properties:
+                                              databaseName:
+                                                default: postgres
+                                                description: Name of the PostgreSQL
+                                                  database containing the data.
+                                                type: string
+                                              externalFid:
+                                                description: |-
+                                                  External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                  It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                type: string
+                                              fid:
+                                                default: fid
+                                                description: Feature id column name
+                                                type: string
+                                              host:
+                                                default: localhost
+                                                description: Hostname of the PostgreSQL
+                                                  server.
+                                                type: string
+                                              pass:
+                                                default: postgres
+                                                description: Password when connecting
+                                                  to the PostgreSQL server.
+                                                type: string
+                                              port:
+                                                default: 5432
+                                                description: Port number of the PostgreSQL
+                                                  server.
+                                                type: integer
+                                              queryTimeout:
+                                                default: 15s
+                                                description: Optional timeout after
+                                                  which queries are canceled
+                                                format: duration
+                                                type: string
+                                              schema:
+                                                default: public
+                                                description: Name of the PostgreSQL
+                                                  schema containing the data.
+                                                type: string
+                                              spatialIndexRequired:
+                                                default: true
+                                                description: |-
+                                                  When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                                  when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                                type: boolean
+                                              sslMode:
+                                                default: disable
+                                                description: The SSL mode to use,
+                                                  e.g. 'disable', 'allow', 'prefer',
+                                                  'require', 'verify-ca' or 'verify-full'.
+                                                enum:
+                                                - disable
+                                                - allow
+                                                - prefer
+                                                - require
+                                                - verify-ca
+                                                - verify-full
+                                                type: string
+                                              user:
+                                                default: postgres
+                                                description: Username when connecting
+                                                  to the PostgreSQL server.
+                                                type: string
+                                            type: object
+                                          srs:
+                                            description: SRS/CRS used for the features
+                                              in this datasource
+                                            pattern: ^EPSG:\d+$
+                                            type: string
+                                        required:
+                                        - srs
+                                        type: object
+                                      type: array
+                                    defaultWGS84:
+                                      description: |-
+                                        Features should always be available in WGS84 (according to spec). This specifies the
+                                        datasource to be used for features in the WGS84 coordinate reference system.
+
+                                        No on-the-fly transformation/reprojection is performed, so the features in this datasource need to be
+                                        either native WGS84 or reprojected/transformed to WGS84 ahead of time. For example, using ogr2ogr.
+                                      properties:
+                                        geopackage:
+                                          description: GeoPackage to get the features
+                                            from.
+                                          properties:
+                                            cloud:
+                                              description: Settings to read a GeoPackage
+                                                as a Cloud-Backed SQLite database
+                                              properties:
+                                                auth:
+                                                  description: |-
+                                                    Some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                                    'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
+                                                  type: string
+                                                cache:
+                                                  description: Local cache of fetched
+                                                    blocks from cloud storage
+                                                  properties:
+                                                    maxSize:
+                                                      default: 1Gb
+                                                      description: Max size of the
+                                                        local cache. Accepts human-readable
+                                                        size such as 100Mb, 4Gb, 1Tb,
+                                                        etc. When omitted 1Gb is used.
+                                                      type: string
+                                                    path:
+                                                      description: Optional path to
+                                                        directory for caching cloud-backed
+                                                        GeoPackage blocks, when omitted
+                                                        a temp dir will be used.
+                                                      type: string
+                                                    warmUp:
+                                                      default: false
+                                                      description: When true a warm-up
+                                                        query is executed on startup
+                                                        which aims to fill the local
+                                                        cache. Does increase startup
+                                                        time.
+                                                      type: boolean
+                                                  type: object
+                                                connection:
+                                                  description: |-
+                                                    Reference to the cloud storage (either azure or google at the moment).
+                                                    For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
+                                                  type: string
+                                                container:
+                                                  description: Container/bucket on
+                                                    the storage account
+                                                  type: string
+                                                externalFid:
+                                                  description: |-
+                                                    External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                    It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                  type: string
+                                                fid:
+                                                  default: fid
+                                                  description: Feature id column name
+                                                  type: string
+                                                file:
+                                                  description: Filename of the GeoPackage
+                                                  type: string
+                                                inMemoryCacheSize:
+                                                  default: -2000
+                                                  description: |-
+                                                    ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                    See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                  type: integer
+                                                logHttpRequests:
+                                                  default: false
+                                                  description: ADVANCED SETTING. Only
+                                                    for debug purposes! When true
+                                                    all HTTP requests executed by
+                                                    sqlite to cloud object storage
+                                                    are logged to stdout
+                                                  type: boolean
+                                                maxBBoxSizeToUseWithRTree:
+                                                  default: 8000
+                                                  description: ADVANCED SETTING. When
+                                                    the number of features in a bbox
+                                                    stay within the given value use
+                                                    an RTree index, otherwise use
+                                                    a BTree index.
+                                                  type: integer
+                                                queryTimeout:
+                                                  default: 15s
+                                                  description: Optional timeout after
+                                                    which queries are canceled
+                                                  format: duration
+                                                  type: string
+                                                user:
+                                                  description: Username of the storage
+                                                    account, like devstoreaccount1
+                                                    when using Azurite.
+                                                  type: string
+                                              required:
+                                              - auth
+                                              - connection
+                                              - container
+                                              - file
+                                              - user
+                                              type: object
+                                            local:
+                                              description: Settings to read a GeoPackage
+                                                from local disk
+                                              properties:
+                                                download:
+                                                  description: |-
+                                                    Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                                    downloaded to local disk and stored at the location specified in File.
+                                                  properties:
+                                                    from:
+                                                      description: |-
+                                                        Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                        during startup and stored at the location specified in "file".
+                                                      pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                      type: string
+                                                    maxRetries:
+                                                      default: 5
+                                                      description: ADVANCED SETTING.
+                                                        Maximum number of retries
+                                                        when retrying HTTP requests
+                                                        to download (part of) GeoPackage.
+                                                      minimum: 1
+                                                      type: integer
+                                                    parallelism:
+                                                      default: 4
+                                                      description: |-
+                                                        ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                        Setting this to 1 will disable concurrent downloads.
+                                                      minimum: 1
+                                                      type: integer
+                                                    retryDelay:
+                                                      default: 1s
+                                                      description: ADVANCED SETTING.
+                                                        Minimum delay to use when
+                                                        retrying HTTP request to download
+                                                        (part of) GeoPackage.
+                                                      format: duration
+                                                      type: string
+                                                    retryMaxDelay:
+                                                      default: 30s
+                                                      description: ADVANCED SETTING.
+                                                        Maximum overall delay of the
+                                                        exponential backoff while
+                                                        retrying HTTP requests to
+                                                        download (part of) GeoPackage.
+                                                      format: duration
+                                                      type: string
+                                                    timeout:
+                                                      default: 2m
+                                                      description: ADVANCED SETTING.
+                                                        HTTP request timeout when
+                                                        downloading (part of) GeoPackage.
+                                                      format: duration
+                                                      type: string
+                                                    tlsSkipVerify:
+                                                      default: false
+                                                      description: ADVANCED SETTING.
+                                                        When true TLS certs are NOT
+                                                        validated, false otherwise.
+                                                        Only use true for your own
+                                                        self-signed certificates!
+                                                      type: boolean
+                                                  required:
+                                                  - from
+                                                  type: object
+                                                externalFid:
+                                                  description: |-
+                                                    External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                    It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                  type: string
+                                                fid:
+                                                  default: fid
+                                                  description: Feature id column name
+                                                  type: string
+                                                file:
+                                                  description: |-
+                                                    Location of GeoPackage on disk.
+                                                    You can place the GeoPackage here manually (out-of-band) or you can specify Download
+                                                    and let the application download the GeoPackage for you and store it at this location.
+                                                  type: string
+                                                inMemoryCacheSize:
+                                                  default: -2000
+                                                  description: |-
+                                                    ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                    See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                    Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                  type: integer
+                                                maxBBoxSizeToUseWithRTree:
+                                                  default: 8000
+                                                  description: ADVANCED SETTING. When
+                                                    the number of features in a bbox
+                                                    stay within the given value use
+                                                    an RTree index, otherwise use
+                                                    a BTree index.
+                                                  type: integer
+                                                queryTimeout:
+                                                  default: 15s
+                                                  description: Optional timeout after
+                                                    which queries are canceled
+                                                  format: duration
+                                                  type: string
+                                              required:
+                                              - file
+                                              type: object
+                                          type: object
+                                        postgres:
+                                          description: Postgres database to get the
+                                            features from.
+                                          properties:
+                                            databaseName:
+                                              default: postgres
+                                              description: Name of the PostgreSQL
+                                                database containing the data.
+                                              type: string
+                                            externalFid:
+                                              description: |-
+                                                External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                              type: string
+                                            fid:
+                                              default: fid
+                                              description: Feature id column name
+                                              type: string
+                                            host:
+                                              default: localhost
+                                              description: Hostname of the PostgreSQL
+                                                server.
+                                              type: string
+                                            pass:
+                                              default: postgres
+                                              description: Password when connecting
+                                                to the PostgreSQL server.
+                                              type: string
+                                            port:
+                                              default: 5432
+                                              description: Port number of the PostgreSQL
+                                                server.
+                                              type: integer
+                                            queryTimeout:
+                                              default: 15s
+                                              description: Optional timeout after
+                                                which queries are canceled
+                                              format: duration
+                                              type: string
+                                            schema:
+                                              default: public
+                                              description: Name of the PostgreSQL
+                                                schema containing the data.
+                                              type: string
+                                            spatialIndexRequired:
+                                              default: true
+                                              description: |-
+                                                When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                                when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                              type: boolean
+                                            sslMode:
+                                              default: disable
+                                              description: The SSL mode to use, e.g.
+                                                'disable', 'allow', 'prefer', 'require',
+                                                'verify-ca' or 'verify-full'.
+                                              enum:
+                                              - disable
+                                              - allow
+                                              - prefer
+                                              - require
+                                              - verify-ca
+                                              - verify-full
+                                              type: string
+                                            user:
+                                              default: postgres
+                                              description: Username when connecting
+                                                to the PostgreSQL server.
+                                              type: string
+                                          type: object
+                                      type: object
+                                    transformOnTheFly:
+                                      description: |-
+                                        Datasource containing features which will be transformed/reprojected on-the-fly to the specified
+                                        coordinate reference systems. No need to transform/reproject ahead of time.
+
+                                        Note: On-the-fly transformation/reprojection may impact performance when using (very) large geometries.
+                                      items:
+                                        properties:
+                                          geopackage:
+                                            description: GeoPackage to get the features
+                                              from.
+                                            properties:
+                                              cloud:
+                                                description: Settings to read a GeoPackage
+                                                  as a Cloud-Backed SQLite database
+                                                properties:
+                                                  auth:
+                                                    description: |-
+                                                      Some kind of credential like a password or key to authenticate with the storage backend, e.g:
+                                                      'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==' when using Azurite.
+                                                    type: string
+                                                  cache:
+                                                    description: Local cache of fetched
+                                                      blocks from cloud storage
+                                                    properties:
+                                                      maxSize:
+                                                        default: 1Gb
+                                                        description: Max size of the
+                                                          local cache. Accepts human-readable
+                                                          size such as 100Mb, 4Gb,
+                                                          1Tb, etc. When omitted 1Gb
+                                                          is used.
+                                                        type: string
+                                                      path:
+                                                        description: Optional path
+                                                          to directory for caching
+                                                          cloud-backed GeoPackage
+                                                          blocks, when omitted a temp
+                                                          dir will be used.
+                                                        type: string
+                                                      warmUp:
+                                                        default: false
+                                                        description: When true a warm-up
+                                                          query is executed on startup
+                                                          which aims to fill the local
+                                                          cache. Does increase startup
+                                                          time.
+                                                        type: boolean
+                                                    type: object
+                                                  connection:
+                                                    description: |-
+                                                      Reference to the cloud storage (either azure or google at the moment).
+                                                      For example, 'azure?emulator=127.0.0.1:10000&sas=0' or 'google'.
+                                                    type: string
+                                                  container:
+                                                    description: Container/bucket
+                                                      on the storage account
+                                                    type: string
+                                                  externalFid:
+                                                    description: |-
+                                                      External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                      It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                    type: string
+                                                  fid:
+                                                    default: fid
+                                                    description: Feature id column
+                                                      name
+                                                    type: string
+                                                  file:
+                                                    description: Filename of the GeoPackage
+                                                    type: string
+                                                  inMemoryCacheSize:
+                                                    default: -2000
+                                                    description: |-
+                                                      ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                    type: integer
+                                                  logHttpRequests:
+                                                    default: false
+                                                    description: ADVANCED SETTING.
+                                                      Only for debug purposes! When
+                                                      true all HTTP requests executed
+                                                      by sqlite to cloud object storage
+                                                      are logged to stdout
+                                                    type: boolean
+                                                  maxBBoxSizeToUseWithRTree:
+                                                    default: 8000
+                                                    description: ADVANCED SETTING.
+                                                      When the number of features
+                                                      in a bbox stay within the given
+                                                      value use an RTree index, otherwise
+                                                      use a BTree index.
+                                                    type: integer
+                                                  queryTimeout:
+                                                    default: 15s
+                                                    description: Optional timeout
+                                                      after which queries are canceled
+                                                    format: duration
+                                                    type: string
+                                                  user:
+                                                    description: Username of the storage
+                                                      account, like devstoreaccount1
+                                                      when using Azurite.
+                                                    type: string
+                                                required:
+                                                - auth
+                                                - connection
+                                                - container
+                                                - file
+                                                - user
+                                                type: object
+                                              local:
+                                                description: Settings to read a GeoPackage
+                                                  from local disk
+                                                properties:
+                                                  download:
+                                                    description: |-
+                                                      Optional initialization task to download a GeoPackage during startup. GeoPackage will be
+                                                      downloaded to local disk and stored at the location specified in File.
+                                                    properties:
+                                                      from:
+                                                        description: |-
+                                                          Location of GeoPackage on remote HTTP(S) URL. GeoPackage will be downloaded to local disk
+                                                          during startup and stored at the location specified in "file".
+                                                        pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                                        type: string
+                                                      maxRetries:
+                                                        default: 5
+                                                        description: ADVANCED SETTING.
+                                                          Maximum number of retries
+                                                          when retrying HTTP requests
+                                                          to download (part of) GeoPackage.
+                                                        minimum: 1
+                                                        type: integer
+                                                      parallelism:
+                                                        default: 4
+                                                        description: |-
+                                                          ADVANCED SETTING. Determines how many workers (goroutines) in parallel will download the specified GeoPackage.
+                                                          Setting this to 1 will disable concurrent downloads.
+                                                        minimum: 1
+                                                        type: integer
+                                                      retryDelay:
+                                                        default: 1s
+                                                        description: ADVANCED SETTING.
+                                                          Minimum delay to use when
+                                                          retrying HTTP request to
+                                                          download (part of) GeoPackage.
+                                                        format: duration
+                                                        type: string
+                                                      retryMaxDelay:
+                                                        default: 30s
+                                                        description: ADVANCED SETTING.
+                                                          Maximum overall delay of
+                                                          the exponential backoff
+                                                          while retrying HTTP requests
+                                                          to download (part of) GeoPackage.
+                                                        format: duration
+                                                        type: string
+                                                      timeout:
+                                                        default: 2m
+                                                        description: ADVANCED SETTING.
+                                                          HTTP request timeout when
+                                                          downloading (part of) GeoPackage.
+                                                        format: duration
+                                                        type: string
+                                                      tlsSkipVerify:
+                                                        default: false
+                                                        description: ADVANCED SETTING.
+                                                          When true TLS certs are
+                                                          NOT validated, false otherwise.
+                                                          Only use true for your own
+                                                          self-signed certificates!
+                                                        type: boolean
+                                                    required:
+                                                    - from
+                                                    type: object
+                                                  externalFid:
+                                                    description: |-
+                                                      External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                      It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                    type: string
+                                                  fid:
+                                                    default: fid
+                                                    description: Feature id column
+                                                      name
+                                                    type: string
+                                                  file:
+                                                    description: |-
+                                                      Location of GeoPackage on disk.
+                                                      You can place the GeoPackage here manually (out-of-band) or you can specify Download
+                                                      and let the application download the GeoPackage for you and store it at this location.
+                                                    type: string
+                                                  inMemoryCacheSize:
+                                                    default: -2000
+                                                    description: |-
+                                                      ADVANCED SETTING. Sets the SQLite "cache_size" pragma which determines how many pages are cached in-memory.
+                                                      See https://sqlite.org/pragma.html#pragma_cache_size for details.
+                                                      Default in SQLite is 2000 pages, which equates to 2000KiB (2048000 bytes). Which is denoted as -2000.
+                                                    type: integer
+                                                  maxBBoxSizeToUseWithRTree:
+                                                    default: 8000
+                                                    description: ADVANCED SETTING.
+                                                      When the number of features
+                                                      in a bbox stay within the given
+                                                      value use an RTree index, otherwise
+                                                      use a BTree index.
+                                                    type: integer
+                                                  queryTimeout:
+                                                    default: 15s
+                                                    description: Optional timeout
+                                                      after which queries are canceled
+                                                    format: duration
+                                                    type: string
+                                                required:
+                                                - file
+                                                type: object
+                                            type: object
+                                          postgres:
+                                            description: Postgres database to get
+                                              the features from.
+                                            properties:
+                                              databaseName:
+                                                default: postgres
+                                                description: Name of the PostgreSQL
+                                                  database containing the data.
+                                                type: string
+                                              externalFid:
+                                                description: |-
+                                                  External feature id column name. When specified, this ID column will be exposed to clients instead of the regular FID column.
+                                                  It allows one to offer a more stable ID to clients instead of an auto-generated FID. External FID column should contain UUIDs.
+                                                type: string
+                                              fid:
+                                                default: fid
+                                                description: Feature id column name
+                                                type: string
+                                              host:
+                                                default: localhost
+                                                description: Hostname of the PostgreSQL
+                                                  server.
+                                                type: string
+                                              pass:
+                                                default: postgres
+                                                description: Password when connecting
+                                                  to the PostgreSQL server.
+                                                type: string
+                                              port:
+                                                default: 5432
+                                                description: Port number of the PostgreSQL
+                                                  server.
+                                                type: integer
+                                              queryTimeout:
+                                                default: 15s
+                                                description: Optional timeout after
+                                                  which queries are canceled
+                                                format: duration
+                                                type: string
+                                              schema:
+                                                default: public
+                                                description: Name of the PostgreSQL
+                                                  schema containing the data.
+                                                type: string
+                                              spatialIndexRequired:
+                                                default: true
+                                                description: |-
+                                                  When true the geometry column in the feature table needs to be indexed. Initialization will fail
+                                                  when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                                type: boolean
+                                              sslMode:
+                                                default: disable
+                                                description: The SSL mode to use,
+                                                  e.g. 'disable', 'allow', 'prefer',
+                                                  'require', 'verify-ca' or 'verify-full'.
+                                                enum:
+                                                - disable
+                                                - allow
+                                                - prefer
+                                                - require
+                                                - verify-ca
+                                                - verify-full
+                                                type: string
+                                              user:
+                                                default: postgres
+                                                description: Username when connecting
+                                                  to the PostgreSQL server.
+                                                type: string
+                                            type: object
+                                          supportedSrs:
+                                            description: List of supported SRS/CRS
+                                            items:
+                                              properties:
+                                                srs:
+                                                  description: |-
+                                                    Supported coordinated reference systems (CRS/SRS) for on-the-fly reprojection/transformation.
+                                                    Note: no need to add 'OGC:CRS84', since that one is required and included by default.
+                                                  pattern: ^EPSG:\d+$
+                                                  type: string
+                                              required:
+                                              - srs
+                                              type: object
+                                            type: array
+                                        type: object
+                                      type: array
+                                  type: object
+                                displayNameTemplate:
+                                  description: Template that indicates how a search
+                                    record is displayed. Uses Go text/template syntax
+                                    to reference fields.
+                                  type: string
+                                fields:
+                                  description: Fields that make up the display name
+                                    and/or suggestions. These fields can be used as
+                                    variables in the DisplayNameTemplate.
+                                  items:
+                                    type: string
+                                  minItems: 1
+                                  type: array
+                                filters:
+                                  description: Filters available for this collection
+                                  properties:
+                                    properties:
+                                      description: |-
+                                        OAF Part 1: filter on feature properties
+                                        https://docs.ogc.org/is/17-069r4/17-069r4.html#_parameters_for_filtering_on_feature_properties
+                                      items:
+                                        properties:
+                                          allowedValues:
+                                            description: Static list of allowed values
+                                              to be used as input for this property
+                                              filter. Will be enforced by OpenAPI
+                                              spec.
+                                            items:
+                                              type: string
+                                            type: array
+                                          deriveAllowedValuesFromDatasource:
+                                            default: false
+                                            description: |-
+                                              Derive a list of allowed values for this property filter from the corresponding column in the datastore.
+                                              Use with caution since it can increase startup time when used on large tables. Make sure an index in present.
+                                            type: boolean
+                                          description:
+                                            default: Filter features by this property
+                                            description: Explains this property filter
+                                            type: string
+                                          indexRequired:
+                                            default: true
+                                            description: |-
+                                              When true the property/column in the feature table needs to be indexed. Initialization will fail
+                                              when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                            type: boolean
+                                          name:
+                                            description: Needs to match with a column
+                                              name in the feature table (in the configured
+                                              datasource)
+                                            type: string
+                                        required:
+                                        - name
+                                        type: object
+                                      type: array
+                                  type: object
+                                healthCheck:
+                                  description: Optional health check configuration
+                                  properties:
+                                    enabled:
+                                      default: true
+                                      description: Enable/disable healthcheck on tiles.
+                                        Defaults to true.
+                                      type: boolean
+                                    srs:
+                                      default: EPSG:28992
+                                      description: Projection (SRS/CRS) used for tile
+                                        healthcheck
+                                      pattern: ^EPSG:\d+$
+                                      type: string
+                                    tilePath:
+                                      description: Path to specific tile used for
+                                        healthcheck
+                                      type: string
+                                  type: object
+                                id:
+                                  description: Unique ID of the collection
+                                  pattern: ^[a-z0-9"]([a-z0-9_-]*[a-z0-9"]+|)$
+                                  type: string
+                                links:
+                                  description: Links pertaining to this collection
+                                    (e.g., downloads, documentation)
+                                  properties:
+                                    downloads:
+                                      description: Links to downloads of entire collection.
+                                        These will be rendered as rel=enclosure links
+                                      items:
+                                        properties:
+                                          assetUrl:
+                                            description: Full URL to the file to be
+                                              downloaded
+                                            pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                            type: string
+                                          mediaType:
+                                            description: Media type of the file to
+                                              be downloaded
+                                            type: string
+                                          name:
+                                            description: Name of the provided download
+                                            type: string
+                                          size:
+                                            description: Approximate size of the file
+                                              to be downloaded
+                                            type: string
+                                        required:
+                                        - assetUrl
+                                        - mediaType
+                                        - name
+                                        type: object
+                                      type: array
+                                  type: object
+                                mapSheetDownloads:
+                                  description: |-
+                                    Downloads available for this collection through map sheets. Note that 'map sheets' refer to a map
+                                    divided in rectangle areas that can be downloaded individually.
+                                  properties:
+                                    properties:
+                                      description: |-
+                                        Properties that provide the download details per map sheet. Note that 'map sheets' refer to a map
+                                        divided in rectangle areas that can be downloaded individually.
+                                      properties:
+                                        assetUrl:
+                                          description: Property/column containing
+                                            file download URL
+                                          type: string
+                                        mapSheetId:
+                                          description: Property/column containing
+                                            the map sheet identifier
+                                          type: string
+                                        mediaType:
+                                          description: The actual media type (not
+                                            a property/column) of the download, like
+                                            application/zip.
+                                          type: string
+                                        size:
+                                          description: Property/column containing
+                                            file size
+                                          type: string
+                                      required:
+                                      - assetUrl
+                                      - mapSheetId
+                                      - mediaType
+                                      - size
+                                      type: object
+                                  required:
+                                  - properties
+                                  type: object
+                                metadata:
+                                  description: Metadata describing the collection
+                                    contents
+                                  properties:
+                                    description:
+                                      description: Describes the content of this collection
+                                      type: string
+                                    extent:
+                                      description: Extent of the collection, both
+                                        geospatial and/or temporal
+                                      properties:
+                                        bbox:
+                                          description: Geospatial extent
+                                          items:
+                                            type: string
+                                          type: array
+                                        interval:
+                                          description: Temporal extent
+                                          items:
+                                            type: string
+                                          maxItems: 2
+                                          minItems: 2
+                                          type: array
+                                        srs:
+                                          description: Projection (SRS/CRS) to be
+                                            used. When none is provided WGS84 (http://www.opengis.net/def/crs/OGC/1.3/CRS84)
+                                            is used.
+                                          pattern: ^EPSG:\d+$
+                                          type: string
+                                      required:
+                                      - bbox
+                                      type: object
+                                    keywords:
+                                      description: Keywords to make this collection
+                                        beter discoverable
+                                      items:
+                                        type: string
+                                      type: array
+                                    lastUpdated:
+                                      description: Moment in time when the collection
+                                        was last updated
+                                      format: date-time
+                                      type: string
+                                    lastUpdatedBy:
+                                      description: Who updated this collection
+                                      type: string
+                                    storageCrs:
+                                      default: http://www.opengis.net/def/crs/OGC/1.3/CRS84
+                                      description: |-
+                                        The CRS identifier which the features are originally stored, meaning no CRS transformations are applied when features are retrieved in this CRS.
+                                        WGS84 is the default storage CRS.
+                                      pattern: ^http:\/\/www\.opengis\.net\/def\/crs\/.*$
+                                      type: string
+                                    temporalProperties:
+                                      description: Fields in the datasource to be
+                                        used in temporal queries
+                                      properties:
+                                        endDate:
+                                          description: Name of field in datasource
+                                            to be used in temporal queries as the
+                                            end date
+                                          type: string
+                                        startDate:
+                                          description: Name of field in datasource
+                                            to be used in temporal queries as the
+                                            start date
+                                          type: string
+                                      required:
+                                      - endDate
+                                      - startDate
+                                      type: object
+                                    thumbnail:
+                                      description: |-
+                                        Reference to a PNG image to use a thumbnail on the collections.
+                                        The full path is constructed by appending Resources + Thumbnail.
+                                      type: string
+                                    title:
+                                      description: Human friendly title of this collection.
+                                        When no title is specified the collection
+                                        ID is used.
+                                      type: string
+                                  required:
+                                  - description
+                                  type: object
+                                properties:
+                                  description: |-
+                                    Properties/fields of features in this collection. This setting controls two things:
+
+                                    A) allows one to exclude certain properties, when propertiesExcludeUnknown=true
+                                    B) allows one to sort the properties in the given order, when propertiesInSpecificOrder=true
+
+                                    When not set, all available properties are returned in API responses, in alphabetical order.
+                                  items:
+                                    type: string
+                                  type: array
+                                propertiesExcludeUnknown:
+                                  default: false
+                                  description: |-
+                                    When true properties not listed under 'properties' are excluded from API responses. When false
+                                    unlisted properties are also included in API responses.
+                                  type: boolean
+                                propertiesInSpecificOrder:
+                                  default: false
+                                  description: |-
+                                    When true properties are returned according to the ordering specified under 'properties'. When false
+                                    properties are returned in alphabetical order.
+                                  type: boolean
+                                relations:
+                                  description: Relations define relationships between
+                                    features across collections
+                                  items:
+                                    properties:
+                                      collection:
+                                        description: Name of the related collection
+                                        type: string
+                                      columns:
+                                        description: Column mappings between collections
+                                        properties:
+                                          source:
+                                            description: Column name in the current/source
+                                              collection
+                                            pattern: ^[a-zA-Z0-9_]+$
+                                            type: string
+                                          target:
+                                            description: Column name in the target
+                                              collection
+                                            pattern: ^[a-zA-Z0-9_]+$
+                                            type: string
+                                        required:
+                                        - source
+                                        - target
+                                        type: object
+                                      junction:
+                                        description: Junction defines a junction/mapping
+                                          table between collections in case this is
+                                          a many-to-many relationship
+                                        properties:
+                                          columns:
+                                            description: Column mappings for the junction
+                                              table
+                                            properties:
+                                              source:
+                                                description: Column name in the current/source
+                                                  collection
+                                                pattern: ^[a-zA-Z0-9_]+$
+                                                type: string
+                                              target:
+                                                description: Column name in the target
+                                                  collection
+                                                pattern: ^[a-zA-Z0-9_]+$
+                                                type: string
+                                            required:
+                                            - source
+                                            - target
+                                            type: object
+                                          name:
+                                            description: Name of the junction table
+                                            pattern: ^[a-zA-Z0-9_]+$
+                                            type: string
+                                        required:
+                                        - columns
+                                        - name
+                                        type: object
+                                      prefix:
+                                        description: Optional prefix (infix actually)
+                                          with a functional name for the relation.
+                                          To distinguish multiple relations to the
+                                          same collection/table.
+                                        type: string
+                                    required:
+                                    - collection
+                                    - columns
+                                    type: object
+                                  type: array
+                                supportedSrs:
+                                  description: |-
+                                    Specifies in what projections (SRS/CRS) the tiles are offered
+                                    Note: Only marked as optional in CRD to support top-level OR collection-level tiles
+                                  items:
+                                    properties:
+                                      srs:
+                                        description: Projection (SRS/CRS) used
+                                        pattern: ^EPSG:\d+$
+                                        type: string
+                                      zoomLevelRange:
+                                        description: Available zoom levels
+                                        properties:
+                                          end:
+                                            description: End zoom level
+                                            type: integer
+                                          start:
+                                            description: Start zoom level
+                                            minimum: 0
+                                            type: integer
+                                        required:
+                                        - end
+                                        - start
+                                        type: object
+                                    required:
+                                    - srs
+                                    - zoomLevelRange
+                                    type: object
+                                  type: array
+                                tableName:
+                                  description: Optional way to explicitly map a collection
+                                    ID to the underlying table in the datasource.
+                                  type: string
+                                tileServer:
+                                  description: |-
+                                    Reference to the server (or object storage) hosting the tiles.
+                                    Note: Only marked as optional in CRD to support top-level OR collection-level tiles
+                                  pattern: ^(https?://.+)|(\$\{.+\}.*)
+                                  type: string
+                                tileServerPath:
+                                  description: Optional basepath to 3D tiles on the
+                                    tileserver. Defaults to the collection ID.
+                                  type: string
+                                types:
+                                  description: |-
+                                    Could be 'vector' and/or 'raster' to indicate the types of tiles offered
+                                    Note: Only marked as optional in CRD to support top-level OR collection-level tiles
+                                  items:
+                                    enum:
+                                    - raster
+                                    - vector
+                                    type: string
+                                  type: array
+                                uriTemplate3dTiles:
+                                  description: URI template for individual 3D tiles.
+                                  type: string
+                                uriTemplateDTM:
+                                  description: URI template for digital terrain model
+                                    (DTM) in Quantized Mesh format, REQUIRED when
+                                    you want to serve a DTM.
+                                  type: string
+                                uriTemplateImplicitTilingSubtree:
+                                  description: Optional URI template for subtrees,
+                                    only required when "implicit tiling" extension
+                                    is used.
+                                  type: string
+                                uriTemplateTiles:
+                                  description: Optional template to the vector tiles
+                                    on the tileserver. Defaults to {tms}/{z}/{x}/{y}.pbf.
+                                  type: string
+                                version:
+                                  default: 1
+                                  description: Version of the collection exposed through
+                                    the API.
+                                  type: integer
+                                web:
+                                  description: Configuration specifically related
+                                    to HTML/Web representation
+                                  properties:
+                                    featureViewer:
+                                      description: Viewer config for displaying a
+                                        single feature on a map
+                                      properties:
+                                        maxScale:
+                                          description: |-
+                                            Minimal initial zoom level of the viewer when rendering features, specified by scale denominator
+                                            (not set by default).
+                                          type: integer
+                                        minScale:
+                                          description: |-
+                                            Maximum initial zoom level of the viewer when rendering features, specified by scale denominator.
+                                            Defaults to 1000 (= scale 1:1000).
+                                          type: integer
+                                      type: object
+                                    featuresViewer:
+                                      description: Viewer config for displaying multiple
+                                        features on a map
+                                      properties:
+                                        maxScale:
+                                          description: |-
+                                            Minimal initial zoom level of the viewer when rendering features, specified by scale denominator
+                                            (not set by default).
+                                          type: integer
+                                        minScale:
+                                          description: |-
+                                            Maximum initial zoom level of the viewer when rendering features, specified by scale denominator.
+                                            Defaults to 1000 (= scale 1:1000).
+                                          type: integer
+                                      type: object
+                                    urlAsHyperlink:
+                                      description: Whether URLs (to external resources)
+                                        in the HTML representation of features should
+                                        be rendered as hyperlinks.
+                                      type: boolean
+                                  type: object
+                              required:
+                              - collectionRefs
                               - id
                               type: object
                             type: array
