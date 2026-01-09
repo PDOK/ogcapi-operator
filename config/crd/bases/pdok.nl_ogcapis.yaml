@@ -845,7 +845,6 @@ spec:
                                     - collection
                                     - geometryType
                                     type: object
-                                  minItems: 1
                                   type: array
                                 datasources:
                                   description: Optional collection-specific datasources.
@@ -2172,7 +2171,6 @@ spec:
                                       type: boolean
                                   type: object
                               required:
-                              - collectionRefs
                               - id
                               type: object
                             type: array
@@ -2248,7 +2246,6 @@ spec:
                                     - collection
                                     - geometryType
                                     type: object
-                                  minItems: 1
                                   type: array
                                 datasources:
                                   description: Optional collection-specific datasources.
@@ -3575,7 +3572,6 @@ spec:
                                       type: boolean
                                   type: object
                               required:
-                              - collectionRefs
                               - id
                               type: object
                             type: array
@@ -4534,7 +4530,6 @@ spec:
                                     - collection
                                     - geometryType
                                     type: object
-                                  minItems: 1
                                   type: array
                                 datasources:
                                   description: Optional collection-specific datasources.
@@ -5861,7 +5856,6 @@ spec:
                                       type: boolean
                                   type: object
                               required:
-                              - collectionRefs
                               - id
                               type: object
                             type: array
@@ -6958,7 +6952,6 @@ spec:
                                     - collection
                                     - geometryType
                                     type: object
-                                  minItems: 1
                                   type: array
                                 datasources:
                                   description: Optional collection-specific datasources.
@@ -8285,7 +8278,6 @@ spec:
                                       type: boolean
                                   type: object
                               required:
-                              - collectionRefs
                               - id
                               type: object
                             type: array
