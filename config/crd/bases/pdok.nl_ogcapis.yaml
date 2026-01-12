@@ -2125,7 +2125,6 @@ spec:
                                     on the tileserver. Defaults to {tms}/{z}/{x}/{y}.pbf.
                                   type: string
                                 version:
-                                  default: 1
                                   description: Version of the collection exposed through
                                     the API.
                                   type: integer
@@ -3525,7 +3524,6 @@ spec:
                                     on the tileserver. Defaults to {tms}/{z}/{x}/{y}.pbf.
                                   type: string
                                 version:
-                                  default: 1
                                   description: Version of the collection exposed through
                                     the API.
                                   type: integer
@@ -5808,7 +5806,6 @@ spec:
                                     on the tileserver. Defaults to {tms}/{z}/{x}/{y}.pbf.
                                   type: string
                                 version:
-                                  default: 1
                                   description: Version of the collection exposed through
                                     the API.
                                   type: integer
@@ -8229,7 +8226,6 @@ spec:
                                     on the tileserver. Defaults to {tms}/{z}/{x}/{y}.pbf.
                                   type: string
                                 version:
-                                  default: 1
                                   description: Version of the collection exposed through
                                     the API.
                                   type: integer
