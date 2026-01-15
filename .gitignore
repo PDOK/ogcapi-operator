@@ -27,6 +27,7 @@ go.work
 *.swo
 *~
 /go.work.sum
+cover.out
 
 # Kubeconfig might contain secrets
 *.kubeconfig
