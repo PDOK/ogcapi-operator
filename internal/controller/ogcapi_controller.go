@@ -26,13 +26,12 @@ package controller
 
 import (
 	"context"
-	"crypto/sha1" //nolint:gosec  // sha1 is only used for ID generation here, not crypto
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
-
+	uptimeutils "github.com/pdok/smooth-operator/pkg/uptime-utils"
 	yaml "sigs.k8s.io/yaml/goyaml.v3"
 
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -510,18 +509,20 @@ func getBareIngressRoute(ogcAPI metav1.Object) *traefikiov1alpha1.IngressRoute {
 }
 
 func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *pdoknlv1alpha1.OGCAPI, ingressRoute *traefikiov1alpha1.IngressRoute) error {
-	uptimeURL := ogcAPI.Spec.Service.BaseURL.String() + "/health"
+
 	name := ingressRoute.GetName()
 	labels := getLabels(ogcAPI)
 	if err := setImmutableLabels(r.Client, ingressRoute, labels); err != nil {
 		return err
 	}
-	ingressRoute.Annotations = map[string]string{
-		"uptime.pdok.nl/id":   fmt.Sprintf("%x", sha1.Sum([]byte(getBareService(ogcAPI).GetName()+"-ogcapi"))), //nolint:gosec  // sha1 is only used for ID generation here, not crypto
-		"uptime.pdok.nl/name": fmt.Sprintf("%s %s OGC API", ogcAPI.Spec.Service.Title, ogcAPI.Spec.Service.Version),
-		"uptime.pdok.nl/url":  uptimeURL,
-		"uptime.pdok.nl/tags": "public-stats,ogcapi",
-	}
+
+	ingressRoute.Annotations = uptimeutils.GetUptimeAnnotations(
+		ogcAPI.Annotations,
+		getBareService(ogcAPI).GetName()+"-ogcapi",
+		fmt.Sprintf("%s %s OGC API", ogcAPI.Spec.Service.Title, ogcAPI.Spec.Service.Version),
+		ogcAPI.Spec.Service.BaseURL.String()+"/health",
+		ogcAPI.Labels,
+	)
 
 	ingressRoute.Spec.Routes = []traefikiov1alpha1.Route{}
 

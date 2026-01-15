@@ -27,7 +27,8 @@ package v1alpha1
 import (
 	"fmt"
 
-	"golang.org/x/net/context"
+	"context"
+
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	ctrl "sigs.k8s.io/controller-runtime"

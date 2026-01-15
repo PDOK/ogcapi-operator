@@ -6,7 +6,7 @@ metadata:
   annotations:
     uptime.pdok.nl/id: 92dcf547053bcfd16136aba36f3ddddf13cd07f7
     uptime.pdok.nl/name: test title 0.0.0 OGC API
-    uptime.pdok.nl/tags: public-stats,ogcapi
+    uptime.pdok.nl/tags: public-stats
     uptime.pdok.nl/url: https://my.test-resource.test/ogc/path/health
   name: test-resource
   namespace: default
