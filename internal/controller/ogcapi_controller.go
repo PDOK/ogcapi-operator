@@ -404,9 +404,8 @@ func addVolumePopulatorToDeployment(deployment *appsv1.Deployment, ogcAPI *pdokn
 							},
 						},
 						DataSource: &corev1.TypedLocalObjectReference{
-							APIGroup: smoothoperatorutil.Pointer("v1"),
-							Kind:     "PersistentVolumeClaim",
-							Name:     hash,
+							Kind: "PersistentVolumeClaim",
+							Name: hash,
 						},
 					},
 				},
