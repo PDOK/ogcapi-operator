@@ -84,7 +84,7 @@ type VolumeOperatorSpec struct {
 	StorageCapacity string `json:"storageCapacity,omitempty"`
 
 	// The storage class to use for the volumes created by the volume operator, defaults to zrs-managed-premium
-	// +kubebuilder:default:="zrs-managed-premium"
+	// +kubebuilder:default:="managed-premium-zrs"
 	StorageClass string `json:"storageClass,omitempty"`
 
 	// +kubebuilder:validation:Optional
