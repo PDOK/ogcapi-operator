@@ -1812,6 +1812,16 @@ spec:
                                   description: Unique ID of the collection
                                   pattern: ^[a-z0-9"]([a-z0-9_-]*[a-z0-9"]+|)$
                                   type: string
+                                isDtm:
+                                  default: false
+                                  description: Is a digital terrain model (DTM) in
+                                    Quantized Mesh format, REQUIRED when you want
+                                    to serve a DTM.
+                                  type: boolean
+                                isImplicit:
+                                  description: Optional flag to indicate that the
+                                    collection is implicit.
+                                  type: boolean
                                 links:
                                   description: Links pertaining to this collection
                                     (e.g., downloads, documentation)
@@ -2107,19 +2117,6 @@ spec:
                                     - vector
                                     type: string
                                   type: array
-                                uriTemplate3dTiles:
-                                  description: URI template for individual 3D tiles.
-                                  type: string
-                                uriTemplateDTM:
-                                  description: URI template for digital terrain model
-                                    (DTM) in Quantized Mesh format, REQUIRED when
-                                    you want to serve a DTM.
-                                  type: string
-                                uriTemplateImplicitTilingSubtree:
-                                  description: Optional URI template for subtrees,
-                                    only required when "implicit tiling" extension
-                                    is used.
-                                  type: string
                                 uriTemplateTiles:
                                   description: Optional template to the vector tiles
                                     on the tileserver. Defaults to {tms}/{z}/{x}/{y}.pbf.
@@ -3211,6 +3208,16 @@ spec:
                                   description: Unique ID of the collection
                                   pattern: ^[a-z0-9"]([a-z0-9_-]*[a-z0-9"]+|)$
                                   type: string
+                                isDtm:
+                                  default: false
+                                  description: Is a digital terrain model (DTM) in
+                                    Quantized Mesh format, REQUIRED when you want
+                                    to serve a DTM.
+                                  type: boolean
+                                isImplicit:
+                                  description: Optional flag to indicate that the
+                                    collection is implicit.
+                                  type: boolean
                                 links:
                                   description: Links pertaining to this collection
                                     (e.g., downloads, documentation)
@@ -3506,19 +3513,6 @@ spec:
                                     - vector
                                     type: string
                                   type: array
-                                uriTemplate3dTiles:
-                                  description: URI template for individual 3D tiles.
-                                  type: string
-                                uriTemplateDTM:
-                                  description: URI template for digital terrain model
-                                    (DTM) in Quantized Mesh format, REQUIRED when
-                                    you want to serve a DTM.
-                                  type: string
-                                uriTemplateImplicitTilingSubtree:
-                                  description: Optional URI template for subtrees,
-                                    only required when "implicit tiling" extension
-                                    is used.
-                                  type: string
                                 uriTemplateTiles:
                                   description: Optional template to the vector tiles
                                     on the tileserver. Defaults to {tms}/{z}/{x}/{y}.pbf.
@@ -5493,6 +5487,16 @@ spec:
                                   description: Unique ID of the collection
                                   pattern: ^[a-z0-9"]([a-z0-9_-]*[a-z0-9"]+|)$
                                   type: string
+                                isDtm:
+                                  default: false
+                                  description: Is a digital terrain model (DTM) in
+                                    Quantized Mesh format, REQUIRED when you want
+                                    to serve a DTM.
+                                  type: boolean
+                                isImplicit:
+                                  description: Optional flag to indicate that the
+                                    collection is implicit.
+                                  type: boolean
                                 links:
                                   description: Links pertaining to this collection
                                     (e.g., downloads, documentation)
@@ -5788,19 +5792,6 @@ spec:
                                     - vector
                                     type: string
                                   type: array
-                                uriTemplate3dTiles:
-                                  description: URI template for individual 3D tiles.
-                                  type: string
-                                uriTemplateDTM:
-                                  description: URI template for digital terrain model
-                                    (DTM) in Quantized Mesh format, REQUIRED when
-                                    you want to serve a DTM.
-                                  type: string
-                                uriTemplateImplicitTilingSubtree:
-                                  description: Optional URI template for subtrees,
-                                    only required when "implicit tiling" extension
-                                    is used.
-                                  type: string
                                 uriTemplateTiles:
                                   description: Optional template to the vector tiles
                                     on the tileserver. Defaults to {tms}/{z}/{x}/{y}.pbf.
@@ -7913,6 +7904,16 @@ spec:
                                   description: Unique ID of the collection
                                   pattern: ^[a-z0-9"]([a-z0-9_-]*[a-z0-9"]+|)$
                                   type: string
+                                isDtm:
+                                  default: false
+                                  description: Is a digital terrain model (DTM) in
+                                    Quantized Mesh format, REQUIRED when you want
+                                    to serve a DTM.
+                                  type: boolean
+                                isImplicit:
+                                  description: Optional flag to indicate that the
+                                    collection is implicit.
+                                  type: boolean
                                 links:
                                   description: Links pertaining to this collection
                                     (e.g., downloads, documentation)
@@ -8208,19 +8209,6 @@ spec:
                                     - vector
                                     type: string
                                   type: array
-                                uriTemplate3dTiles:
-                                  description: URI template for individual 3D tiles.
-                                  type: string
-                                uriTemplateDTM:
-                                  description: URI template for digital terrain model
-                                    (DTM) in Quantized Mesh format, REQUIRED when
-                                    you want to serve a DTM.
-                                  type: string
-                                uriTemplateImplicitTilingSubtree:
-                                  description: Optional URI template for subtrees,
-                                    only required when "implicit tiling" extension
-                                    is used.
-                                  type: string
                                 uriTemplateTiles:
                                   description: Optional template to the vector tiles
                                     on the tileserver. Defaults to {tms}/{z}/{x}/{y}.pbf.
