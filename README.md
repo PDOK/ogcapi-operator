@@ -3,7 +3,7 @@
 _Kubernetes controller/operator to serve an OGC API according to spec._
 
 [![Build](https://github.com/PDOK/ogcapi-operator/actions/workflows/build-and-publish-image.yml/badge.svg)](https://github.com/PDOK/ogcapi-operator/actions/workflows/build-and-publish-image.yml)
-[![Lint (go)](https://github.com/PDOK/ogcapi-operator/actions/workflows/lint-go.yml/badge.svg)](https://github.com/PDOK/ogcapi-operator/actions/workflows/lint-go.yml)
+[![Lint (go)](https://github.com/PDOK/ogcapi-operator/actions/workflows/lint.yml/badge.svg)](https://github.com/PDOK/ogcapi-operator/actions/workflows/lint.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/PDOK/ogcapi-operator)](https://goreportcard.com/report/github.com/PDOK/ogcapi-operator)
 [![Coverage (go)](https://github.com/PDOK/ogcapi-operator/wiki/coverage.svg)](https://raw.githack.com/wiki/PDOK/ogcapi-operator/coverage.html)
 [![GitHub license](https://img.shields.io/github/license/PDOK/ogcapi-operator)](https://github.com/PDOK/ogcapi-operator/blob/master/LICENSE)
@@ -105,14 +105,14 @@ See [running and deploying the controller](https://kubebuilder.io/cronjob-tutori
 
 ### kubebuilder
 
-Read the manual when you want/need to make changes.
-E.g. run `make test` before committing.
+This project is scaffolded using Kubebuilder, to update the scaffolding:
+- Install the latest version of Kubebuilder on your machine;
+- Run: `kubebuilder alpha update --from-branch master`
+- This command will probably fail with the message that you should resolve merge conflicts and then run `make fmt vet <some other command>`. This is not a problem. Resolve the conflicts and run the command.
 
 ### Linting
 
-Install [golangci-lint](https://golangci-lint.run/usage/install/) and run `golangci-lint run`
-from the root.
-(Don't run `make lint`, it uses an old version of golangci-lint.)
+Run `make lint` from the root of the project.
 
 ## Misc
 

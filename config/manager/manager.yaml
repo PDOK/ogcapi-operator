@@ -28,6 +28,7 @@ spec:
   selector:
     matchLabels:
       control-plane: controller-manager
+      app.kubernetes.io/name: ogcapi-operator
   replicas: 1
   template:
     metadata:
@@ -35,6 +36,7 @@ spec:
         kubectl.kubernetes.io/default-container: manager
       labels:
         control-plane: controller-manager
+        app.kubernetes.io/name: ogcapi-operator
     spec:
       securityContext:
         runAsNonRoot: true
@@ -47,7 +49,9 @@ spec:
         - --leader-elect
         image: controller:latest
         name: manager
+        ports: []
         securityContext:
+          readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           capabilities:
             drop:

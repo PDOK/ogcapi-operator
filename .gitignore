@@ -1,4 +1,3 @@
-
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -28,3 +27,8 @@ go.work
 *.swo
 *~
 /go.work.sum
+cover.out
+
+# Kubeconfig might contain secrets
+*.kubeconfig
+kind-config.yaml
