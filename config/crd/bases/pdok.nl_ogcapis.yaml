@@ -8512,9 +8512,9 @@ spec:
                   by the volume operator, min: 1Gi'
                 type: string
               storageClass:
-                default: zrs-managed-premium
+                default: managed-premium
                 description: The storage class to use for the volumes created by the
-                  volume operator, defaults to zrs-managed-premium
+                  volume operator, defaults to managed-premium
                 type: string
             required:
             - blobPrefix
