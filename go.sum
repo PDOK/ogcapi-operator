@@ -9,6 +9,10 @@ github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1
 github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/PDOK/gokoala v1.6.0 h1:CVo1bb7thc9ZfXDwHlC7bh4ThITdtTnhI3YmE4/jnm8=
 github.com/PDOK/gokoala v1.6.0/go.mod h1:2Hu9KlEGU+ZoxDjk+nlMy4Lf7//tcLH+b9r4q5Fo8hw=
+github.com/PDOK/gokoala v1.6.1 h1:JcVaMbYjMVaTSBUpxvLjP/d4TWU+roziTsg1ghSnivE=
+github.com/PDOK/gokoala v1.6.1/go.mod h1:2Hu9KlEGU+ZoxDjk+nlMy4Lf7//tcLH+b9r4q5Fo8hw=
+github.com/PDOK/gokoala v1.6.2 h1:BoowbltJ4TgtEgD+heNOsfzwjhCwYJIClb878yTTFfI=
+github.com/PDOK/gokoala v1.6.2/go.mod h1:2Hu9KlEGU+ZoxDjk+nlMy4Lf7//tcLH+b9r4q5Fo8hw=
 github.com/alecthomas/assert/v2 v2.10.0 h1:jjRCHsj6hBJhkmhznrCzoNpbA3zqy0fYiUcYZP/GkPY=
 github.com/alecthomas/assert/v2 v2.10.0/go.mod h1:Bze95FyfUr7x34QZrjL+XP+0qgp/zg8yS+TtBj1WA3k=
 github.com/alecthomas/repr v0.4.0 h1:GhI2A8MACjfegCPVq9f1FLvIBS+DrQ2KQBFZP1iFzXc=
