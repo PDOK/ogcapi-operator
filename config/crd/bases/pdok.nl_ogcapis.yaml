@@ -6792,7 +6792,6 @@ spec:
                             type: boolean
                         required:
                         - collections
-                        - searchSettings
                         type: object
                       processes:
                         description: Enable when this API should offer OGC API Processes.
