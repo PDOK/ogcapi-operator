@@ -34,6 +34,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/pdok/smooth-operator/model"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -127,7 +128,7 @@ func strategicMergePatch[T, P any](obj *T, patch *P) (*T, error) {
 	return &newObj, nil
 }
 
-func createIngressRuleAndStripPrefixForBaseURL(url url.URL, includeLocalhost, matchUnderscoreVersions bool) (string, string) {
+func getMatchRuleForUrl(url url.URL, includeLocalhost bool, matchUnderscoreVersions bool) string {
 	var hostMatch string
 	if includeLocalhost {
 		hostMatch = fmt.Sprintf("(Host(`localhost`) || Host(`%s`))", url.Hostname())
@@ -139,7 +140,7 @@ func createIngressRuleAndStripPrefixForBaseURL(url url.URL, includeLocalhost, ma
 	trailingSlash := strings.HasSuffix(path, "/")
 	path = strings.Trim(path, "/")
 	if path == "" {
-		return hostMatch, ""
+		return hostMatch
 	}
 
 	var pathRegexp string
@@ -155,13 +156,48 @@ func createIngressRuleAndStripPrefixForBaseURL(url url.URL, includeLocalhost, ma
 	}
 
 	pathMatch := fmt.Sprintf("PathRegexp(`^/%s%s`)", pathRegexp, trailingRegexp)
-	stripPrefixRegexp := fmt.Sprintf("^/%s", pathRegexp) //nolint:perfsprint
-	if trailingSlash {
-		stripPrefixRegexp += "/"
+	matchRule := fmt.Sprintf("%s && %s", hostMatch, pathMatch)
+	return matchRule
+}
+
+func getStripPrefixesRegexps(baseUrl url.URL, ingressRouteUrls model.IngressRouteURLs, matchUnderscoreVersions bool) []string {
+	result := make([]string, 0)
+	var inputs []url.URL
+	if ingressRouteUrls != nil && len(ingressRouteUrls) > 0 {
+		inputs = make([]url.URL, 0)
+		for _, route := range ingressRouteUrls {
+			if route.URL.URL != nil {
+				inputs = append(inputs, *route.URL.URL)
+			}
+		}
+	} else {
+		inputs = []url.URL{baseUrl}
 	}
 
-	matchRule := fmt.Sprintf("%s && %s", hostMatch, pathMatch)
-	return matchRule, stripPrefixRegexp
+	for _, ingressUrl := range inputs {
+		path := ingressUrl.EscapedPath()
+		trailingSlash := strings.HasSuffix(path, "/")
+		path = strings.Trim(path, "/")
+		if path == "" {
+			continue
+		}
+
+		var pathRegexp string
+		if matchUnderscoreVersions {
+			pathRegexp = createRegexpForUnderscoreVersions(path)
+		} else {
+			pathRegexp = regexp.QuoteMeta(path)
+		}
+
+		stripPrefixRegexp := fmt.Sprintf("^/%s", pathRegexp) //nolint:perfsprint
+		if trailingSlash {
+			stripPrefixRegexp += "/"
+		}
+
+		result = append(result, stripPrefixRegexp)
+	}
+
+	return result
 }
 
 func createRegexpForUnderscoreVersions(path string) string {

@@ -532,7 +532,7 @@ func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *pdoknlv1alpha1.OGCAPI, ing
 	}
 
 	for _, ingressRouteURL := range ingressRouteURLs {
-		matchRule, _ := createIngressRuleAndStripPrefixForBaseURL(*ingressRouteURL.URL.URL, true, true)
+		matchRule := getMatchRuleForUrl(*ingressRouteURL.URL.URL, true, true)
 		ingressRoute.Spec.Routes = append(
 			ingressRoute.Spec.Routes,
 			traefikiov1alpha1.Route{
@@ -582,12 +582,10 @@ func (r *OGCAPIReconciler) mutateStripPrefixMiddleware(ogcAPI *pdoknlv1alpha1.OG
 	if err := setImmutableLabels(r.Client, middleware, labels); err != nil {
 		return err
 	}
-	_, stripPrefixRegex := createIngressRuleAndStripPrefixForBaseURL(*ogcAPI.Spec.Service.BaseURL.URL, true, true)
+	regexes := getStripPrefixesRegexps(*ogcAPI.Spec.Service.BaseURL.URL, ogcAPI.Spec.IngressRouteURLs, true)
 	middleware.Spec = traefikiov1alpha1.MiddlewareSpec{
 		StripPrefixRegex: &traefikdynamic.StripPrefixRegex{
-			Regex: []string{
-				stripPrefixRegex,
-			},
+			Regex: regexes,
 		},
 	}
 	if err := ensureSetGVK(r.Client, middleware, middleware); err != nil {
