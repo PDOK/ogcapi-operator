@@ -141,7 +141,7 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 			if len(prefixes) != len(tt.wants.prefixes) {
 				t.Errorf("getStripPrefixesRegexps() = number of prefixes `%v`,\nwant `%v`", len(prefixes), len(tt.wants.prefixes))
 			} else {
-				for i, _ := range prefixes {
+				for i, _ := range prefixes { //nolint:gofmt
 					actualPrefix := prefixes[i]
 					wantPrefix := tt.wants.prefixes[i]
 					if actualPrefix != wantPrefix {
