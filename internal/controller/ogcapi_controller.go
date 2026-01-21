@@ -532,7 +532,7 @@ func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *pdoknlv1alpha1.OGCAPI, ing
 	}
 
 	for _, ingressRouteURL := range ingressRouteURLs {
-		matchRule := getMatchRuleForUrl(*ingressRouteURL.URL.URL, true, true)
+		matchRule := getMatchRuleForURL(*ingressRouteURL.URL.URL, true, true)
 		ingressRoute.Spec.Routes = append(
 			ingressRoute.Spec.Routes,
 			traefikiov1alpha1.Route{

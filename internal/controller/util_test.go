@@ -118,9 +118,9 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 			args: args{
 				url: mustURLParse(t, "http://example.com/one/pathname/v1/"),
 				ingressRouteUrls: model.IngressRouteURLs{{
-					URL: model.URL{asPtr(mustURLParse(t, "http://example.com/one/pathname/v1/"))},
+					URL: model.URL{URL: asPtr(mustURLParse(t, "http://example.com/one/pathname/v1/"))},
 				}, {
-					URL: model.URL{asPtr(mustURLParse(t, "http://example.com/two/otherpathname/v1/"))},
+					URL: model.URL{URL: asPtr(mustURLParse(t, "http://example.com/two/otherpathname/v1/"))},
 				}},
 				matchUnderscoreVersions: true,
 			},
@@ -131,7 +131,7 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rule := getMatchRuleForUrl(tt.args.url, tt.args.includelocalhost, tt.args.matchUnderscoreVersions)
+			rule := getMatchRuleForURL(tt.args.url, tt.args.includelocalhost, tt.args.matchUnderscoreVersions)
 			prefixes := getStripPrefixesRegexps(tt.args.url, tt.args.ingressRouteUrls, tt.args.matchUnderscoreVersions)
 
 			if rule != tt.wants.rule {
@@ -153,8 +153,8 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 	}
 }
 
-func asPtr(myUrl url.URL) *url.URL {
-	return &myUrl
+func asPtr(myURL url.URL) *url.URL {
+	return &myURL
 }
 
 func mustURLParse(t *testing.T, in string) url.URL {

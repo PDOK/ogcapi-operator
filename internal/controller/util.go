@@ -128,7 +128,7 @@ func strategicMergePatch[T, P any](obj *T, patch *P) (*T, error) {
 	return &newObj, nil
 }
 
-func getMatchRuleForUrl(url url.URL, includeLocalhost bool, matchUnderscoreVersions bool) string {
+func getMatchRuleForURL(url url.URL, includeLocalhost bool, matchUnderscoreVersions bool) string {
 	var hostMatch string
 	if includeLocalhost {
 		hostMatch = fmt.Sprintf("(Host(`localhost`) || Host(`%s`))", url.Hostname())
@@ -160,10 +160,10 @@ func getMatchRuleForUrl(url url.URL, includeLocalhost bool, matchUnderscoreVersi
 	return matchRule
 }
 
-func getStripPrefixesRegexps(baseUrl url.URL, ingressRouteUrls model.IngressRouteURLs, matchUnderscoreVersions bool) []string {
+func getStripPrefixesRegexps(baseURL url.URL, ingressRouteUrls model.IngressRouteURLs, matchUnderscoreVersions bool) []string {
 	result := make([]string, 0)
 	var inputs []url.URL
-	if ingressRouteUrls != nil && len(ingressRouteUrls) > 0 {
+	if len(ingressRouteUrls) > 0 {
 		inputs = make([]url.URL, 0)
 		for _, route := range ingressRouteUrls {
 			if route.URL.URL != nil {
@@ -171,11 +171,11 @@ func getStripPrefixesRegexps(baseUrl url.URL, ingressRouteUrls model.IngressRout
 			}
 		}
 	} else {
-		inputs = []url.URL{baseUrl}
+		inputs = []url.URL{baseURL}
 	}
 
-	for _, ingressUrl := range inputs {
-		path := ingressUrl.EscapedPath()
+	for _, ingressURL := range inputs {
+		path := ingressURL.EscapedPath()
 		trailingSlash := strings.HasSuffix(path, "/")
 		path = strings.Trim(path, "/")
 		if path == "" {
