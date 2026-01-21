@@ -4,18 +4,20 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/pdok/smooth-operator/model"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 	type args struct {
 		url                     url.URL
+		ingressRouteUrls        model.IngressRouteURLs
 		includelocalhost        bool
 		matchUnderscoreVersions bool
 	}
 	type wants struct {
-		rule   string
-		prefix string
+		rule     string
+		prefixes []string
 	}
 	tests := []struct {
 		name  string
@@ -27,8 +29,8 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 			url: mustURLParse(t, "http://example.com"),
 		},
 		wants: wants{
-			rule:   "Host(`example.com`)",
-			prefix: "",
+			rule:     "Host(`example.com`)",
+			prefixes: []string{},
 		},
 	}, {
 		name: "include localhost",
@@ -37,16 +39,16 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 			includelocalhost: true,
 		},
 		wants: wants{
-			rule:   "(Host(`localhost`) || Host(`example.com`))",
-			prefix: ""},
+			rule:     "(Host(`localhost`) || Host(`example.com`))",
+			prefixes: []string{}},
 	}, {
 		name: "no versions",
 		args: args{
 			url: mustURLParse(t, "http://example.com/some/path"),
 		},
 		wants: wants{
-			rule:   "Host(`example.com`) && PathRegexp(`^/some/path(/|$)`)",
-			prefix: "^/some/path"},
+			rule:     "Host(`example.com`) && PathRegexp(`^/some/path(/|$)`)",
+			prefixes: []string{"^/some/path"}},
 	}, {
 		name: "v1, no replacing",
 		args: args{
@@ -54,8 +56,8 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 			matchUnderscoreVersions: false,
 		},
 		wants: wants{
-			rule:   "Host(`example.com`) && PathRegexp(`^/some/path/v1(/|$)`)",
-			prefix: "^/some/path/v1"},
+			rule:     "Host(`example.com`) && PathRegexp(`^/some/path/v1(/|$)`)",
+			prefixes: []string{"^/some/path/v1"}},
 	}, {
 		name: "v1, no replacing, trailing slash",
 		args: args{
@@ -63,8 +65,8 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 			matchUnderscoreVersions: false,
 		},
 		wants: wants{
-			rule:   "Host(`example.com`) && PathRegexp(`^/some/path/v1/`)",
-			prefix: "^/some/path/v1/"},
+			rule:     "Host(`example.com`) && PathRegexp(`^/some/path/v1/`)",
+			prefixes: []string{"^/some/path/v1/"}},
 	}, {
 		name: "v1",
 		args: args{
@@ -72,8 +74,8 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 			matchUnderscoreVersions: true,
 		},
 		wants: wants{
-			rule:   "Host(`example.com`) && PathRegexp(`^/some/path/v1(_\\d+)?(/|$)`)",
-			prefix: "^/some/path/v1(_\\d+)?"},
+			rule:     "Host(`example.com`) && PathRegexp(`^/some/path/v1(_\\d+)?(/|$)`)",
+			prefixes: []string{"^/some/path/v1(_\\d+)?"}},
 	}, {
 		name: "v2, followed by other segment",
 		args: args{
@@ -81,8 +83,8 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 			matchUnderscoreVersions: true,
 		},
 		wants: wants{
-			rule:   "Host(`example.com`) && PathRegexp(`^/some/path/v2(_\\d+)?/foo(/|$)`)",
-			prefix: "^/some/path/v2(_\\d+)?/foo"},
+			rule:     "Host(`example.com`) && PathRegexp(`^/some/path/v2(_\\d+)?/foo(/|$)`)",
+			prefixes: []string{"^/some/path/v2(_\\d+)?/foo"}},
 	}, {
 		name: "v1_3",
 		args: args{
@@ -90,8 +92,8 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 			matchUnderscoreVersions: true,
 		},
 		wants: wants{
-			rule:   "Host(`example.com`) && PathRegexp(`^/some/path/v1(_3)?(/|$)`)",
-			prefix: "^/some/path/v1(_3)?"},
+			rule:     "Host(`example.com`) && PathRegexp(`^/some/path/v1(_3)?(/|$)`)",
+			prefixes: []string{"^/some/path/v1(_3)?"}},
 	}, {
 		name: "combined (never happens)",
 		args: args{
@@ -99,8 +101,8 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 			matchUnderscoreVersions: true,
 		},
 		wants: wants{
-			rule:   "Host(`example.com`) && PathRegexp(`^/some/path/v345(_\\d+)?/v666(_78)?(/|$)`)",
-			prefix: "^/some/path/v345(_\\d+)?/v666(_78)?"},
+			rule:     "Host(`example.com`) && PathRegexp(`^/some/path/v345(_\\d+)?/v666(_78)?(/|$)`)",
+			prefixes: []string{"^/some/path/v345(_\\d+)?/v666(_78)?"}},
 	}, {
 		name: "trailing slash in base url",
 		args: args{
@@ -108,20 +110,51 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 			matchUnderscoreVersions: true,
 		},
 		wants: wants{
-			rule:   "Host(`example.com`) && PathRegexp(`^/some/path/v1(_\\d+)?/`)",
-			prefix: "^/some/path/v1(_\\d+)?/"},
-	}}
+			rule:     "Host(`example.com`) && PathRegexp(`^/some/path/v1(_\\d+)?/`)",
+			prefixes: []string{"^/some/path/v1(_\\d+)?/"}},
+	},
+		{
+			name: "more ingress routes",
+			args: args{
+				url: mustURLParse(t, "http://example.com/one/pathname/v1/"),
+				ingressRouteUrls: model.IngressRouteURLs{{
+					URL: model.URL{URL: asPtr(mustURLParse(t, "http://example.com/one/pathname/v1/"))},
+				}, {
+					URL: model.URL{URL: asPtr(mustURLParse(t, "http://example.com/two/otherpathname/v1/"))},
+				}},
+				matchUnderscoreVersions: true,
+			},
+			wants: wants{
+				rule:     "Host(`example.com`) && PathRegexp(`^/one/pathname/v1(_\\d+)?/`)",
+				prefixes: []string{"^/one/pathname/v1(_\\d+)?/", "^/two/otherpathname/v1(_\\d+)?/"}},
+		},
+	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rule, prefix := createIngressRuleAndStripPrefixForBaseURL(tt.args.url, tt.args.includelocalhost, tt.args.matchUnderscoreVersions)
+			rule := getMatchRuleForURL(tt.args.url, tt.args.includelocalhost, tt.args.matchUnderscoreVersions)
+			prefixes := getStripPrefixesRegexps(tt.args.url, tt.args.ingressRouteUrls, tt.args.matchUnderscoreVersions)
+
 			if rule != tt.wants.rule {
 				t.Errorf("createIngressRuleAndStripPrefixForBaseURL() = `%v`, _,\nwant rule `%v`", rule, tt.wants.rule)
 			}
-			if prefix != tt.wants.prefix {
-				t.Errorf("createIngressRuleAndStripPrefixForBaseURL() = _, `%v`,\nwant prefix `%v`", prefix, tt.wants.prefix)
+
+			if len(prefixes) != len(tt.wants.prefixes) {
+				t.Errorf("getStripPrefixesRegexps() = number of prefixes `%v`,\nwant `%v`", len(prefixes), len(tt.wants.prefixes))
+			} else {
+				for i, _ := range prefixes { //nolint
+					actualPrefix := prefixes[i]
+					wantPrefix := tt.wants.prefixes[i]
+					if actualPrefix != wantPrefix {
+						t.Errorf("getStripPrefixesRegexps() = `%v`,\nwant prefix `%v`", actualPrefix, wantPrefix)
+					}
+				}
 			}
 		})
 	}
+}
+
+func asPtr(myURL url.URL) *url.URL {
+	return &myURL
 }
 
 func mustURLParse(t *testing.T, in string) url.URL {
