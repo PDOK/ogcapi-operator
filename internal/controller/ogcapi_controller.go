@@ -97,18 +97,18 @@ type OGCAPIReconciler struct {
 	Slack        slack.Sender
 }
 
-//+kubebuilder:rbac:groups=pdok.nl,resources=ogcapis,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=pdok.nl,resources=ogcapis/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=pdok.nl,resources=ogcapis/finalizers,verbs=update
-//+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;delete
-//+kubebuilder:rbac:groups=apps,resources=replicasets,verbs=get;list;watch
-//+kubebuilder:rbac:groups=core,resources=configmaps;services,verbs=get;list;watch;create;update;delete
-//+kubebuilder:rbac:groups="",resources=persistentvolumeclaims,verbs=get;list;watch;create;update;delete
-//+kubebuilder:rbac:groups=traefik.io,resources=ingressroutes;middlewares,verbs=get;list;watch;create;update;delete
-//+kubebuilder:rbac:groups=autoscaling,resources=horizontalpodautoscalers,verbs=get;list;watch;create;update;delete
-//+kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets,verbs=create;update;delete;list;watch
-//+kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets/status,verbs=get;update
-//+kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets/finalizers,verbs=update
+// +kubebuilder:rbac:groups=pdok.nl,resources=ogcapis,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=pdok.nl,resources=ogcapis/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=pdok.nl,resources=ogcapis/finalizers,verbs=update
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;delete
+// +kubebuilder:rbac:groups=apps,resources=replicasets,verbs=get;list;watch
+// +kubebuilder:rbac:groups=core,resources=configmaps;services,verbs=get;list;watch;create;update;delete
+// +kubebuilder:rbac:groups="",resources=persistentvolumeclaims,verbs=get;list;watch;create;update;delete
+// +kubebuilder:rbac:groups=traefik.io,resources=ingressroutes;middlewares,verbs=get;list;watch;create;update;delete
+// +kubebuilder:rbac:groups=autoscaling,resources=horizontalpodautoscalers,verbs=get;list;watch;create;update;delete
+// +kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets,verbs=create;update;delete;list;watch
+// +kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets/status,verbs=get;update
+// +kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -387,6 +387,7 @@ func addVolumePopulatorToDeployment(deployment *appsv1.Deployment, ogcAPI *pdokn
 	deployment.Annotations["volume-operator.pdok.nl/volume-path"] = volumeMountPath
 	deployment.Annotations["volume-operator.pdok.nl/storage-class"] = ogcAPI.VolumeOperatorSpec.StorageClass
 	deployment.Annotations["volume-operator.pdok.nl/resource-suffix"] = hash
+	deployment.Annotations["volume-operator.pdok.nl/storage-capacity"] = ogcAPI.VolumeOperatorSpec.StorageCapacity
 
 	volume := corev1.Volume{
 		Name: gokoalaName + "-clone",
