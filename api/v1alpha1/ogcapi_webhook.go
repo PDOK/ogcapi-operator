@@ -84,8 +84,9 @@ func (v *OGCAPICustomValidator) ValidateCreate(_ context.Context, obj runtime.Ob
 	// Any other validations may be added below.
 	if ogcapi.Spec.IngressRouteURLs != nil {
 		err := smoothoperatorvalidation.ValidateIngressRouteURLsContainsBaseURL(ogcapi.Spec.IngressRouteURLs, smoothoperatormodel.URL{URL: ogcapi.Spec.Service.BaseURL.URL}, nil)
-
-		return nil, err
+		if err != nil {
+			allErrs = append(allErrs, err)
+		}
 	}
 
 	if ogcapi.HorizontalPodAutoscalerPatch() != nil {
