@@ -68,7 +68,9 @@ func finalizeIfNecessary(ctx context.Context, c client.Client, obj client.Object
 		if !controllerutil.ContainsFinalizer(obj, finalizerName) {
 			controllerutil.AddFinalizer(obj, finalizerName)
 			err = c.Update(ctx, obj)
-			return false, err
+			if err != nil {
+				return false, err
+			}
 		}
 		return true, nil
 	}
