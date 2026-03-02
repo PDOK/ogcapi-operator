@@ -103,7 +103,7 @@ The project is written in Go and scaffolded with [kubebuilder](https://kubebuild
 A common task is to bump the version of the GoKoala dependency in this repo. This is required when the GoKoala [config](https://github.com/PDOK/gokoala/tree/master/config) changes.
 In that case:
 - Bump the GoKoala version in `go.mod` and in `cmd/main.go`.
-- Run `make test` and make inspect the update CRD to make sure it reflects the new GoKoala config.
+- Run `make test` and inspect the updated CRD to make sure it reflects the new GoKoala config.
 - Commit and push.
 
 ### Running locally
