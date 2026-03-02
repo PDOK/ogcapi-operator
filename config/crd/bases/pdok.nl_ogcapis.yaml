@@ -3119,6 +3119,10 @@ spec:
                               this API
                             items:
                               properties:
+                                collectionFilter:
+                                  description: Filter that is applied to gather data
+                                    from FeatureCollections.
+                                  type: string
                                 collectionRefs:
                                   description: Links to the individual OGC API (feature)
                                     collections that are searchable in this collection.
@@ -3156,7 +3160,7 @@ spec:
                                     - geometryType
                                     type: object
                                   type: array
-                                displayNameTemplate:
+                                displayNameExample:
                                   description: Template that indicates how a search
                                     record is displayed. Uses Go text/template syntax
                                     to reference fields.
@@ -3164,7 +3168,7 @@ spec:
                                 fields:
                                   description: Fields that make up the display name
                                     and/or suggestions. These fields can be used as
-                                    variables in the DisplayNameTemplate.
+                                    variables in the DisplayNameExample.
                                   items:
                                     type: string
                                   type: array
