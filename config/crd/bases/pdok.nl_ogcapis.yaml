@@ -3120,8 +3120,8 @@ spec:
                             items:
                               properties:
                                 collectionFilter:
-                                  description: Filter that is applied to gather data
-                                    from FeatureCollections.
+                                  description: Describes in natural language the filter
+                                    that is applied to gather data from FeatureCollections.
                                   type: string
                                 collectionRefs:
                                   description: Links to the individual OGC API (feature)
@@ -3161,14 +3161,11 @@ spec:
                                     type: object
                                   type: array
                                 displayNameExample:
-                                  description: Template that indicates how a search
-                                    record is displayed. Uses Go text/template syntax
-                                    to reference fields.
+                                  description: Example in natural language that indicates
+                                    how a search record is displayed.
                                   type: string
                                 fields:
-                                  description: Fields that make up the display name
-                                    and/or suggestions. These fields can be used as
-                                    variables in the DisplayNameExample.
+                                  description: Fields that make up the display name.
                                   items:
                                     type: string
                                   type: array
