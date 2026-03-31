@@ -277,8 +277,8 @@ func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deplo
 	deployment.Spec.Strategy = appsv1.DeploymentStrategy{
 		Type: appsv1.RollingUpdateDeploymentStrategyType,
 		RollingUpdate: &appsv1.RollingUpdateDeployment{
-			MaxUnavailable: intOrStrIntPtr(1),
-			MaxSurge:       intOrStrIntPtr(1),
+			MaxUnavailable: intOrStrIntPtr(0),
+			MaxSurge:       intOrStrIntPtr(2),
 		},
 	}
 	deployment.Spec.RevisionHistoryLimit = int32Ptr(1)
