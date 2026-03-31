@@ -4184,6 +4184,12 @@ spec:
                                 description: Name of the search index in the data
                                   store.
                                 type: string
+                              maxSynonyms:
+                                default: 10
+                                description: ADVANCED SETTING. The maximum number
+                                  of synonyms that will be generated for a search
+                                  term.
+                                type: integer
                               preRankLimitMultiplier:
                                 default: 10
                                 description: ADVANCED SETTING. The number of results
