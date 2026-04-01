@@ -702,7 +702,7 @@ func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI *pdoknlv1alpha1.
 				},
 			},
 			ScaleUp: &autoscalingv2.HPAScalingRules{
-				StabilizationWindowSeconds: int32Ptr(0),
+				StabilizationWindowSeconds: int32Ptr(300),
 				Policies: []autoscalingv2.HPAScalingPolicy{
 					{
 						Type:          autoscalingv2.PodsScalingPolicy,
