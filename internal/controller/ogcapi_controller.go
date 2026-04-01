@@ -27,27 +27,19 @@ package controller
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
-	uptimeutils "github.com/pdok/smooth-operator/pkg/uptime-utils"
-	yaml "sigs.k8s.io/yaml/goyaml.v3"
-
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	traefikdynamic "github.com/traefik/traefik/v3/pkg/config/dynamic"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	traefikiov1alpha1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
@@ -55,11 +47,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	pdoknlv1alpha1 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
-	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 	smoothoperatorstatus "github.com/pdok/smooth-operator/pkg/status"
 
 	smoothoperatorutil "github.com/pdok/smooth-operator/pkg/util"
-	policyv1 "k8s.io/api/policy/v1"
 )
 
 const (
@@ -134,13 +124,13 @@ func (r *OGCAPIReconciler) Reconcile(ctx context.Context, req ctrl.Request) (res
 
 	shouldContinue, err := finalizeIfNecessary(ctx, r.Client, ogcAPI, finalizerName, func() error {
 		lgr.Info("deleting resources", "name", fullName)
-		return r.deleteAllForOGCAPI(ctx, ogcAPI)
+		return r.deleteAll(ctx, ogcAPI)
 	})
 	if !shouldContinue || err != nil {
 		return result, err
 	}
 
-	operationResults, err := r.createOrUpdateAllForOGCAPI(ctx, ogcAPI)
+	operationResults, err := r.createOrUpdate(ctx, ogcAPI)
 	if err != nil {
 		r.logAndUpdateStatusError(ctx, ogcAPI, err)
 		return result, err
@@ -155,7 +145,7 @@ func (r *OGCAPIReconciler) logAndUpdateStatusError(ctx context.Context, ogcAPI *
 	smoothoperatorstatus.LogAndUpdateStatusError(ctx, r.Client, ogcAPI, err)
 }
 
-func (r *OGCAPIReconciler) createOrUpdateAllForOGCAPI(ctx context.Context, ogcAPI *pdoknlv1alpha1.OGCAPI) (operationResults map[string]controllerutil.OperationResult, err error) {
+func (r *OGCAPIReconciler) createOrUpdate(ctx context.Context, ogcAPI *pdoknlv1alpha1.OGCAPI) (operationResults map[string]controllerutil.OperationResult, err error) {
 	operationResults = make(map[string]controllerutil.OperationResult, 7)
 	c := r.Client
 
@@ -230,7 +220,7 @@ func (r *OGCAPIReconciler) createOrUpdateAllForOGCAPI(ctx context.Context, ogcAP
 	return operationResults, nil
 }
 
-func (r *OGCAPIReconciler) deleteAllForOGCAPI(ctx context.Context, ogcAPI *pdoknlv1alpha1.OGCAPI) (err error) {
+func (r *OGCAPIReconciler) deleteAll(ctx context.Context, ogcAPI *pdoknlv1alpha1.OGCAPI) (err error) {
 	configMap := getBareConfigMap(ogcAPI)
 	// mutate (also) before to get the hash suffix in the name
 	if err = r.mutateConfigMap(ogcAPI, configMap); err != nil {
@@ -247,485 +237,6 @@ func (r *OGCAPIReconciler) deleteAllForOGCAPI(ctx context.Context, ogcAPI *pdokn
 	})
 }
 
-func getBareDeployment(ogcAPI metav1.Object) *appsv1.Deployment {
-	return &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: ogcAPI.GetName() + "-" + gokoalaName,
-			// name might become too long. not handling here. will just fail on apply.
-			Namespace: ogcAPI.GetNamespace(),
-		},
-	}
-}
-
-//nolint:funlen
-func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deployment *appsv1.Deployment, configMapName string) error {
-	labels := getLabels(ogcAPI)
-	if err := setImmutableLabels(r.Client, deployment, labels); err != nil {
-		return err
-	}
-
-	podTemplateAnnotations := cloneOrEmptyMap(deployment.Spec.Template.GetAnnotations())
-	podTemplateAnnotations[priorityAnnotation+"/"+gokoalaName] = "4"
-
-	matchLabels := cloneOrEmptyMap(labels)
-	deployment.Spec.Selector = &metav1.LabelSelector{
-		MatchLabels: matchLabels,
-	}
-
-	deployment.Spec.MinReadySeconds = 0
-	deployment.Spec.ProgressDeadlineSeconds = int32Ptr(600)
-	deployment.Spec.Strategy = appsv1.DeploymentStrategy{
-		Type: appsv1.RollingUpdateDeploymentStrategyType,
-		RollingUpdate: &appsv1.RollingUpdateDeployment{
-			MaxUnavailable: intOrStrIntPtr(0),
-			MaxSurge:       intOrStrIntPtr(2),
-		},
-	}
-	deployment.Spec.RevisionHistoryLimit = int32Ptr(1)
-
-	// deployment.Spec.Replicas is controlled by the HPA
-	// deployment.Spec.Paused is ignored to allow a manual intervention i.c.e.
-
-	podTemplateSpec := corev1.PodTemplateSpec{
-		ObjectMeta: metav1.ObjectMeta{
-			Labels:      matchLabels,
-			Annotations: podTemplateAnnotations,
-		},
-		Spec: corev1.PodSpec{
-			Volumes: []corev1.Volume{
-				{Name: gokoalaName + "-" + configName, VolumeSource: corev1.VolumeSource{ConfigMap: &corev1.ConfigMapVolumeSource{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: configMapName,
-					},
-				}}},
-				{Name: gokoalaName + "-" + gpkgCacheName, VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
-			},
-			Containers: []corev1.Container{
-				{
-					Name:            gokoalaName,
-					ImagePullPolicy: corev1.PullIfNotPresent,
-					Ports: []corev1.ContainerPort{
-						{Name: mainPortName, ContainerPort: mainPortNr},
-						{Name: debugPortName, ContainerPort: debugPortNr},
-					},
-					Env: []corev1.EnvVar{
-						{Name: configFileEnvVar, Value: srvDir + "/" + configName + "/" + configFileName},
-						{Name: debugPortEnvVar, Value: strconv.Itoa(debugPortNr)},
-						{Name: shutdownDelayEnvVar, Value: strconv.Itoa(30)},
-					},
-					Resources: corev1.ResourceRequirements{
-						Limits: corev1.ResourceList{
-							corev1.ResourceMemory:           resource.MustParse("1Gi"),
-							corev1.ResourceEphemeralStorage: resource.MustParse("50Mi"), // TODO other sane default in case of OGC API Features
-						},
-						Requests: corev1.ResourceList{
-							corev1.ResourceCPU: resource.MustParse("500m"),
-						},
-					},
-					VolumeMounts: []corev1.VolumeMount{
-						{Name: gokoalaName + "-" + configName, MountPath: srvDir + "/" + configName},
-						{Name: gokoalaName + "-" + gpkgCacheName, MountPath: srvDir + "/" + gpkgCacheName},
-					},
-					LivenessProbe: &corev1.Probe{
-						ProbeHandler: corev1.ProbeHandler{
-							HTTPGet: &corev1.HTTPGetAction{
-								Path:   "/health",
-								Port:   intstr.FromInt32(mainPortNr),
-								Scheme: corev1.URISchemeHTTP,
-							},
-						},
-						InitialDelaySeconds: 60,
-						TimeoutSeconds:      5,
-						PeriodSeconds:       10,
-					},
-					ReadinessProbe: &corev1.Probe{
-						ProbeHandler: corev1.ProbeHandler{
-							HTTPGet: &corev1.HTTPGetAction{
-								Path:   "/health",
-								Port:   intstr.FromInt32(mainPortNr),
-								Scheme: corev1.URISchemeHTTP,
-							},
-						},
-						InitialDelaySeconds: 60,
-						TimeoutSeconds:      5,
-						PeriodSeconds:       10,
-					},
-				},
-			},
-		},
-	}
-
-	if ogcAPI.Spec.PodSpecPatch != nil {
-		patchedPod, err := strategicMergePatch(&podTemplateSpec.Spec, &ogcAPI.Spec.PodSpecPatch)
-		if err != nil {
-			return err
-		}
-		podTemplateSpec.Spec = *patchedPod
-	}
-	podTemplateSpec.Spec.Containers[0].Image = r.GokoalaImage
-	deployment.Spec.Template = podTemplateSpec
-
-	// set annotations for optional volume-operator, volume operator requires blob-prefix to be set
-	if ogcAPI.VolumeOperatorSpec.BlobPrefix != "" {
-		deployment = addVolumePopulatorToDeployment(deployment, ogcAPI)
-	}
-
-	if err := ensureSetGVK(r.Client, deployment, deployment); err != nil {
-		return err
-	}
-	return ctrl.SetControllerReference(ogcAPI, deployment, r.Scheme)
-}
-
-func addVolumePopulatorToDeployment(deployment *appsv1.Deployment, ogcAPI *pdoknlv1alpha1.OGCAPI) *appsv1.Deployment {
-	hash := smoothoperatorutil.GenerateHashFromStrings([]string{
-		ogcAPI.VolumeOperatorSpec.BlobPrefix,
-		volumeMountPath,
-		ogcAPI.VolumeOperatorSpec.StorageCapacity,
-	})
-	deployment.Annotations = cloneOrEmptyMap(deployment.Annotations)
-	deployment.Annotations["volume-operator.pdok.nl/blob-prefix"] = ogcAPI.VolumeOperatorSpec.BlobPrefix
-	deployment.Annotations["volume-operator.pdok.nl/volume-path"] = volumeMountPath
-	deployment.Annotations["volume-operator.pdok.nl/storage-class"] = ogcAPI.VolumeOperatorSpec.StorageClass
-	deployment.Annotations["volume-operator.pdok.nl/resource-suffix"] = hash
-	deployment.Annotations["volume-operator.pdok.nl/storage-capacity"] = ogcAPI.VolumeOperatorSpec.StorageCapacity
-
-	volume := corev1.Volume{
-		Name: gokoalaName + "-clone",
-		VolumeSource: corev1.VolumeSource{
-			Ephemeral: &corev1.EphemeralVolumeSource{
-				VolumeClaimTemplate: &corev1.PersistentVolumeClaimTemplate{
-					Spec: corev1.PersistentVolumeClaimSpec{
-						AccessModes: []corev1.PersistentVolumeAccessMode{
-							corev1.ReadWriteOnce,
-						},
-						StorageClassName: &ogcAPI.VolumeOperatorSpec.StorageClass,
-						Resources: corev1.VolumeResourceRequirements{
-							Requests: corev1.ResourceList{
-								corev1.ResourceStorage: resource.MustParse(ogcAPI.VolumeOperatorSpec.StorageCapacity),
-							},
-						},
-						DataSource: &corev1.TypedLocalObjectReference{
-							Kind: "PersistentVolumeClaim",
-							Name: hash,
-						},
-					},
-				},
-			},
-		},
-	}
-
-	deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, volume)
-	for i, container := range deployment.Spec.Template.Spec.Containers {
-		if container.Name == gokoalaName {
-			deployment.Spec.Template.Spec.Containers[i].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[i].VolumeMounts, corev1.VolumeMount{
-				Name:      volume.Name,
-				MountPath: volumeMountPath,
-			})
-		}
-	}
-	return deployment
-}
-
-// getBareConfigMap sets the base name for the configmap containing the config for the gokoala Deployment.
-// A hash suffix is/should be added to the actual full ConfigMap later.
-func getBareConfigMap(ogcAPI metav1.Object) *corev1.ConfigMap {
-	return &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      getBareDeployment(ogcAPI).GetName(),
-			Namespace: ogcAPI.GetNamespace(),
-		},
-	}
-}
-
-func (r *OGCAPIReconciler) mutateConfigMap(ogcAPI *pdoknlv1alpha1.OGCAPI, configMap *corev1.ConfigMap) error {
-	labels := getLabels(ogcAPI)
-	if err := setImmutableLabels(r.Client, configMap, labels); err != nil {
-		return err
-	}
-
-	configYaml, err := yaml.Marshal(ogcAPI.Spec.Service)
-	if err != nil {
-		return err
-	}
-	configMap.Immutable = boolPtr(true)
-	configMap.Data = map[string]string{configFileName: string(configYaml)}
-
-	if err := ensureSetGVK(r.Client, configMap, configMap); err != nil {
-		return err
-	}
-	if err := ctrl.SetControllerReference(ogcAPI, configMap, r.Scheme); err != nil {
-		return err
-	}
-	return addHashSuffix(configMap)
-}
-
-func getBareService(ogcAPI metav1.Object) *corev1.Service {
-	return &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      ogcAPI.GetName(),
-			Namespace: ogcAPI.GetNamespace(),
-		},
-	}
-}
-
-func (r *OGCAPIReconciler) mutateService(ogcAPI *pdoknlv1alpha1.OGCAPI, service *corev1.Service) error {
-	labels := getLabels(ogcAPI)
-	if err := setImmutableLabels(r.Client, service, labels); err != nil {
-		return err
-	}
-
-	internalTrafficPolicy := corev1.ServiceInternalTrafficPolicyCluster
-	service.Spec = corev1.ServiceSpec{
-		Type:                  corev1.ServiceTypeClusterIP,
-		ClusterIP:             service.Spec.ClusterIP,
-		ClusterIPs:            service.Spec.ClusterIPs,
-		IPFamilyPolicy:        service.Spec.IPFamilyPolicy,
-		IPFamilies:            service.Spec.IPFamilies,
-		SessionAffinity:       corev1.ServiceAffinityNone,
-		InternalTrafficPolicy: &internalTrafficPolicy,
-		Ports: []corev1.ServicePort{
-			{
-				Name:       mainPortName,
-				Protocol:   corev1.ProtocolTCP,
-				Port:       mainPortNr,
-				TargetPort: intstr.FromInt32(mainPortNr),
-			},
-		},
-		Selector: labels,
-	}
-	if err := ensureSetGVK(r.Client, service, service); err != nil {
-		return err
-	}
-	return ctrl.SetControllerReference(ogcAPI, service, r.Scheme)
-}
-
-func getBareIngressRoute(ogcAPI metav1.Object) *traefikiov1alpha1.IngressRoute {
-	return &traefikiov1alpha1.IngressRoute{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      ogcAPI.GetName(),
-			Namespace: ogcAPI.GetNamespace(),
-		},
-	}
-}
-
-func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *pdoknlv1alpha1.OGCAPI, ingressRoute *traefikiov1alpha1.IngressRoute) error {
-
-	name := ingressRoute.GetName()
-	labels := getLabels(ogcAPI)
-	if err := setImmutableLabels(r.Client, ingressRoute, labels); err != nil {
-		return err
-	}
-
-	ingressRoute.Annotations = uptimeutils.GetUptimeAnnotations(
-		ogcAPI.Annotations,
-		getBareService(ogcAPI).GetName()+"-ogcapi",
-		fmt.Sprintf("%s %s OGC API", ogcAPI.Spec.Service.Title, ogcAPI.Spec.Service.Version),
-		ogcAPI.Spec.Service.BaseURL.String()+"/health",
-		ogcAPI.Labels,
-	)
-
-	ingressRoute.Spec.Routes = []traefikiov1alpha1.Route{}
-
-	// Collect all ingressRouteURLs (aliases)
-	ingressRouteURLs := ogcAPI.Spec.IngressRouteURLs
-	if len(ingressRouteURLs) == 0 {
-		ingressRouteURLs = smoothoperatormodel.IngressRouteURLs{{URL: smoothoperatormodel.URL{URL: ogcAPI.Spec.Service.BaseURL.URL}}}
-	}
-
-	for _, ingressRouteURL := range ingressRouteURLs {
-		matchRule := getMatchRuleForURL(*ingressRouteURL.URL.URL, true, true)
-		ingressRoute.Spec.Routes = append(
-			ingressRoute.Spec.Routes,
-			traefikiov1alpha1.Route{
-				Kind:   "Rule",
-				Match:  matchRule,
-				Syntax: "v3",
-				Services: []traefikiov1alpha1.Service{
-					{
-						LoadBalancerSpec: traefikiov1alpha1.LoadBalancerSpec{
-							Name: getBareService(ogcAPI).GetName(),
-							Kind: "Service",
-							Port: intstr.FromString(mainPortName),
-						},
-					},
-				},
-				Middlewares: []traefikiov1alpha1.MiddlewareRef{
-					{
-						Name:      name + "-" + stripPrefixName,
-						Namespace: ogcAPI.GetNamespace(),
-					},
-					{
-						Name:      name + "-" + headersName,
-						Namespace: ogcAPI.GetNamespace(),
-					},
-				},
-			},
-		)
-	}
-	if err := ensureSetGVK(r.Client, ingressRoute, ingressRoute); err != nil {
-		return err
-	}
-	return ctrl.SetControllerReference(ogcAPI, ingressRoute, r.Scheme)
-}
-
-func getBareStripPrefixMiddleware(ogcAPI metav1.Object) *traefikiov1alpha1.Middleware {
-	return &traefikiov1alpha1.Middleware{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: ogcAPI.GetName() + "-" + stripPrefixName,
-			// name might become too long. not handling here. will just fail on apply.
-			Namespace: ogcAPI.GetNamespace(),
-		},
-	}
-}
-
-func (r *OGCAPIReconciler) mutateStripPrefixMiddleware(ogcAPI *pdoknlv1alpha1.OGCAPI, middleware *traefikiov1alpha1.Middleware) error {
-	labels := getLabels(ogcAPI)
-	if err := setImmutableLabels(r.Client, middleware, labels); err != nil {
-		return err
-	}
-	regexes := getStripPrefixesRegexps(*ogcAPI.Spec.Service.BaseURL.URL, ogcAPI.Spec.IngressRouteURLs, true)
-	middleware.Spec = traefikiov1alpha1.MiddlewareSpec{
-		StripPrefixRegex: &traefikdynamic.StripPrefixRegex{
-			Regex: regexes,
-		},
-	}
-	if err := ensureSetGVK(r.Client, middleware, middleware); err != nil {
-		return err
-	}
-	return ctrl.SetControllerReference(ogcAPI, middleware, r.Scheme)
-}
-
-func getBareHeadersMiddleware(obj metav1.Object) *traefikiov1alpha1.Middleware {
-	return &traefikiov1alpha1.Middleware{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: obj.GetName() + "-" + headersName,
-			// name might become too long. not handling here. will just fail on apply.
-			Namespace: obj.GetNamespace(),
-		},
-	}
-}
-
-func (r *OGCAPIReconciler) mutateHeadersMiddleware(ogcAPI metav1.Object, middleware *traefikiov1alpha1.Middleware, csp string) error {
-	labels := getLabels(ogcAPI)
-	if err := setImmutableLabels(r.Client, middleware, labels); err != nil {
-		return err
-	}
-	middleware.Spec = traefikiov1alpha1.MiddlewareSpec{
-		Headers: &traefikdynamic.Headers{
-			// CORS
-			AccessControlAllowHeaders: []string{
-				"X-Requested-With",
-			},
-			AccessControlAllowMethods: []string{
-				"GET",
-				"HEAD",
-				"OPTIONS",
-			},
-			AccessControlAllowOriginList: []string{
-				"*",
-			},
-			AccessControlExposeHeaders: []string{
-				"Content-Crs",
-				"Link",
-			},
-			AccessControlMaxAge: 86400,
-			// CSP
-			ContentSecurityPolicy: csp,
-			// Frame-Options
-			FrameDeny: true,
-			// Other headers
-			CustomResponseHeaders: map[string]string{
-				"Cache-Control": "public, max-age=3600, no-transform",
-				"Vary":          "Cookie, Accept, Accept-Encoding, Accept-Language",
-			},
-		},
-	}
-	if err := ensureSetGVK(r.Client, middleware, middleware); err != nil {
-		return err
-	}
-	return ctrl.SetControllerReference(ogcAPI, middleware, r.Scheme)
-}
-
-func getBareHorizontalPodAutoscaler(ogcAPI metav1.Object) *autoscalingv2.HorizontalPodAutoscaler {
-	return &autoscalingv2.HorizontalPodAutoscaler{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      getBareDeployment(ogcAPI).GetName(),
-			Namespace: ogcAPI.GetNamespace(),
-		},
-	}
-}
-
-func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI *pdoknlv1alpha1.OGCAPI, hpa *autoscalingv2.HorizontalPodAutoscaler) error {
-	labels := getLabels(ogcAPI)
-	if err := setImmutableLabels(r.Client, hpa, labels); err != nil {
-		return err
-	}
-	hpa.Spec = autoscalingv2.HorizontalPodAutoscalerSpec{
-		ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
-			APIVersion: "apps/v1",
-			Kind:       "Deployment",
-			Name:       getBareDeployment(ogcAPI).GetName(),
-		},
-		MinReplicas: int32Ptr(2),
-		MaxReplicas: 4,
-		Metrics: []autoscalingv2.MetricSpec{
-			{
-				Type: autoscalingv2.ResourceMetricSourceType,
-				Resource: &autoscalingv2.ResourceMetricSource{
-					Name: corev1.ResourceCPU,
-					Target: autoscalingv2.MetricTarget{
-						Type:               autoscalingv2.UtilizationMetricType,
-						AverageUtilization: int32Ptr(80),
-					},
-				},
-			},
-			{
-				Type: autoscalingv2.ResourceMetricSourceType,
-				Resource: &autoscalingv2.ResourceMetricSource{
-					Name: corev1.ResourceMemory,
-					Target: autoscalingv2.MetricTarget{
-						Type:               autoscalingv2.UtilizationMetricType,
-						AverageUtilization: int32Ptr(75),
-					},
-				},
-			},
-		},
-		Behavior: &autoscalingv2.HorizontalPodAutoscalerBehavior{
-			ScaleDown: &autoscalingv2.HPAScalingRules{
-				StabilizationWindowSeconds: int32Ptr(900),
-				Policies: []autoscalingv2.HPAScalingPolicy{
-					{
-						Type:          autoscalingv2.PodsScalingPolicy,
-						Value:         1,
-						PeriodSeconds: 300,
-					},
-				},
-			},
-			ScaleUp: &autoscalingv2.HPAScalingRules{
-				StabilizationWindowSeconds: int32Ptr(300),
-				Policies: []autoscalingv2.HPAScalingPolicy{
-					{
-						Type:          autoscalingv2.PodsScalingPolicy,
-						Value:         1,
-						PeriodSeconds: 60,
-					},
-				},
-			},
-		},
-	}
-	if ogcAPI.HorizontalPodAutoscalerPatch() != nil {
-		patchedSpec, err := smoothoperatorutil.StrategicMergePatch(&hpa.Spec, ogcAPI.HorizontalPodAutoscalerPatch())
-		if err != nil {
-			return err
-		}
-		hpa.Spec = *patchedSpec
-	}
-	if err := ensureSetGVK(r.Client, hpa, hpa); err != nil {
-		return err
-	}
-	return ctrl.SetControllerReference(ogcAPI, hpa, r.Scheme)
-}
-
 // SetupWithManager sets up the controller with the Manager.
 func (r *OGCAPIReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
@@ -738,33 +249,4 @@ func (r *OGCAPIReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&autoscalingv2.HorizontalPodAutoscaler{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
 		Watches(&appsv1.ReplicaSet{}, smoothoperatorstatus.GetReplicaSetEventHandlerForObj(mgr, "OGCAPI")).
 		Complete(r)
-}
-
-func getBarePodDisruptionBudget(obj metav1.Object) *policyv1.PodDisruptionBudget {
-	return &policyv1.PodDisruptionBudget{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      obj.GetName() + "-" + controllerName,
-			Namespace: obj.GetNamespace(),
-		},
-	}
-}
-
-func (r *OGCAPIReconciler) mutatePodDisruptionBudget(ogcAPI *pdoknlv1alpha1.OGCAPI, podDisruptionBudget *policyv1.PodDisruptionBudget) error {
-	labels := getLabels(ogcAPI)
-	if err := smoothoperatorutil.SetImmutableLabels(r.Client, podDisruptionBudget, labels); err != nil {
-		return err
-	}
-
-	matchLabels := smoothoperatorutil.CloneOrEmptyMap(labels)
-	podDisruptionBudget.Spec = policyv1.PodDisruptionBudgetSpec{
-		MaxUnavailable: &intstr.IntOrString{Type: intstr.Int, IntVal: 1},
-		Selector: &metav1.LabelSelector{
-			MatchLabels: matchLabels,
-		},
-	}
-
-	if err := smoothoperatorutil.EnsureSetGVK(r.Client, podDisruptionBudget, podDisruptionBudget); err != nil {
-		return err
-	}
-	return ctrl.SetControllerReference(ogcAPI, podDisruptionBudget, r.Scheme)
 }

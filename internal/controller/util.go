@@ -30,11 +30,8 @@ import (
 	"errors"
 	"fmt"
 	"maps"
-	"net/url"
 	"regexp"
-	"strings"
 
-	"github.com/pdok/smooth-operator/model"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -128,89 +125,6 @@ func strategicMergePatch[T, P any](obj *T, patch *P) (*T, error) {
 		return nil, fmt.Errorf("error unmarshalling after strategic merge patching: %w", err)
 	}
 	return &newObj, nil
-}
-
-func getMatchRuleForURL(url url.URL, includeLocalhost bool, matchUnderscoreVersions bool) string {
-	var hostMatch string
-	if includeLocalhost {
-		hostMatch = fmt.Sprintf("(Host(`localhost`) || Host(`%s`))", url.Hostname())
-	} else {
-		hostMatch = fmt.Sprintf("Host(`%s`)", url.Hostname())
-	}
-
-	path := url.EscapedPath()
-	trailingSlash := strings.HasSuffix(path, "/")
-	path = strings.Trim(path, "/")
-	if path == "" {
-		return hostMatch
-	}
-
-	var pathRegexp string
-	if matchUnderscoreVersions {
-		pathRegexp = createRegexpForUnderscoreVersions(path)
-	} else {
-		pathRegexp = regexp.QuoteMeta(path)
-	}
-
-	trailingRegexp := "(/|$)" // to prevent matching too much after the last segment
-	if trailingSlash {
-		trailingRegexp = "/"
-	}
-
-	pathMatch := fmt.Sprintf("PathRegexp(`^/%s%s`)", pathRegexp, trailingRegexp)
-	matchRule := fmt.Sprintf("%s && %s", hostMatch, pathMatch)
-	return matchRule
-}
-
-func getStripPrefixesRegexps(baseURL url.URL, ingressRouteUrls model.IngressRouteURLs, matchUnderscoreVersions bool) []string {
-	result := make([]string, 0)
-	var inputs []url.URL
-	if len(ingressRouteUrls) > 0 {
-		inputs = make([]url.URL, 0)
-		for _, route := range ingressRouteUrls {
-			if route.URL.URL != nil {
-				inputs = append(inputs, *route.URL.URL)
-			}
-		}
-	} else {
-		inputs = []url.URL{baseURL}
-	}
-
-	for _, ingressURL := range inputs {
-		path := ingressURL.EscapedPath()
-		trailingSlash := strings.HasSuffix(path, "/")
-		path = strings.Trim(path, "/")
-		if path == "" {
-			continue
-		}
-
-		var pathRegexp string
-		if matchUnderscoreVersions {
-			pathRegexp = createRegexpForUnderscoreVersions(path)
-		} else {
-			pathRegexp = regexp.QuoteMeta(path)
-		}
-
-		stripPrefixRegexp := fmt.Sprintf("^/%s", pathRegexp) //nolint:perfsprint
-		if trailingSlash {
-			stripPrefixRegexp += "/"
-		}
-
-		result = append(result, stripPrefixRegexp)
-	}
-
-	return result
-}
-
-func createRegexpForUnderscoreVersions(path string) string {
-	// luckily Traefik also uses golang regular expressions syntax
-	// first create a regexp that literally matches the path
-	pathRegexp := regexp.QuoteMeta(path)
-	// then replace any occurrences of /v1_0/ (or v2_1 or v3_6) to make the "underscore part" optional
-	pathRegexp = regexp.MustCompile(`/(v\d+)(_\d+)(/|$)`).ReplaceAllString(pathRegexp, `/$1($2)?$3`)
-	// then replace any occurrences of /v1/ (or v2 or v3) with a pattern for that v1 plus an optional "underscore part"
-	pathRegexp = regexp.MustCompile(`/(v\d+)(/|$)`).ReplaceAllString(pathRegexp, `/$1(_\d+)?$2`)
-	return pathRegexp
 }
 
 func addHashSuffix(obj client.Object) error {
