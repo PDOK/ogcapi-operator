@@ -26,7 +26,7 @@ spec:
         - periodSeconds: 60
           type: Pods
           value: 1
-      stabilizationWindowSeconds: 0
+      stabilizationWindowSeconds: 300
   maxReplicas: 5
   metrics:
     - resource:
