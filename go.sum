@@ -7,8 +7,8 @@ github.com/BurntSushi/toml v1.5.0 h1:W5quZX/G/csjUnuI8SUYlsHs9M38FC7znL0lIO+DvMg
 github.com/BurntSushi/toml v1.5.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
 github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1Xbatp0=
 github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
-github.com/PDOK/gokoala v1.8.18 h1:xiC5LWH5aUT2EBk+mtPj9HJllc7CrlekCvCVLWCr+M0=
-github.com/PDOK/gokoala v1.8.18/go.mod h1:RyC3sBBq2U2CIqC65+9kfDMJBxxrbZILd/VVV7U9LFw=
+github.com/PDOK/gokoala v1.9.0 h1:pMsGz8U7UZmua6bwTTSX7TsnBTdx2Dapv7rXaWjkxNw=
+github.com/PDOK/gokoala v1.9.0/go.mod h1:OSZGSQvpemZmGIof23Qq0blPP5XuX8tD3lCINuZpxL4=
 github.com/alecthomas/assert/v2 v2.10.0 h1:jjRCHsj6hBJhkmhznrCzoNpbA3zqy0fYiUcYZP/GkPY=
 github.com/alecthomas/assert/v2 v2.10.0/go.mod h1:Bze95FyfUr7x34QZrjL+XP+0qgp/zg8yS+TtBj1WA3k=
 github.com/alecthomas/repr v0.4.0 h1:GhI2A8MACjfegCPVq9f1FLvIBS+DrQ2KQBFZP1iFzXc=

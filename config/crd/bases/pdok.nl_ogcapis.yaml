@@ -1870,6 +1870,75 @@ spec:
                                 filters:
                                   description: Filters available for this collection
                                   properties:
+                                    cql:
+                                      description: |-
+                                        OAF Part 3: enhanced filtering capabilities expressed using "Common Query Language" (CQL2)
+                                        https://docs.ogc.org/is/19-079r2/19-079r2.html
+                                      properties:
+                                        enable:
+                                          default: false
+                                          description: |-
+                                            Allow filtering using boolean operators (AND, OR, NOT) and simple comparison predicates (=, <>, <, >, <=, >=).
+
+                                            This is the core CQL conformance class and MUST be enabled to use any other CQL functionality.
+                                            In other words: when set to false, all other CQL settings are ignored.
+
+                                            This setting enables conformance class: http://www.opengis.net/spec/cql2/1.0/req/basic-cql2
+                                          type: boolean
+                                        enableAccentInsensitiveComparison:
+                                          default: true
+                                          description: |-
+                                            Allow accent- / diacritics-insensitive filtering (ACCENTI).
+
+                                            This setting enables conformance class: http://www.opengis.net/spec/cql2/1.0/req/accent-insensitive-comparison
+                                          type: boolean
+                                        enableAdvancedComparisonOperators:
+                                          default: true
+                                          description: |-
+                                            Allow filtering using advanced operators (LIKE, BETWEEN, IN, IS NULL).
+
+                                            This setting enables conformance class: http://www.opengis.net/spec/cql2/1.0/req/advanced-comparison-operators
+                                          type: boolean
+                                        enableBasicSpatialFunctions:
+                                          default: true
+                                          description: |-
+                                            Allow filtering using spatial intersection (S_INTERSECTS) on two types of geometries: POINT and BBOX.
+
+                                            This setting enables conformance class: http://www.opengis.net/spec/cql2/1.0/req/basic-spatial-functions
+                                          type: boolean
+                                        enableBasicSpatialFunctionsPlus:
+                                          default: true
+                                          description: |-
+                                            Allow filtering using spatial intersection (S_INTERSECTS) on all types of geometries: POINT, BBOX, POLYGON,
+                                            LINESTRING, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, GEOMETRYCOLLECTION.
+
+                                            This setting enables conformance class: http://www.opengis.net/spec/cql2/1.0/req/basic-spatial-functions-plus
+                                          type: boolean
+                                        enableCaseInsensitiveComparison:
+                                          default: true
+                                          description: |-
+                                            Allow upper/lowercase insensitive filtering (CASEI).
+
+                                            This setting enables conformance class: http://www.opengis.net/spec/cql2/1.0/req/case-insensitive-comparison
+                                          type: boolean
+                                        enableSpatialFunctions:
+                                          default: true
+                                          description: |-
+                                            Allow filtering using all spatial operators (S_INTERSECTS, S_CONTAINS, S_WITHIN, S_OVERLAPS, S_EQUALS, S_DISJOINT) on all
+                                            types of geometries: POINT, BBOX, POLYGON, LINESTRING, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, GEOMETRYCOLLECTION.
+
+                                            This setting enables conformance class: http://www.opengis.net/spec/cql2/1.0/req/spatial-functions
+                                          type: boolean
+                                        enableTemporalFunctions:
+                                          default: true
+                                          description: |-
+                                            Allow filtering using temporal operators (T_AFTER, T_BEFORE, T_DISJOINT, T_EQUALS, T_INTERSECTS, T_CONTAINS,
+                                            T_DURING, T_FINISHEDBY, T_FINISHES, T_MEETS, T_METBY, T_OVERLAPPEDBY, T_OVERLAPS, T_STARTEDBY, T_STARTS) on
+                                            instants and intervals.
+
+                                            This setting enables conformance class: http://www.opengis.net/spec/cql2/1.0/req/temporal-functions
+                                          type: boolean
+                                      type: object
                                     properties:
                                       description: |-
                                         OAF Part 1: filter on feature properties
