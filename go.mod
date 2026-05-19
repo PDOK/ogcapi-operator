@@ -1,6 +1,6 @@
 module github.com/PDOK/ogcapi-operator
 
-go 1.25.5
+go 1.26.3
 
 require (
 	github.com/PDOK/gokoala v1.9.0
@@ -25,6 +25,8 @@ require (
 )
 
 replace github.com/abbot/go-http-auth => github.com/abbot/go-http-auth v0.4.0 // for github.com/traefik/traefik/v3
+
+replace nhooyr.io/websocket => nhooyr.io/websocket v1.8.12 // for github.com/traefik/traefik/v3@v3.6.3
 
 require (
 	cel.dev/expr v0.25.1 // indirect
