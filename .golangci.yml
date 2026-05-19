@@ -172,6 +172,7 @@ linters:
     gomoddirectives:
       replace-allow-list:
         - github.com/abbot/go-http-auth  # https://github.com/traefik/traefik/issues/6873#issuecomment-637654361
+        - nhooyr.io/websocket
     revive:
       rules:
         - name: var-naming
