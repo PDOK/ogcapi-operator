@@ -6,17 +6,18 @@ import (
 	"regexp"
 	"strings"
 
-	v1alpha2 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
-	"github.com/pdok/smooth-operator/model"
+	pdoknlv1alpha1 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
+	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 	uptimeutils "github.com/pdok/smooth-operator/pkg/uptime-utils"
-	"github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
+	smoothoperatorutil "github.com/pdok/smooth-operator/pkg/util"
+	traefikiov1alpha1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	controllerruntime "sigs.k8s.io/controller-runtime"
 )
 
-func getBareIngressRoute(ogcAPI v1.Object) *v1alpha1.IngressRoute {
-	return &v1alpha1.IngressRoute{
+func getBareIngressRoute(ogcAPI v1.Object) *traefikiov1alpha1.IngressRoute {
+	return &traefikiov1alpha1.IngressRoute{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      ogcAPI.GetName(),
 			Namespace: ogcAPI.GetNamespace(),
@@ -24,13 +25,10 @@ func getBareIngressRoute(ogcAPI v1.Object) *v1alpha1.IngressRoute {
 	}
 }
 
-func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *v1alpha2.OGCAPI, ingressRoute *v1alpha1.IngressRoute) error {
+func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *pdoknlv1alpha1.OGCAPI, ingressRoute *traefikiov1alpha1.IngressRoute) error {
 
 	name := ingressRoute.GetName()
-	labels := getLabels(ogcAPI)
-	if err := setImmutableLabels(r.Client, ingressRoute, labels); err != nil {
-		return err
-	}
+	ingressRoute.Labels = getObjectLabels(ogcAPI, ingressRoute.Labels)
 
 	ingressRoute.Annotations = uptimeutils.GetUptimeAnnotations(
 		ogcAPI.Annotations,
@@ -40,32 +38,32 @@ func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *v1alpha2.OGCAPI, ingressRo
 		ogcAPI.Labels,
 	)
 
-	ingressRoute.Spec.Routes = []v1alpha1.Route{}
+	ingressRoute.Spec.Routes = []traefikiov1alpha1.Route{}
 
 	// Collect all ingressRouteURLs (aliases)
 	ingressRouteURLs := ogcAPI.Spec.IngressRouteURLs
 	if len(ingressRouteURLs) == 0 {
-		ingressRouteURLs = model.IngressRouteURLs{{URL: model.URL{URL: ogcAPI.Spec.Service.BaseURL.URL}}}
+		ingressRouteURLs = smoothoperatormodel.IngressRouteURLs{{URL: smoothoperatormodel.URL{URL: ogcAPI.Spec.Service.BaseURL.URL}}}
 	}
 
 	for _, ingressRouteURL := range ingressRouteURLs {
 		matchRule := getMatchRuleForURL(*ingressRouteURL.URL.URL, true, true)
 		ingressRoute.Spec.Routes = append(
 			ingressRoute.Spec.Routes,
-			v1alpha1.Route{
+			traefikiov1alpha1.Route{
 				Kind:   "Rule",
 				Match:  matchRule,
 				Syntax: "v3",
-				Services: []v1alpha1.Service{
+				Services: []traefikiov1alpha1.Service{
 					{
-						LoadBalancerSpec: v1alpha1.LoadBalancerSpec{
+						LoadBalancerSpec: traefikiov1alpha1.LoadBalancerSpec{
 							Name: getBareService(ogcAPI).GetName(),
 							Kind: "Service",
 							Port: intstr.FromString(mainPortName),
 						},
 					},
 				},
-				Middlewares: []v1alpha1.MiddlewareRef{
+				Middlewares: []traefikiov1alpha1.MiddlewareRef{
 					{
 						Name:      name + "-" + stripPrefixName,
 						Namespace: ogcAPI.GetNamespace(),
@@ -78,7 +76,7 @@ func (r *OGCAPIReconciler) mutateIngressRoute(ogcAPI *v1alpha2.OGCAPI, ingressRo
 			},
 		)
 	}
-	if err := ensureSetGVK(r.Client, ingressRoute, ingressRoute); err != nil {
+	if err := smoothoperatorutil.EnsureSetGVK(r.Client, ingressRoute, ingressRoute); err != nil {
 		return err
 	}
 	return controllerruntime.SetControllerReference(ogcAPI, ingressRoute, r.Scheme)

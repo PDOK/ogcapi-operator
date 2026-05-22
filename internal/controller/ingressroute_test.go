@@ -4,14 +4,14 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/pdok/smooth-operator/model"
+	smoothoperatormodel "github.com/pdok/smooth-operator/model"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 	type args struct {
 		url                     url.URL
-		ingressRouteUrls        model.IngressRouteURLs
+		ingressRouteUrls        smoothoperatormodel.IngressRouteURLs
 		includelocalhost        bool
 		matchUnderscoreVersions bool
 	}
@@ -117,10 +117,10 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 			name: "more ingress routes",
 			args: args{
 				url: mustURLParse(t, "http://example.com/one/pathname/v1/"),
-				ingressRouteUrls: model.IngressRouteURLs{{
-					URL: model.URL{URL: asPtr(mustURLParse(t, "http://example.com/one/pathname/v1/"))},
+				ingressRouteUrls: smoothoperatormodel.IngressRouteURLs{{
+					URL: smoothoperatormodel.URL{URL: new(mustURLParse(t, "http://example.com/one/pathname/v1/"))},
 				}, {
-					URL: model.URL{URL: asPtr(mustURLParse(t, "http://example.com/two/otherpathname/v1/"))},
+					URL: smoothoperatormodel.URL{URL: new(mustURLParse(t, "http://example.com/two/otherpathname/v1/"))},
 				}},
 				matchUnderscoreVersions: true,
 			},
@@ -141,7 +141,7 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 			if len(prefixes) != len(tt.wants.prefixes) {
 				t.Errorf("getStripPrefixesRegexps() = number of prefixes `%v`,\nwant `%v`", len(prefixes), len(tt.wants.prefixes))
 			} else {
-				for i, _ := range prefixes { //nolint
+				for i := range prefixes {
 					actualPrefix := prefixes[i]
 					wantPrefix := tt.wants.prefixes[i]
 					if actualPrefix != wantPrefix {
@@ -151,10 +151,6 @@ func Test_createIngressRuleAndStripPrefixForURL(t *testing.T) {
 			}
 		})
 	}
-}
-
-func asPtr(myURL url.URL) *url.URL {
-	return &myURL
 }
 
 func mustURLParse(t *testing.T, in string) url.URL {

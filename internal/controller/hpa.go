@@ -1,74 +1,71 @@
 package controller
 
 import (
-	"github.com/PDOK/ogcapi-operator/api/v1alpha1"
-	controller2 "github.com/pdok/smooth-operator/pkg/util"
-	v2 "k8s.io/api/autoscaling/v2"
-	v3 "k8s.io/api/core/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	pdoknlv1alpha1 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
+	smoothoperatorutil "github.com/pdok/smooth-operator/pkg/util"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	controllerruntime "sigs.k8s.io/controller-runtime"
 )
 
-func getBareHorizontalPodAutoscaler(ogcAPI v1.Object) *v2.HorizontalPodAutoscaler {
-	return &v2.HorizontalPodAutoscaler{
-		ObjectMeta: v1.ObjectMeta{
+func getBareHorizontalPodAutoscaler(ogcAPI metav1.Object) *autoscalingv2.HorizontalPodAutoscaler {
+	return &autoscalingv2.HorizontalPodAutoscaler{
+		ObjectMeta: metav1.ObjectMeta{
 			Name:      getBareDeployment(ogcAPI).GetName(),
 			Namespace: ogcAPI.GetNamespace(),
 		},
 	}
 }
 
-func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI *v1alpha1.OGCAPI, hpa *v2.HorizontalPodAutoscaler) error {
-	labels := getLabels(ogcAPI)
-	if err := setImmutableLabels(r.Client, hpa, labels); err != nil {
-		return err
-	}
-	hpa.Spec = v2.HorizontalPodAutoscalerSpec{
-		ScaleTargetRef: v2.CrossVersionObjectReference{
+func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI *pdoknlv1alpha1.OGCAPI, hpa *autoscalingv2.HorizontalPodAutoscaler) error {
+	hpa.Labels = getObjectLabels(ogcAPI, hpa.Labels)
+	hpa.Spec = autoscalingv2.HorizontalPodAutoscalerSpec{
+		ScaleTargetRef: autoscalingv2.CrossVersionObjectReference{
 			APIVersion: "apps/v1",
 			Kind:       "Deployment",
 			Name:       getBareDeployment(ogcAPI).GetName(),
 		},
-		MinReplicas: int32Ptr(2),
+		MinReplicas: new(int32(2)),
 		MaxReplicas: 4,
-		Metrics: []v2.MetricSpec{
+		Metrics: []autoscalingv2.MetricSpec{
 			{
-				Type: v2.ResourceMetricSourceType,
-				Resource: &v2.ResourceMetricSource{
-					Name: v3.ResourceCPU,
-					Target: v2.MetricTarget{
-						Type:               v2.UtilizationMetricType,
-						AverageUtilization: int32Ptr(80),
+				Type: autoscalingv2.ResourceMetricSourceType,
+				Resource: &autoscalingv2.ResourceMetricSource{
+					Name: corev1.ResourceCPU,
+					Target: autoscalingv2.MetricTarget{
+						Type:               autoscalingv2.UtilizationMetricType,
+						AverageUtilization: new(int32(80)),
 					},
 				},
 			},
 			{
-				Type: v2.ResourceMetricSourceType,
-				Resource: &v2.ResourceMetricSource{
-					Name: v3.ResourceMemory,
-					Target: v2.MetricTarget{
-						Type:               v2.UtilizationMetricType,
-						AverageUtilization: int32Ptr(75),
+				Type: autoscalingv2.ResourceMetricSourceType,
+				Resource: &autoscalingv2.ResourceMetricSource{
+					Name: corev1.ResourceMemory,
+					Target: autoscalingv2.MetricTarget{
+						Type:               autoscalingv2.UtilizationMetricType,
+						AverageUtilization: new(int32(75)),
 					},
 				},
 			},
 		},
-		Behavior: &v2.HorizontalPodAutoscalerBehavior{
-			ScaleDown: &v2.HPAScalingRules{
-				StabilizationWindowSeconds: int32Ptr(900),
-				Policies: []v2.HPAScalingPolicy{
+		Behavior: &autoscalingv2.HorizontalPodAutoscalerBehavior{
+			ScaleDown: &autoscalingv2.HPAScalingRules{
+				StabilizationWindowSeconds: new(int32(900)),
+				Policies: []autoscalingv2.HPAScalingPolicy{
 					{
-						Type:          v2.PodsScalingPolicy,
+						Type:          autoscalingv2.PodsScalingPolicy,
 						Value:         1,
 						PeriodSeconds: 300,
 					},
 				},
 			},
-			ScaleUp: &v2.HPAScalingRules{
-				StabilizationWindowSeconds: int32Ptr(300),
-				Policies: []v2.HPAScalingPolicy{
+			ScaleUp: &autoscalingv2.HPAScalingRules{
+				StabilizationWindowSeconds: new(int32(300)),
+				Policies: []autoscalingv2.HPAScalingPolicy{
 					{
-						Type:          v2.PodsScalingPolicy,
+						Type:          autoscalingv2.PodsScalingPolicy,
 						Value:         1,
 						PeriodSeconds: 60,
 					},
@@ -77,13 +74,13 @@ func (r *OGCAPIReconciler) mutateHorizontalPodAutoscaler(ogcAPI *v1alpha1.OGCAPI
 		},
 	}
 	if ogcAPI.HorizontalPodAutoscalerPatch() != nil {
-		patchedSpec, err := controller2.StrategicMergePatch(&hpa.Spec, ogcAPI.HorizontalPodAutoscalerPatch())
+		patchedSpec, err := smoothoperatorutil.StrategicMergePatch(&hpa.Spec, ogcAPI.HorizontalPodAutoscalerPatch())
 		if err != nil {
 			return err
 		}
 		hpa.Spec = *patchedSpec
 	}
-	if err := ensureSetGVK(r.Client, hpa, hpa); err != nil {
+	if err := smoothoperatorutil.EnsureSetGVK(r.Client, hpa, hpa); err != nil {
 		return err
 	}
 	return controllerruntime.SetControllerReference(ogcAPI, hpa, r.Scheme)

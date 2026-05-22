@@ -3,19 +3,19 @@ package controller
 import (
 	"strconv"
 
-	"github.com/PDOK/ogcapi-operator/api/v1alpha1"
-	controller2 "github.com/pdok/smooth-operator/pkg/util"
-	v2 "k8s.io/api/apps/v1"
-	v3 "k8s.io/api/core/v1"
+	pdoknlv1alpha1 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
+	smoothoperatorutil "github.com/pdok/smooth-operator/pkg/util"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	controllerruntime "sigs.k8s.io/controller-runtime"
 )
 
-func getBareDeployment(ogcAPI v1.Object) *v2.Deployment {
-	return &v2.Deployment{
-		ObjectMeta: v1.ObjectMeta{
+func getBareDeployment(ogcAPI metav1.Object) *appsv1.Deployment {
+	return &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
 			Name: ogcAPI.GetName() + "-" + gokoalaName,
 			// name might become too long. not handling here. will just fail on apply.
 			Namespace: ogcAPI.GetNamespace(),
@@ -24,92 +24,86 @@ func getBareDeployment(ogcAPI v1.Object) *v2.Deployment {
 }
 
 //nolint:funlen
-func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *v1alpha1.OGCAPI, deployment *v2.Deployment, configMapName string) error {
-	labels := getLabels(ogcAPI)
-	if err := setImmutableLabels(r.Client, deployment, labels); err != nil {
-		return err
-	}
+func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deployment *appsv1.Deployment, configMapName string) error {
+	deployment.Labels = getObjectLabels(ogcAPI, deployment.Labels)
 
-	podTemplateAnnotations := cloneOrEmptyMap(deployment.Spec.Template.GetAnnotations())
+	podTemplateAnnotations := smoothoperatorutil.CloneOrEmptyMap(deployment.Spec.Template.GetAnnotations())
 	podTemplateAnnotations[priorityAnnotation+"/"+gokoalaName] = "4"
 
-	matchLabels := cloneOrEmptyMap(labels)
-	deployment.Spec.Selector = &v1.LabelSelector{
-		MatchLabels: matchLabels,
-	}
+	deployment.Spec.Selector = getLabelSelector(ogcAPI)
 
 	deployment.Spec.MinReadySeconds = 0
-	deployment.Spec.ProgressDeadlineSeconds = int32Ptr(600)
-	deployment.Spec.Strategy = v2.DeploymentStrategy{
-		Type: v2.RollingUpdateDeploymentStrategyType,
-		RollingUpdate: &v2.RollingUpdateDeployment{
-			MaxUnavailable: intOrStrIntPtr(0),
-			MaxSurge:       intOrStrIntPtr(2),
+	deployment.Spec.ProgressDeadlineSeconds = new(int32(600))
+	deployment.Spec.Strategy = appsv1.DeploymentStrategy{
+		Type: appsv1.RollingUpdateDeploymentStrategyType,
+		RollingUpdate: &appsv1.RollingUpdateDeployment{
+			MaxUnavailable: new(intstr.FromInt32(0)),
+			MaxSurge:       new(intstr.FromInt32(2)),
 		},
 	}
-	deployment.Spec.RevisionHistoryLimit = int32Ptr(1)
+	deployment.Spec.RevisionHistoryLimit = new(int32(1))
 
 	// deployment.Spec.Replicas is controlled by the HPA
 	// deployment.Spec.Paused is ignored to allow a manual intervention i.c.e.
 
-	podTemplateSpec := v3.PodTemplateSpec{
-		ObjectMeta: v1.ObjectMeta{
-			Labels:      matchLabels,
+	podTemplateSpec := corev1.PodTemplateSpec{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels:      getObjectLabels(ogcAPI, deployment.Spec.Template.Labels),
 			Annotations: podTemplateAnnotations,
 		},
-		Spec: v3.PodSpec{
-			Volumes: []v3.Volume{
-				{Name: gokoalaName + "-" + configName, VolumeSource: v3.VolumeSource{ConfigMap: &v3.ConfigMapVolumeSource{
-					LocalObjectReference: v3.LocalObjectReference{
+		Spec: corev1.PodSpec{
+			Volumes: []corev1.Volume{
+				{Name: gokoalaName + "-" + configName, VolumeSource: corev1.VolumeSource{ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
 						Name: configMapName,
 					},
 				}}},
-				{Name: gokoalaName + "-" + gpkgCacheName, VolumeSource: v3.VolumeSource{EmptyDir: &v3.EmptyDirVolumeSource{}}},
+				{Name: gokoalaName + "-" + gpkgCacheName, VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{}}},
 			},
-			Containers: []v3.Container{
+			Containers: []corev1.Container{
 				{
 					Name:            gokoalaName,
-					ImagePullPolicy: v3.PullIfNotPresent,
-					Ports: []v3.ContainerPort{
+					ImagePullPolicy: corev1.PullIfNotPresent,
+					Ports: []corev1.ContainerPort{
 						{Name: mainPortName, ContainerPort: mainPortNr},
 						{Name: debugPortName, ContainerPort: debugPortNr},
 					},
-					Env: []v3.EnvVar{
+					Env: []corev1.EnvVar{
 						{Name: configFileEnvVar, Value: srvDir + "/" + configName + "/" + configFileName},
 						{Name: debugPortEnvVar, Value: strconv.Itoa(debugPortNr)},
 						{Name: shutdownDelayEnvVar, Value: strconv.Itoa(30)},
 					},
-					Resources: v3.ResourceRequirements{
-						Limits: v3.ResourceList{
-							v3.ResourceMemory:           resource.MustParse("1Gi"),
-							v3.ResourceEphemeralStorage: resource.MustParse("50Mi"), // TODO other sane default in case of OGC API Features
+					Resources: corev1.ResourceRequirements{
+						Limits: corev1.ResourceList{
+							corev1.ResourceMemory:           resource.MustParse("1Gi"),
+							corev1.ResourceEphemeralStorage: resource.MustParse("50Mi"), // TODO other sane default in case of OGC API Features
 						},
-						Requests: v3.ResourceList{
-							v3.ResourceCPU: resource.MustParse("500m"),
+						Requests: corev1.ResourceList{
+							corev1.ResourceCPU: resource.MustParse("500m"),
 						},
 					},
-					VolumeMounts: []v3.VolumeMount{
+					VolumeMounts: []corev1.VolumeMount{
 						{Name: gokoalaName + "-" + configName, MountPath: srvDir + "/" + configName},
 						{Name: gokoalaName + "-" + gpkgCacheName, MountPath: srvDir + "/" + gpkgCacheName},
 					},
-					LivenessProbe: &v3.Probe{
-						ProbeHandler: v3.ProbeHandler{
-							HTTPGet: &v3.HTTPGetAction{
+					LivenessProbe: &corev1.Probe{
+						ProbeHandler: corev1.ProbeHandler{
+							HTTPGet: &corev1.HTTPGetAction{
 								Path:   "/health",
 								Port:   intstr.FromInt32(mainPortNr),
-								Scheme: v3.URISchemeHTTP,
+								Scheme: corev1.URISchemeHTTP,
 							},
 						},
 						InitialDelaySeconds: 60,
 						TimeoutSeconds:      5,
 						PeriodSeconds:       10,
 					},
-					ReadinessProbe: &v3.Probe{
-						ProbeHandler: v3.ProbeHandler{
-							HTTPGet: &v3.HTTPGetAction{
+					ReadinessProbe: &corev1.Probe{
+						ProbeHandler: corev1.ProbeHandler{
+							HTTPGet: &corev1.HTTPGetAction{
 								Path:   "/health",
 								Port:   intstr.FromInt32(mainPortNr),
-								Scheme: v3.URISchemeHTTP,
+								Scheme: corev1.URISchemeHTTP,
 							},
 						},
 						InitialDelaySeconds: 60,
@@ -122,7 +116,7 @@ func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *v1alpha1.OGCAPI, deployment 
 	}
 
 	if ogcAPI.Spec.PodSpecPatch != nil {
-		patchedPod, err := strategicMergePatch(&podTemplateSpec.Spec, &ogcAPI.Spec.PodSpecPatch)
+		patchedPod, err := smoothoperatorutil.StrategicMergePatch(&podTemplateSpec.Spec, &ogcAPI.Spec.PodSpecPatch)
 		if err != nil {
 			return err
 		}
@@ -136,41 +130,41 @@ func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *v1alpha1.OGCAPI, deployment 
 		deployment = addVolumePopulatorToDeployment(deployment, ogcAPI)
 	}
 
-	if err := ensureSetGVK(r.Client, deployment, deployment); err != nil {
+	if err := smoothoperatorutil.EnsureSetGVK(r.Client, deployment, deployment); err != nil {
 		return err
 	}
 	return controllerruntime.SetControllerReference(ogcAPI, deployment, r.Scheme)
 }
 
-func addVolumePopulatorToDeployment(deployment *v2.Deployment, ogcAPI *v1alpha1.OGCAPI) *v2.Deployment {
-	hash := controller2.GenerateHashFromStrings([]string{
+func addVolumePopulatorToDeployment(deployment *appsv1.Deployment, ogcAPI *pdoknlv1alpha1.OGCAPI) *appsv1.Deployment {
+	hash := smoothoperatorutil.GenerateHashFromStrings([]string{
 		ogcAPI.VolumeOperatorSpec.BlobPrefix,
 		volumeMountPath,
 		ogcAPI.VolumeOperatorSpec.StorageCapacity,
 	})
-	deployment.Annotations = cloneOrEmptyMap(deployment.Annotations)
+	deployment.Annotations = smoothoperatorutil.CloneOrEmptyMap(deployment.Annotations)
 	deployment.Annotations["volume-operator.pdok.nl/blob-prefix"] = ogcAPI.VolumeOperatorSpec.BlobPrefix
 	deployment.Annotations["volume-operator.pdok.nl/volume-path"] = volumeMountPath
 	deployment.Annotations["volume-operator.pdok.nl/storage-class"] = ogcAPI.VolumeOperatorSpec.StorageClass
 	deployment.Annotations["volume-operator.pdok.nl/resource-suffix"] = hash
 	deployment.Annotations["volume-operator.pdok.nl/storage-capacity"] = ogcAPI.VolumeOperatorSpec.StorageCapacity
 
-	volume := v3.Volume{
+	volume := corev1.Volume{
 		Name: gokoalaName + "-clone",
-		VolumeSource: v3.VolumeSource{
-			Ephemeral: &v3.EphemeralVolumeSource{
-				VolumeClaimTemplate: &v3.PersistentVolumeClaimTemplate{
-					Spec: v3.PersistentVolumeClaimSpec{
-						AccessModes: []v3.PersistentVolumeAccessMode{
-							v3.ReadWriteOnce,
+		VolumeSource: corev1.VolumeSource{
+			Ephemeral: &corev1.EphemeralVolumeSource{
+				VolumeClaimTemplate: &corev1.PersistentVolumeClaimTemplate{
+					Spec: corev1.PersistentVolumeClaimSpec{
+						AccessModes: []corev1.PersistentVolumeAccessMode{
+							corev1.ReadWriteOnce,
 						},
 						StorageClassName: &ogcAPI.VolumeOperatorSpec.StorageClass,
-						Resources: v3.VolumeResourceRequirements{
-							Requests: v3.ResourceList{
-								v3.ResourceStorage: resource.MustParse(ogcAPI.VolumeOperatorSpec.StorageCapacity),
+						Resources: corev1.VolumeResourceRequirements{
+							Requests: corev1.ResourceList{
+								corev1.ResourceStorage: resource.MustParse(ogcAPI.VolumeOperatorSpec.StorageCapacity),
 							},
 						},
-						DataSource: &v3.TypedLocalObjectReference{
+						DataSource: &corev1.TypedLocalObjectReference{
 							Kind: "PersistentVolumeClaim",
 							Name: hash,
 						},
@@ -183,7 +177,7 @@ func addVolumePopulatorToDeployment(deployment *v2.Deployment, ogcAPI *v1alpha1.
 	deployment.Spec.Template.Spec.Volumes = append(deployment.Spec.Template.Spec.Volumes, volume)
 	for i, container := range deployment.Spec.Template.Spec.Containers {
 		if container.Name == gokoalaName {
-			deployment.Spec.Template.Spec.Containers[i].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[i].VolumeMounts, v3.VolumeMount{
+			deployment.Spec.Template.Spec.Containers[i].VolumeMounts = append(deployment.Spec.Template.Spec.Containers[i].VolumeMounts, corev1.VolumeMount{
 				Name:      volume.Name,
 				MountPath: volumeMountPath,
 			})
