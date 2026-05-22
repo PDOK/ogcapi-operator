@@ -30,6 +30,7 @@ import (
 	"strings"
 
 	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -40,7 +41,7 @@ import (
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	ctrl "sigs.k8s.io/controller-runtime"
+	controllerruntime "sigs.k8s.io/controller-runtime"
 
 	traefikiov1alpha1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -105,7 +106,7 @@ type OGCAPIReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.17.0/pkg/reconcile
-func (r *OGCAPIReconciler) Reconcile(ctx context.Context, req ctrl.Request) (result ctrl.Result, err error) {
+func (r *OGCAPIReconciler) Reconcile(ctx context.Context, req controllerruntime.Request) (result controllerruntime.Result, err error) {
 	lgr := log.FromContext(ctx)
 
 	ogcAPI := &pdoknlv1alpha1.OGCAPI{}
@@ -120,9 +121,9 @@ func (r *OGCAPIReconciler) Reconcile(ctx context.Context, req ctrl.Request) (res
 		}
 		return result, client.IgnoreNotFound(err)
 	}
-	fullName := getObjectFullName(r.Client, ogcAPI)
+	fullName := smoothoperatorutil.GetObjectFullName(r.Client, ogcAPI)
 
-	shouldContinue, err := finalizeIfNecessary(ctx, r.Client, ogcAPI, finalizerName, func() error {
+	shouldContinue, err := smoothoperatorutil.FinalizeIfNecessary(ctx, r.Client, ogcAPI, finalizerName, func() error {
 		lgr.Info("deleting resources", "name", fullName)
 		return r.deleteAll(ctx, ogcAPI)
 	})
@@ -154,59 +155,59 @@ func (r *OGCAPIReconciler) createOrUpdate(ctx context.Context, ogcAPI *pdoknlv1a
 	if err = r.mutateConfigMap(ogcAPI, configMap); err != nil {
 		return operationResults, err
 	}
-	operationResults[getObjectFullName(r.Client, configMap)], err = controllerutil.CreateOrUpdate(ctx, r.Client, configMap, func() error {
+	operationResults[smoothoperatorutil.GetObjectFullName(r.Client, configMap)], err = controllerutil.CreateOrUpdate(ctx, r.Client, configMap, func() error {
 		return r.mutateConfigMap(ogcAPI, configMap)
 	})
 	if err != nil {
-		return operationResults, fmt.Errorf("unable to create/update resource %s: %w", getObjectFullName(c, configMap), err)
+		return operationResults, fmt.Errorf("unable to create/update resource %s: %w", smoothoperatorutil.GetObjectFullName(c, configMap), err)
 	}
 
 	deployment := getBareDeployment(ogcAPI)
-	operationResults[getObjectFullName(r.Client, deployment)], err = controllerutil.CreateOrUpdate(ctx, r.Client, deployment, func() error {
+	operationResults[smoothoperatorutil.GetObjectFullName(r.Client, deployment)], err = controllerutil.CreateOrUpdate(ctx, r.Client, deployment, func() error {
 		return r.mutateDeployment(ogcAPI, deployment, configMap.GetName())
 	})
 	if err != nil && !strings.Contains(err.Error(), "the object has been modified; please apply your changes to the latest version and try again") {
-		return operationResults, fmt.Errorf("unable to create/update resource %s: %w", getObjectFullName(c, deployment), err)
+		return operationResults, fmt.Errorf("unable to create/update resource %s: %w", smoothoperatorutil.GetObjectFullName(c, deployment), err)
 	}
 
 	service := getBareService(ogcAPI)
-	operationResults[getObjectFullName(r.Client, service)], err = controllerutil.CreateOrUpdate(ctx, r.Client, service, func() error {
+	operationResults[smoothoperatorutil.GetObjectFullName(r.Client, service)], err = controllerutil.CreateOrUpdate(ctx, r.Client, service, func() error {
 		return r.mutateService(ogcAPI, service)
 	})
 	if err != nil {
-		return operationResults, fmt.Errorf("unable to create/update resource %s: %w", getObjectFullName(c, service), err)
+		return operationResults, fmt.Errorf("unable to create/update resource %s: %w", smoothoperatorutil.GetObjectFullName(c, service), err)
 	}
 
 	stripPrefixMiddleware := getBareStripPrefixMiddleware(ogcAPI)
-	operationResults[getObjectFullName(r.Client, stripPrefixMiddleware)], err = controllerutil.CreateOrUpdate(ctx, r.Client, stripPrefixMiddleware, func() error {
+	operationResults[smoothoperatorutil.GetObjectFullName(r.Client, stripPrefixMiddleware)], err = controllerutil.CreateOrUpdate(ctx, r.Client, stripPrefixMiddleware, func() error {
 		return r.mutateStripPrefixMiddleware(ogcAPI, stripPrefixMiddleware)
 	})
 	if err != nil {
-		return operationResults, fmt.Errorf("could not create or update resource %s: %w", getObjectFullName(c, stripPrefixMiddleware), err)
+		return operationResults, fmt.Errorf("could not create or update resource %s: %w", smoothoperatorutil.GetObjectFullName(c, stripPrefixMiddleware), err)
 	}
 
 	headersMiddleware := getBareHeadersMiddleware(ogcAPI)
-	operationResults[getObjectFullName(r.Client, headersMiddleware)], err = controllerutil.CreateOrUpdate(ctx, r.Client, headersMiddleware, func() error {
+	operationResults[smoothoperatorutil.GetObjectFullName(r.Client, headersMiddleware)], err = controllerutil.CreateOrUpdate(ctx, r.Client, headersMiddleware, func() error {
 		return r.mutateHeadersMiddleware(ogcAPI, headersMiddleware, r.CSP)
 	})
 	if err != nil {
-		return operationResults, fmt.Errorf("could not create or update resource %s: %w", getObjectFullName(c, headersMiddleware), err)
+		return operationResults, fmt.Errorf("could not create or update resource %s: %w", smoothoperatorutil.GetObjectFullName(c, headersMiddleware), err)
 	}
 
 	ingressRoute := getBareIngressRoute(ogcAPI)
-	operationResults[getObjectFullName(r.Client, ingressRoute)], err = controllerutil.CreateOrUpdate(ctx, r.Client, ingressRoute, func() error {
+	operationResults[smoothoperatorutil.GetObjectFullName(r.Client, ingressRoute)], err = controllerutil.CreateOrUpdate(ctx, r.Client, ingressRoute, func() error {
 		return r.mutateIngressRoute(ogcAPI, ingressRoute)
 	})
 	if err != nil {
-		return operationResults, fmt.Errorf("unable to create/update resource %s: %w", getObjectFullName(c, ingressRoute), err)
+		return operationResults, fmt.Errorf("unable to create/update resource %s: %w", smoothoperatorutil.GetObjectFullName(c, ingressRoute), err)
 	}
 
 	hpa := getBareHorizontalPodAutoscaler(ogcAPI)
-	operationResults[getObjectFullName(r.Client, hpa)], err = controllerutil.CreateOrUpdate(ctx, r.Client, hpa, func() error {
+	operationResults[smoothoperatorutil.GetObjectFullName(r.Client, hpa)], err = controllerutil.CreateOrUpdate(ctx, r.Client, hpa, func() error {
 		return r.mutateHorizontalPodAutoscaler(ogcAPI, hpa)
 	})
 	if err != nil && !strings.Contains(err.Error(), "the object has been modified; please apply your changes to the latest version and try again") {
-		return operationResults, fmt.Errorf("unable to create/update resource %s: %w", getObjectFullName(c, deployment), err)
+		return operationResults, fmt.Errorf("unable to create/update resource %s: %w", smoothoperatorutil.GetObjectFullName(c, deployment), err)
 	}
 
 	podDisruptionBudget := getBarePodDisruptionBudget(ogcAPI)
@@ -226,7 +227,7 @@ func (r *OGCAPIReconciler) deleteAll(ctx context.Context, ogcAPI *pdoknlv1alpha1
 	if err = r.mutateConfigMap(ogcAPI, configMap); err != nil {
 		return
 	}
-	return deleteObjects(ctx, r.Client, []client.Object{
+	return smoothoperatorutil.DeleteObjects(ctx, r.Client, []client.Object{
 		configMap,
 		getBareDeployment(ogcAPI),
 		getBareService(ogcAPI),
@@ -238,8 +239,8 @@ func (r *OGCAPIReconciler) deleteAll(ctx context.Context, ogcAPI *pdoknlv1alpha1
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *OGCAPIReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
+func (r *OGCAPIReconciler) SetupWithManager(mgr controllerruntime.Manager) error {
+	return controllerruntime.NewControllerManagedBy(mgr).
 		For(&pdoknlv1alpha1.OGCAPI{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
 		Owns(&corev1.ConfigMap{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
 		Owns(&appsv1.Deployment{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
@@ -249,4 +250,16 @@ func (r *OGCAPIReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&autoscalingv2.HorizontalPodAutoscaler{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
 		Watches(&appsv1.ReplicaSet{}, smoothoperatorstatus.GetReplicaSetEventHandlerForObj(mgr, "OGCAPI")).
 		Complete(r)
+}
+
+var defaultLabels = map[string]string{appLabelKey: gokoalaName}
+
+func getLabelSelector(ogcapi *pdoknlv1alpha1.OGCAPI) *metav1.LabelSelector {
+	return &metav1.LabelSelector{
+		MatchLabels: smoothoperatorutil.CombineLabels(ogcapi.Labels, defaultLabels),
+	}
+}
+
+func getObjectLabels(ogcapi *pdoknlv1alpha1.OGCAPI, objLabels map[string]string) map[string]string {
+	return smoothoperatorutil.CombineLabels(objLabels, ogcapi.Labels, defaultLabels)
 }

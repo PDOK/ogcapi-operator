@@ -6,17 +6,18 @@ import (
 	"regexp"
 	"strings"
 
-	v1alpha2 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
-	"github.com/pdok/smooth-operator/model"
+	pdoknlv1alpha1 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
+	smoothoperatormodel "github.com/pdok/smooth-operator/model"
+	smoothoperatorutil "github.com/pdok/smooth-operator/pkg/util"
 	"github.com/traefik/traefik/v3/pkg/config/dynamic"
-	"github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	traefikiov1alpha1 "github.com/traefik/traefik/v3/pkg/provider/kubernetes/crd/traefikio/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	controllerruntime "sigs.k8s.io/controller-runtime"
 )
 
-func getBareHeadersMiddleware(obj v1.Object) *v1alpha1.Middleware {
-	return &v1alpha1.Middleware{
-		ObjectMeta: v1.ObjectMeta{
+func getBareHeadersMiddleware(obj metav1.Object) *traefikiov1alpha1.Middleware {
+	return &traefikiov1alpha1.Middleware{
+		ObjectMeta: metav1.ObjectMeta{
 			Name: obj.GetName() + "-" + headersName,
 			// name might become too long. not handling here. will just fail on apply.
 			Namespace: obj.GetNamespace(),
@@ -24,12 +25,9 @@ func getBareHeadersMiddleware(obj v1.Object) *v1alpha1.Middleware {
 	}
 }
 
-func (r *OGCAPIReconciler) mutateHeadersMiddleware(ogcAPI v1.Object, middleware *v1alpha1.Middleware, csp string) error {
-	labels := getLabels(ogcAPI)
-	if err := setImmutableLabels(r.Client, middleware, labels); err != nil {
-		return err
-	}
-	middleware.Spec = v1alpha1.MiddlewareSpec{
+func (r *OGCAPIReconciler) mutateHeadersMiddleware(ogcAPI *pdoknlv1alpha1.OGCAPI, middleware *traefikiov1alpha1.Middleware, csp string) error {
+	middleware.Labels = getObjectLabels(ogcAPI, middleware.Labels)
+	middleware.Spec = traefikiov1alpha1.MiddlewareSpec{
 		Headers: &dynamic.Headers{
 			// CORS
 			AccessControlAllowHeaders: []string{
@@ -59,15 +57,15 @@ func (r *OGCAPIReconciler) mutateHeadersMiddleware(ogcAPI v1.Object, middleware 
 			},
 		},
 	}
-	if err := ensureSetGVK(r.Client, middleware, middleware); err != nil {
+	if err := smoothoperatorutil.EnsureSetGVK(r.Client, middleware, middleware); err != nil {
 		return err
 	}
 	return controllerruntime.SetControllerReference(ogcAPI, middleware, r.Scheme)
 }
 
-func getBareStripPrefixMiddleware(ogcAPI v1.Object) *v1alpha1.Middleware {
-	return &v1alpha1.Middleware{
-		ObjectMeta: v1.ObjectMeta{
+func getBareStripPrefixMiddleware(ogcAPI metav1.Object) *traefikiov1alpha1.Middleware {
+	return &traefikiov1alpha1.Middleware{
+		ObjectMeta: metav1.ObjectMeta{
 			Name: ogcAPI.GetName() + "-" + stripPrefixName,
 			// name might become too long. not handling here. will just fail on apply.
 			Namespace: ogcAPI.GetNamespace(),
@@ -75,24 +73,21 @@ func getBareStripPrefixMiddleware(ogcAPI v1.Object) *v1alpha1.Middleware {
 	}
 }
 
-func (r *OGCAPIReconciler) mutateStripPrefixMiddleware(ogcAPI *v1alpha2.OGCAPI, middleware *v1alpha1.Middleware) error {
-	labels := getLabels(ogcAPI)
-	if err := setImmutableLabels(r.Client, middleware, labels); err != nil {
-		return err
-	}
+func (r *OGCAPIReconciler) mutateStripPrefixMiddleware(ogcAPI *pdoknlv1alpha1.OGCAPI, middleware *traefikiov1alpha1.Middleware) error {
+	middleware.Labels = getObjectLabels(ogcAPI, middleware.Labels)
 	regexes := getStripPrefixesRegexps(*ogcAPI.Spec.Service.BaseURL.URL, ogcAPI.Spec.IngressRouteURLs, true)
-	middleware.Spec = v1alpha1.MiddlewareSpec{
+	middleware.Spec = traefikiov1alpha1.MiddlewareSpec{
 		StripPrefixRegex: &dynamic.StripPrefixRegex{
 			Regex: regexes,
 		},
 	}
-	if err := ensureSetGVK(r.Client, middleware, middleware); err != nil {
+	if err := smoothoperatorutil.EnsureSetGVK(r.Client, middleware, middleware); err != nil {
 		return err
 	}
 	return controllerruntime.SetControllerReference(ogcAPI, middleware, r.Scheme)
 }
 
-func getStripPrefixesRegexps(baseURL url.URL, ingressRouteUrls model.IngressRouteURLs, matchUnderscoreVersions bool) []string {
+func getStripPrefixesRegexps(baseURL url.URL, ingressRouteUrls smoothoperatormodel.IngressRouteURLs, matchUnderscoreVersions bool) []string {
 	result := make([]string, 0)
 	var inputs []url.URL
 	if len(ingressRouteUrls) > 0 {

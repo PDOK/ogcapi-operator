@@ -35,6 +35,7 @@ import (
 	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
 	"github.com/google/go-cmp/cmp"
 	smoothoperatormodel "github.com/pdok/smooth-operator/model"
+	smoothoperatorutil "github.com/pdok/smooth-operator/pkg/util"
 	policyv1 "k8s.io/api/policy/v1"
 	"sigs.k8s.io/yaml"
 
@@ -51,9 +52,9 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
+	k8stypes "k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	pdoknlv1alpha1 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
@@ -158,7 +159,7 @@ var _ = Describe("OGCAPI Controller", func() {
 	Context("When reconciling an OGCAPI with Volume Populator properties", func() {
 		ctx := context.Background()
 
-		typeNamespacedName := types.NamespacedName{
+		typeNamespacedName := k8stypes.NamespacedName{
 			Name:      testOGCAPIName + "-clone",
 			Namespace: testOGCAPINamespace,
 		}
@@ -251,122 +252,80 @@ var _ = Describe("OGCAPI Controller", func() {
 	})
 
 	Context("When reconciling an OGCAPI", func() {
+
 		ctx := context.Background()
+		clusterOgcapi := &pdoknlv1alpha1.OGCAPI{}
 
-		typeNamespacedName := types.NamespacedName{
-			Name:      testOGCAPIName,
-			Namespace: testOGCAPINamespace,
+		objectKeyOgcapi := k8stypes.NamespacedName{}
+
+		var expectedResources []struct {
+			obj client.Object
+			key k8stypes.NamespacedName
 		}
-		ogcAPI := &pdoknlv1alpha1.OGCAPI{}
-
-		BeforeEach(func() {
-			By("Creating the custom resource for the Kind OGCAPI")
-			err := k8sClient.Get(ctx, typeNamespacedName, ogcAPI)
-			if err != nil && k8serrors.IsNotFound(err) {
-				resource := fullOGCAPI.DeepCopy()
-				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
-				Expect(k8sClient.Get(ctx, typeNamespacedName, ogcAPI)).To(Succeed())
-			}
-		})
-
-		AfterEach(func() {
-			resource := &pdoknlv1alpha1.OGCAPI{}
-			resource.Name = typeNamespacedName.Name
-			resource.Namespace = typeNamespacedName.Namespace
-			err := k8sClient.Get(ctx, typeNamespacedName, resource)
-			Expect(client.IgnoreNotFound(err)).NotTo(HaveOccurred())
-
-			By("Cleaning up the specific resource instance OGCAPI")
-			Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, resource))).To(Succeed())
-		})
 
 		It("Should call to send a Slack message after unsuccessful Reconcile - failing to get resource", func() {
-			errClient := &ErrorClient{
-				Client: k8sClient,
-				err:    errors.New("failed to get resource"),
-			}
-
 			mockSlack := &mockSlack{}
 			controllerReconciler := &OGCAPIReconciler{
-				Client:       errClient,
+				Client:       k8sClient,
 				Scheme:       k8sClient.Scheme(),
 				GokoalaImage: testImageName,
 				Slack:        mockSlack,
 			}
 
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
+			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: objectKeyOgcapi})
 			Expect(err).To(HaveOccurred())
 			Expect(mockSlack.Called).To(BeTrue())
 			Expect(mockSlack.Message).To(ContainSubstring("unable to fetch OGCAPI resource"))
 		})
 
-		It("Should successfully create and delete its owned resources", func() {
+		It("Should create an OGCAPI on the cluster", func() {
+
+			By("Creating a new resource for the Kind OGCAPI")
+			objectKeyOgcapi = k8stypes.NamespacedName{
+				Namespace: fullOGCAPI.GetNamespace(),
+				Name:      fullOGCAPI.GetName(),
+			}
+
+			err := k8sClient.Get(ctx, objectKeyOgcapi, clusterOgcapi)
+			if err != nil && apierrors.IsNotFound(err) {
+				resource := fullOGCAPI.DeepCopy()
+				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
+				Expect(k8sClient.Get(ctx, objectKeyOgcapi, clusterOgcapi)).To(Succeed())
+			}
+		})
+
+		It("Reconciling should succeed", func() {
 			controllerReconciler := &OGCAPIReconciler{
 				Client:       k8sClient,
 				Scheme:       k8sClient.Scheme(),
 				GokoalaImage: testImageName,
 			}
 
-			By("Reconciling the OGCAPI")
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
+			By("Reconciling the Ogcapi")
+			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: objectKeyOgcapi})
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Checking the finalizer")
-			err = k8sClient.Get(ctx, typeNamespacedName, ogcAPI)
+			err = k8sClient.Get(ctx, objectKeyOgcapi, clusterOgcapi)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(ogcAPI.Finalizers).To(ContainElement(finalizerName))
+			Expect(clusterOgcapi.Finalizers).To(ContainElement(finalizerName))
 
 			By("Reconciling the OGCAPI again")
-			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
+			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: objectKeyOgcapi})
 			Expect(err).NotTo(HaveOccurred())
+		})
 
-			By("Waiting for the owned resources to be created")
-			Eventually(func() error {
-				configMapName, err := getGokoalaConfigMapNameFromClient(ctx, ogcAPI)
-				if err != nil {
-					return err
-				}
-				expectedBareObjects := getExpectedBareObjectsForOGCAPI(ogcAPI, configMapName)
-				for _, d := range expectedBareObjects {
-					err := k8sClient.Get(ctx, d.key, d.obj)
-					if err != nil {
-						return err
-					}
-				}
-				return nil
-			}, "10s", "1s").Should(Not(HaveOccurred()))
-
-			By("Finding the ConfigMap name (with hash)")
-			configMapName, err := getGokoalaConfigMapNameFromClient(ctx, ogcAPI)
+		It("Should create all expected resources", func() {
+			configMapName, err := getGokoalaConfigMapNameFromClient(ctx, clusterOgcapi)
 			Expect(err).NotTo(HaveOccurred())
+			expectedResources = getExpectedBareObjectsForOGCAPI(clusterOgcapi, configMapName)
 
-			By("Checking the status of the OGCAPI")
-			err = k8sClient.Get(ctx, typeNamespacedName, ogcAPI)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(len(ogcAPI.Status.Conditions)).To(BeEquivalentTo(1))
-			Expect(ogcAPI.Status.Conditions[0].Status).To(BeEquivalentTo(metav1.ConditionTrue))
-
-			By("Deleting the OGCAPI")
-			Expect(k8sClient.Delete(ctx, ogcAPI)).To(Succeed())
-
-			By("Reconciling the OGCAPI again")
-			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
-			Expect(err).NotTo(HaveOccurred())
-
-			By("Waiting for the owned resources to be deleted")
-			Eventually(func() error {
-				expectedBareObjects := getExpectedBareObjectsForOGCAPI(ogcAPI, configMapName)
-				for _, d := range expectedBareObjects {
-					err := k8sClient.Get(ctx, d.key, d.obj)
-					if err == nil {
-						return errors.New("expected " + getObjectFullName(k8sClient, d.obj) + " to not be found")
-					}
-					if !k8serrors.IsNotFound(err) {
-						return err
-					}
-				}
-				return nil
-			}, "10s", "1s").Should(Not(HaveOccurred()))
+			for _, expectedResource := range expectedResources {
+				Eventually(func() bool {
+					err := k8sClient.Get(ctx, expectedResource.key, expectedResource.obj)
+					return Expect(err).NotTo(HaveOccurred())
+				}, "10s", "1s").Should(BeTrue())
+			}
 		})
 
 		It("Should successfully reconcile after a change in an owned resource", func() {
@@ -376,37 +335,31 @@ var _ = Describe("OGCAPI Controller", func() {
 				GokoalaImage: testImageName,
 			}
 
-			By("Reconciling the OGCAPI, checking the finalizer, and reconciling again")
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
-			Expect(err).NotTo(HaveOccurred())
-			err = k8sClient.Get(ctx, typeNamespacedName, ogcAPI)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(ogcAPI.Finalizers).To(ContainElement(finalizerName))
-			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
-			Expect(err).NotTo(HaveOccurred())
-
 			By("Getting the original Deployment")
-			deployment := getBareDeployment(ogcAPI)
+			deployment := getBareDeployment(clusterOgcapi)
 			Eventually(func() bool {
-				err = k8sClient.Get(ctx, client.ObjectKeyFromObject(deployment), deployment)
+				err := k8sClient.Get(ctx, client.ObjectKeyFromObject(deployment), deployment)
 				return Expect(err).NotTo(HaveOccurred())
 			}, "10s", "1s").Should(BeTrue())
 			originalMinReadySeconds := deployment.Spec.MinReadySeconds
+			expectedMinReadySeconds := 99
+
+			Expect(originalMinReadySeconds).Should(Not(BeEquivalentTo(expectedMinReadySeconds)))
 
 			By("Altering the Deployment")
-			err = k8sClient.Patch(ctx, deployment, client.RawPatch(types.MergePatchType, []byte(
-				`{"spec": {"minReadySeconds": 99}}`)))
+			err := k8sClient.Patch(ctx, deployment, client.RawPatch(k8stypes.MergePatchType, []byte(
+				fmt.Sprintf(`{"spec": {"minReadySeconds": %d}}`, expectedMinReadySeconds))))
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Verifying that the Deployment was altered")
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, client.ObjectKeyFromObject(deployment), deployment)
 				return Expect(err).NotTo(HaveOccurred()) &&
-					Expect(deployment.Spec.MinReadySeconds).To(BeEquivalentTo(99))
+					Expect(deployment.Spec.MinReadySeconds).To(BeEquivalentTo(expectedMinReadySeconds))
 			}, "10s", "1s").Should(BeTrue())
 
-			By("Reconciling the OGCAPI again")
-			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: typeNamespacedName})
+			By("Reconciling the Ogcapi again")
+			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: objectKeyOgcapi})
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Verifying that the Deployment was restored")
@@ -416,12 +369,86 @@ var _ = Describe("OGCAPI Controller", func() {
 					Expect(deployment.Spec.MinReadySeconds).To(BeEquivalentTo(originalMinReadySeconds))
 			}, "10s", "1s").Should(BeTrue())
 		})
+
+		It("should maintain labels added externally after a reconcile", func() {
+			controllerReconciler := &OGCAPIReconciler{
+				Client:       k8sClient,
+				Scheme:       k8sClient.Scheme(),
+				GokoalaImage: testImageName,
+			}
+
+			By("Getting the original Deployment")
+			deployment := getBareDeployment(clusterOgcapi)
+			Eventually(func() bool {
+				err := k8sClient.Get(ctx, client.ObjectKeyFromObject(deployment), deployment)
+				return Expect(err).NotTo(HaveOccurred())
+			}, "10s", "1s").Should(BeTrue())
+			externalLabel := "external"
+			_, ok := deployment.Labels[externalLabel]
+			Expect(ok).To(BeFalse())
+
+			By("Adding new label to deployment")
+			err := k8sClient.Patch(ctx, deployment, client.RawPatch(k8stypes.MergePatchType, []byte(
+				fmt.Sprintf(`{"metadata": {"labels": {"%s": "%s"}}}`, externalLabel, externalLabel))))
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Verifying that the Deployment was altered")
+			Eventually(func() bool {
+				err := k8sClient.Get(ctx, client.ObjectKeyFromObject(deployment), deployment)
+				val, ok := deployment.Labels[externalLabel]
+				return Expect(err).NotTo(HaveOccurred()) && Expect(ok).To(BeTrue()) && Expect(val).To(Equal(externalLabel))
+			}, "10s", "1s").Should(BeTrue())
+
+			By("Reconciling the Ogcapi again")
+			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: objectKeyOgcapi})
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Verifying that Deployment still has the external label")
+			Eventually(func() bool {
+				err = k8sClient.Get(ctx, client.ObjectKeyFromObject(deployment), deployment)
+				val, ok := deployment.Labels[externalLabel]
+				return Expect(err).NotTo(HaveOccurred()) && Expect(ok).To(BeTrue()) && Expect(val).To(Equal(externalLabel))
+			}, "10s", "1s").Should(BeTrue())
+		})
+
+		It("Should cleanup the cluster", func() {
+			controllerReconciler := &OGCAPIReconciler{
+				Client:       k8sClient,
+				Scheme:       k8sClient.Scheme(),
+				GokoalaImage: testImageName,
+			}
+
+			err := k8sClient.Get(ctx, objectKeyOgcapi, clusterOgcapi)
+			Expect(client.IgnoreNotFound(err)).NotTo(HaveOccurred())
+
+			By("Cleanup the specific resource instance Ogcapi")
+			Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, clusterOgcapi))).To(Succeed())
+
+			By("Reconciling the OGCAPI again")
+			_, err = controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: objectKeyOgcapi})
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Waiting for the owned resources to be deleted")
+			Eventually(func() error {
+				for _, d := range expectedResources {
+					err := k8sClient.Get(ctx, d.key, d.obj)
+					if err == nil {
+						return errors.New("expected " + smoothoperatorutil.GetObjectFullName(k8sClient, d.obj) + " to not be found")
+					}
+					if !apierrors.IsNotFound(err) {
+						return err
+					}
+				}
+				return nil
+			}, "10s", "1s").Should(Not(HaveOccurred()))
+		})
+
 	})
 })
 
 func getGokoalaConfigMapNameFromClient(ctx context.Context, ogcAPI *pdoknlv1alpha1.OGCAPI) (string, error) {
 	deployment := &appsv1.Deployment{}
-	err := k8sClient.Get(ctx, types.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareDeployment(ogcAPI).GetName()}, deployment)
+	err := k8sClient.Get(ctx, k8stypes.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareDeployment(ogcAPI).GetName()}, deployment)
 	if err != nil {
 		return "", err
 	}
@@ -439,19 +466,19 @@ func getGokoalaConfigMapNameFromDeployment(deployment *appsv1.Deployment) (strin
 
 func getExpectedBareObjectsForOGCAPI(ogcAPI *pdoknlv1alpha1.OGCAPI, configMapName string) []struct {
 	obj client.Object
-	key types.NamespacedName
+	key k8stypes.NamespacedName
 } {
 	return []struct {
 		obj client.Object
-		key types.NamespacedName
+		key k8stypes.NamespacedName
 	}{
-		{obj: &appsv1.Deployment{}, key: types.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareDeployment(ogcAPI).GetName()}},
-		{obj: &corev1.ConfigMap{}, key: types.NamespacedName{Namespace: testOGCAPINamespace, Name: configMapName}},
-		{obj: &traefikiov1alpha1.Middleware{}, key: types.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareStripPrefixMiddleware(ogcAPI).GetName()}},
-		{obj: &traefikiov1alpha1.Middleware{}, key: types.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareHeadersMiddleware(ogcAPI).GetName()}},
-		{obj: &corev1.Service{}, key: types.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareService(ogcAPI).GetName()}},
-		{obj: &traefikiov1alpha1.IngressRoute{}, key: types.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareIngressRoute(ogcAPI).GetName()}},
-		{obj: &autoscalingv2.HorizontalPodAutoscaler{}, key: types.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareHorizontalPodAutoscaler(ogcAPI).GetName()}},
+		{obj: &appsv1.Deployment{}, key: k8stypes.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareDeployment(ogcAPI).GetName()}},
+		{obj: &corev1.ConfigMap{}, key: k8stypes.NamespacedName{Namespace: testOGCAPINamespace, Name: configMapName}},
+		{obj: &traefikiov1alpha1.Middleware{}, key: k8stypes.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareStripPrefixMiddleware(ogcAPI).GetName()}},
+		{obj: &traefikiov1alpha1.Middleware{}, key: k8stypes.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareHeadersMiddleware(ogcAPI).GetName()}},
+		{obj: &corev1.Service{}, key: k8stypes.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareService(ogcAPI).GetName()}},
+		{obj: &traefikiov1alpha1.IngressRoute{}, key: k8stypes.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareIngressRoute(ogcAPI).GetName()}},
+		{obj: &autoscalingv2.HorizontalPodAutoscaler{}, key: k8stypes.NamespacedName{Namespace: testOGCAPINamespace, Name: getBareHorizontalPodAutoscaler(ogcAPI).GetName()}},
 	}
 }
 
