@@ -1868,12 +1868,15 @@ spec:
                                       type: array
                                   type: object
                                 filters:
-                                  description: Filters available for this collection
+                                  description: |-
+                                    Filters available for this collection, both simple equality filters
+                                    (OAF part 1) and advanced CQL filters (OAF part 3) are supported.
                                   properties:
                                     cql:
                                       description: |-
                                         OAF Part 3: enhanced filtering capabilities expressed using "Common Query Language" (CQL2)
-                                        https://docs.ogc.org/is/19-079r2/19-079r2.html
+                                        https://docs.ogc.org/is/19-079r2/19-079r2.html. To be used in conjunction with the properties/queryables
+                                        listed above.
                                       properties:
                                         enable:
                                           default: false
@@ -1941,9 +1944,16 @@ spec:
                                       type: object
                                     properties:
                                       description: |-
-                                        OAF Part 1: filter on feature properties
-                                        https://docs.ogc.org/is/17-069r4/17-069r4.html#_parameters_for_filtering_on_feature_properties
+                                        List of properties in each feature that can be used for filtering. These properties
+                                        are also known as "queryables" since they can be used in a filter to query the API.
+
+                                        Each property will be available as a simple property filter (OAF Part 1,
+                                        see https://docs.ogc.org/is/17-069r4/17-069r4.html#_parameters_for_filtering_on_feature_properties)
+                                        but can also be used in advanced CQL filters (OAF part 3. The latter requires CQL to be enabled.
                                       items:
+                                        description: |-
+                                          Queryable a "queryable" represents a property/field of a datasource that can
+                                          be used in a filter (part 1 filter or part 3 CQL filter).
                                         properties:
                                           allowedValues:
                                             description: Static list of allowed values
@@ -1957,22 +1967,28 @@ spec:
                                             default: false
                                             description: |-
                                               Derive a list of allowed values for this property filter from the corresponding column in the datastore.
-                                              Use with caution since it can increase startup time when used on large tables. Make sure an index in present.
+                                              Use with caution since it can increase startup time when used on large tables. Make sure an index is present.
+
+                                              The allowed values will be enforced though the OpenAPI spec. So be aware that the user will receive an
+                                              error (not an empty result set) when an invalid value is provided.
                                             type: boolean
                                           description:
                                             default: Filter features by this property
-                                            description: Explains this property filter
+                                            description: |-
+                                              Explains this property. When a description for this field already exists in the
+                                              schema of the datasource, that one takes precedence.
                                             type: string
                                           indexRequired:
                                             default: true
                                             description: |-
-                                              When true the property/column in the feature table needs to be indexed. Initialization will fail
-                                              when no index is present, when false the index check is skipped. For large tables an index is recommended!
+                                              When true, the property/column in the feature table needs to be indexed. Initialization will fail
+                                              when no index is present. When false, the index check is skipped. For large tables an index is recommended.
+                                              On the other hand, avoid indexing (almost) every column in a table since that defeats the purpose of an index!
                                             type: boolean
                                           name:
                                             description: Needs to match with a column
                                               name in the feature table (in the configured
-                                              datasource)
+                                              datasource).
                                             type: string
                                         required:
                                         - name
