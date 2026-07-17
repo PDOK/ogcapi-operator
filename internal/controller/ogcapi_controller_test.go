@@ -172,7 +172,7 @@ var _ = Describe("OGCAPI Controller", func() {
 			Spec: pdoknlv1alpha1.OGCAPISpec{
 				Service: *minimalOGCAPI.Spec.Service.DeepCopy(),
 			},
-			VolumeOperatorSpec: pdoknlv1alpha1.VolumeOperatorSpec{
+			VolumeOperatorSpec: &pdoknlv1alpha1.VolumeOperatorSpec{
 				BlobPrefix: "test/prefix",
 			},
 		}

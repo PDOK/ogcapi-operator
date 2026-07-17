@@ -106,7 +106,7 @@ type OGCAPI struct {
 	Status smoothoperatormodel.OperatorStatus `json:"status,omitempty"`
 
 	// +optional
-	VolumeOperatorSpec VolumeOperatorSpec `json:"volumeOperatorSpec,omitempty"`
+	VolumeOperatorSpec *VolumeOperatorSpec `json:"volumeOperatorSpec,omitempty"`
 }
 
 func (ogcapi *OGCAPI) OperatorStatus() *smoothoperatormodel.OperatorStatus {
