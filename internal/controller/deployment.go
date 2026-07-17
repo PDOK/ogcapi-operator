@@ -126,7 +126,7 @@ func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deplo
 	deployment.Spec.Template = podTemplateSpec
 
 	// set annotations for optional volume-operator, volume operator requires blob-prefix to be set
-	if ogcAPI.VolumeOperatorSpec.BlobPrefix != "" {
+	if ogcAPI.VolumeOperatorSpec != nil && ogcAPI.VolumeOperatorSpec.BlobPrefix != "" {
 		deployment = addVolumePopulatorToDeployment(deployment, ogcAPI)
 	}
 
