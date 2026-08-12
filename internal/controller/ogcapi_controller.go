@@ -28,6 +28,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -73,6 +74,8 @@ const (
 	priorityAnnotation  = "priority.version-checker.io"
 
 	volumeMountPath = "/data"
+
+	requeueInterval = time.Second
 )
 
 var (
@@ -127,8 +130,12 @@ func (r *OGCAPIReconciler) Reconcile(ctx context.Context, req controllerruntime.
 		lgr.Info("deleting resources", "name", fullName)
 		return r.deleteAll(ctx, ogcAPI)
 	})
-	if !shouldContinue || err != nil {
+	if err != nil {
+		r.logAndUpdateStatusError(ctx, ogcAPI, err)
 		return result, err
+	}
+	if !shouldContinue {
+		return controllerruntime.Result{RequeueAfter: requeueInterval}, nil
 	}
 
 	operationResults, err := r.createOrUpdate(ctx, ogcAPI)
