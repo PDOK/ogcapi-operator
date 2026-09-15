@@ -1879,7 +1879,7 @@ spec:
                                         listed above.
                                       properties:
                                         enable:
-                                          default: false
+                                          default: true
                                           description: |-
                                             Allow filtering using boolean operators (AND, OR, NOT) and simple comparison predicates (=, <>, <, >, <=, >=).
 
