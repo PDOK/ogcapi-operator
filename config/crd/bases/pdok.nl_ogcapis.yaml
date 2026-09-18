@@ -4752,6 +4752,35 @@ spec:
                 - title
                 - version
                 type: object
+              volumeOperatorSpec:
+                description: VolumeOperatorSpec defines the way the volumes are managed
+                properties:
+                  blobDownloadOptions:
+                    properties:
+                      blobConcurrency:
+                        default: 5
+                        type: integer
+                      blockSize:
+                        default: 4194304
+                        type: integer
+                    type: object
+                  blobPrefix:
+                    description: The prefix to use for the blob storage container
+                      (the location of the data)
+                    type: string
+                  storageCapacity:
+                    default: 1Gi
+                    description: 'The storage capacity to request for the volumes
+                      created by the volume operator, min: 1Gi'
+                    type: string
+                  storageClass:
+                    default: managed-premium
+                    description: The storage class to use for the volumes created
+                      by the volume operator, defaults to managed-premium
+                    type: string
+                required:
+                - blobPrefix
+                type: object
             required:
             - service
             type: object
@@ -4855,7 +4884,10 @@ spec:
                 type: array
             type: object
           volumeOperatorSpec:
-            description: VolumeOperatorSpec defines the way the volumes are managed
+            description: |-
+              Deprecated: use spec.volumeOperatorSpec instead. Kept for backward compatibility; when both are
+              set, spec.volumeOperatorSpec takes precedence. This field is auto-copied into
+              spec.volumeOperatorSpec (via GetVolumeOperatorSpec) when only this one is set.
             properties:
               blobDownloadOptions:
                 properties:

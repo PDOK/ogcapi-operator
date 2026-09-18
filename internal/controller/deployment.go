@@ -126,8 +126,9 @@ func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deplo
 	deployment.Spec.Template = podTemplateSpec
 
 	// set annotations for optional volume-operator, volume operator requires blob-prefix to be set
-	if ogcAPI.VolumeOperatorSpec != nil && ogcAPI.VolumeOperatorSpec.BlobPrefix != "" {
-		deployment = addVolumePopulatorToDeployment(deployment, ogcAPI)
+	volumeOperatorSpec := ogcAPI.GetVolumeOperatorSpec()
+	if volumeOperatorSpec != nil && volumeOperatorSpec.BlobPrefix != "" {
+		deployment = addVolumePopulatorToDeployment(deployment, volumeOperatorSpec)
 	}
 
 	if err := smoothoperatorutil.EnsureSetGVK(r.Client, deployment, deployment); err != nil {
@@ -136,18 +137,18 @@ func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deplo
 	return controllerruntime.SetControllerReference(ogcAPI, deployment, r.Scheme)
 }
 
-func addVolumePopulatorToDeployment(deployment *appsv1.Deployment, ogcAPI *pdoknlv1alpha1.OGCAPI) *appsv1.Deployment {
+func addVolumePopulatorToDeployment(deployment *appsv1.Deployment, volumeOperatorSpec *pdoknlv1alpha1.VolumeOperatorSpec) *appsv1.Deployment {
 	hash := smoothoperatorutil.GenerateHashFromStrings([]string{
-		ogcAPI.VolumeOperatorSpec.BlobPrefix,
+		volumeOperatorSpec.BlobPrefix,
 		volumeMountPath,
-		ogcAPI.VolumeOperatorSpec.StorageCapacity,
+		volumeOperatorSpec.StorageCapacity,
 	})
 	deployment.Annotations = smoothoperatorutil.CloneOrEmptyMap(deployment.Annotations)
-	deployment.Annotations["volume-operator.pdok.nl/blob-prefix"] = ogcAPI.VolumeOperatorSpec.BlobPrefix
+	deployment.Annotations["volume-operator.pdok.nl/blob-prefix"] = volumeOperatorSpec.BlobPrefix
 	deployment.Annotations["volume-operator.pdok.nl/volume-path"] = volumeMountPath
-	deployment.Annotations["volume-operator.pdok.nl/storage-class"] = ogcAPI.VolumeOperatorSpec.StorageClass
+	deployment.Annotations["volume-operator.pdok.nl/storage-class"] = volumeOperatorSpec.StorageClass
 	deployment.Annotations["volume-operator.pdok.nl/resource-suffix"] = hash
-	deployment.Annotations["volume-operator.pdok.nl/storage-capacity"] = ogcAPI.VolumeOperatorSpec.StorageCapacity
+	deployment.Annotations["volume-operator.pdok.nl/storage-capacity"] = volumeOperatorSpec.StorageCapacity
 
 	volume := corev1.Volume{
 		Name: gokoalaName + "-clone",
@@ -158,10 +159,10 @@ func addVolumePopulatorToDeployment(deployment *appsv1.Deployment, ogcAPI *pdokn
 						AccessModes: []corev1.PersistentVolumeAccessMode{
 							corev1.ReadWriteOnce,
 						},
-						StorageClassName: &ogcAPI.VolumeOperatorSpec.StorageClass,
+						StorageClassName: &volumeOperatorSpec.StorageClass,
 						Resources: corev1.VolumeResourceRequirements{
 							Requests: corev1.ResourceList{
-								corev1.ResourceStorage: resource.MustParse(ogcAPI.VolumeOperatorSpec.StorageCapacity),
+								corev1.ResourceStorage: resource.MustParse(volumeOperatorSpec.StorageCapacity),
 							},
 						},
 						DataSource: &corev1.TypedLocalObjectReference{

@@ -60,6 +60,9 @@ type OGCAPISpec struct {
 	// Optional list of URLs where the service can be reached
 	// By default only the spec.service.baseUrl is used
 	IngressRouteURLs smoothoperatormodel.IngressRouteURLs `json:"ingressRouteUrls,omitempty"`
+
+	// +optional
+	VolumeOperatorSpec *VolumeOperatorSpec `json:"volumeOperatorSpec,omitempty"`
 }
 
 // +kubebuilder:object:generate=true
@@ -105,8 +108,22 @@ type OGCAPI struct {
 	Spec   OGCAPISpec                         `json:"spec,omitempty"`
 	Status smoothoperatormodel.OperatorStatus `json:"status,omitempty"`
 
+	// Deprecated: use spec.volumeOperatorSpec instead. Kept for backward compatibility; when both are
+	// set, spec.volumeOperatorSpec takes precedence. This field is auto-copied into
+	// spec.volumeOperatorSpec (via GetVolumeOperatorSpec) when only this one is set.
 	// +optional
 	VolumeOperatorSpec *VolumeOperatorSpec `json:"volumeOperatorSpec,omitempty"`
+}
+
+// GetVolumeOperatorSpec returns the effective VolumeOperatorSpec for this OGCAPI.
+// spec.volumeOperatorSpec takes precedence over the deprecated top-level volumeOperatorSpec;
+// if only the deprecated top-level field is set, it is used as a fallback.
+func (ogcapi *OGCAPI) GetVolumeOperatorSpec() *VolumeOperatorSpec {
+	if ogcapi.Spec.VolumeOperatorSpec != nil {
+		return ogcapi.Spec.VolumeOperatorSpec
+	}
+
+	return ogcapi.VolumeOperatorSpec
 }
 
 func (ogcapi *OGCAPI) OperatorStatus() *smoothoperatormodel.OperatorStatus {
