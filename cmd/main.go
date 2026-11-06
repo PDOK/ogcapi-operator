@@ -30,6 +30,7 @@ import (
 	"os"
 
 	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
+	"github.com/pdok/smooth-operator/pkg/reloader"
 
 	"github.com/peterbourgon/ff"
 
@@ -96,6 +97,7 @@ func main() {
 	flag.StringVar(&certDir, "cert-dir", "", "CertDir contains the webhook server key and certificate. Defaults to <temp-dir>/k8s-webhook-server/serving-certs.")
 	flag.StringVar(&csp, "csp", "", "Content-Security-Policy to serve as a HTTP header")
 	flag.StringVar(&slackURL, "slack-url", "", "Slack Webhook URL that will be used to send Slack message")
+	reloader.BindFlag(flag.CommandLine)
 
 	opts := zap.Options{
 		Development: true,

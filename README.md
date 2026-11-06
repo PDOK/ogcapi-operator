@@ -72,6 +72,8 @@ OPTIONS:
         The address the metric endpoint binds to. (default ":8080")
   --metrics-secure
         If set the metrics endpoint is served securely
+  --set-reloader-annotations
+        When enabled Deployments get the reloader.stakater.com/auto annotation that is used by Stakater Reloader.
   --zap-devel
         Development Mode defaults(encoder=consoleEncoder,logLevel=Debug,stackTraceLevel=Warn). Production Mode defaults(encoder=jsonEncoder,logLevel=Info,stackTraceLevel=Error) (default true)
   --zap-encoder value
