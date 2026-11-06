@@ -35,6 +35,7 @@ import (
 	"github.com/PDOK/ogcapi-operator/internal/integrations/slack"
 	"github.com/google/go-cmp/cmp"
 	smoothoperatormodel "github.com/pdok/smooth-operator/model"
+	"github.com/pdok/smooth-operator/pkg/reloader"
 	smoothoperatorutil "github.com/pdok/smooth-operator/pkg/util"
 	policyv1 "k8s.io/api/policy/v1"
 	"sigs.k8s.io/yaml"
@@ -325,6 +326,33 @@ var _ = Describe("OGCAPI Controller", func() {
 					err := k8sClient.Get(ctx, expectedResource.key, expectedResource.obj)
 					return Expect(err).NotTo(HaveOccurred())
 				}, "10s", "1s").Should(BeTrue())
+			}
+		})
+
+		It("Should set or remove the Deployment Reloader annotation according to the flag", func() {
+			originalEnabled := reloader.IsEnabled()
+			DeferCleanup(func() {
+				reloader.SetReloaderAnnotations(originalEnabled)
+			})
+			controllerReconciler := &OGCAPIReconciler{
+				Client:       k8sClient,
+				Scheme:       k8sClient.Scheme(),
+				GokoalaImage: testImageName,
+			}
+
+			for _, enabled := range []bool{false, true, false} {
+				By(fmt.Sprintf("Reconciling with Reloader annotations enabled: %t", enabled))
+				reloader.SetReloaderAnnotations(enabled)
+				_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: objectKeyOgcapi})
+				Expect(err).NotTo(HaveOccurred())
+
+				deployment := getBareDeployment(clusterOgcapi)
+				Expect(k8sClient.Get(ctx, client.ObjectKeyFromObject(deployment), deployment)).To(Succeed())
+				if enabled {
+					Expect(deployment.Annotations).To(HaveKeyWithValue(reloader.AutoAnnotation, reloader.AutoAnnotationValue))
+				} else {
+					Expect(deployment.Annotations).NotTo(HaveKey(reloader.AutoAnnotation))
+				}
 			}
 		})
 

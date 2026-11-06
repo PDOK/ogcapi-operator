@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	pdoknlv1alpha1 "github.com/PDOK/ogcapi-operator/api/v1alpha1"
+	"github.com/pdok/smooth-operator/pkg/reloader"
 	smoothoperatorutil "github.com/pdok/smooth-operator/pkg/util"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -26,6 +27,7 @@ func getBareDeployment(ogcAPI metav1.Object) *appsv1.Deployment {
 //nolint:funlen
 func (r *OGCAPIReconciler) mutateDeployment(ogcAPI *pdoknlv1alpha1.OGCAPI, deployment *appsv1.Deployment, configMapName string) error {
 	deployment.Labels = getObjectLabels(ogcAPI, deployment.Labels)
+	reloader.SetAnnotation(deployment)
 
 	podTemplateAnnotations := smoothoperatorutil.CloneOrEmptyMap(deployment.Spec.Template.GetAnnotations())
 	podTemplateAnnotations[priorityAnnotation+"/"+gokoalaName] = "4"
