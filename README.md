@@ -46,6 +46,16 @@ or
 docker build -t pdok/ogcapi-operator .
 ```
 
+### Setup in the cluster
+
+This depends on your own way of maintaining your cluster config.
+Inspiration can be found in the [config](./config) dir
+which holds "kustomizations" to use with Kustomize.
+You could use `make install` for this.
+Please refer to the general documentation in the [kubebuilder book](https://kubebuilder.io) for more info.
+
+## Command-line flags
+
 ```text
 USAGE:
    <ogcapi-controller-manager> [OPTIONS]
@@ -72,8 +82,10 @@ OPTIONS:
         The address the metric endpoint binds to. (default ":8080")
   --metrics-secure
         If set the metrics endpoint is served securely
-  --set-reloader-annotations
-        When enabled Deployments get the reloader.stakater.com/auto annotation that is used by Stakater Reloader.
+  --set-reloader-annotations=auto|search|true|false
+        Set the Stakater Reloader annotation on Deployments. Defaults to false (disabled).
+        The bare flag, true, and auto set reloader.stakater.com/auto=true; search sets reloader.stakater.com/search=true. Switching modes removes the other annotation.
+        search requires reloader.stakater.com/match=true on the referenced ConfigMaps or Secrets.
   --zap-devel
         Development Mode defaults(encoder=consoleEncoder,logLevel=Debug,stackTraceLevel=Warn). Production Mode defaults(encoder=jsonEncoder,logLevel=Info,stackTraceLevel=Error) (default true)
   --zap-encoder value
@@ -87,14 +99,6 @@ OPTIONS:
         
 OPTIONS can also be set via environment variables (with SCREAMING_SNAKE_CASE instead of kebab-case). CLI flags have precedence. 
 ```
-
-### Setup in the cluster
-
-This depends on your own way of maintaining your cluster config.
-Inspiration can be found in the [config](./config) dir
-which holds "kustomizations" to use with Kustomize.
-You could use `make install` for this.
-Please refer to the general documentation in the [kubebuilder book](https://kubebuilder.io) for more info.
 
 ## Develop
 
