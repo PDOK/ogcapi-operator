@@ -27,6 +27,7 @@ package controller
 import (
 	"context"
 	"errors"
+	"flag"
 	"fmt"
 	"net/url"
 	"os"
@@ -334,24 +335,32 @@ var _ = Describe("OGCAPI Controller", func() {
 			DeferCleanup(func() {
 				reloader.SetReloaderAnnotations(originalEnabled)
 			})
+			flags := flag.NewFlagSet("reloader", flag.ContinueOnError)
+			reloader.BindFlag(flags)
 			controllerReconciler := &OGCAPIReconciler{
 				Client:       k8sClient,
 				Scheme:       k8sClient.Scheme(),
 				GokoalaImage: testImageName,
 			}
 
-			for _, enabled := range []bool{false, true, false} {
-				By(fmt.Sprintf("Reconciling with Reloader annotations enabled: %t", enabled))
-				reloader.SetReloaderAnnotations(enabled)
+			const legacyAutoMode = "true"
+			for _, mode := range []string{"false", legacyAutoMode, "search", "auto", "false"} {
+				By("Reconciling with Reloader annotation mode: " + mode)
+				Expect(flags.Parse([]string{"--" + reloader.FlagName + "=" + mode})).To(Succeed())
 				_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{NamespacedName: objectKeyOgcapi})
 				Expect(err).NotTo(HaveOccurred())
 
 				deployment := getBareDeployment(clusterOgcapi)
 				Expect(k8sClient.Get(ctx, client.ObjectKeyFromObject(deployment), deployment)).To(Succeed())
-				if enabled {
+				if mode == legacyAutoMode || mode == "auto" {
 					Expect(deployment.Annotations).To(HaveKeyWithValue(reloader.AutoAnnotation, reloader.AutoAnnotationValue))
 				} else {
 					Expect(deployment.Annotations).NotTo(HaveKey(reloader.AutoAnnotation))
+				}
+				if mode == "search" {
+					Expect(deployment.Annotations).To(HaveKeyWithValue(reloader.SearchAnnotation, reloader.SearchAnnotationValue))
+				} else {
+					Expect(deployment.Annotations).NotTo(HaveKey(reloader.SearchAnnotation))
 				}
 			}
 		})
